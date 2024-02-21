@@ -24,42 +24,6 @@ from typing_extensions import Self
 
 
 class IterableVideo:
-    """
-    Iterable version of cv2.VideoCapture with extras.
-
-    Parameters
-    ----------
-    filename : Path
-        Path to the video file.
-    thread_loads : bool
-        If True, the frames will be loaded in a separate thread.
-        This can help speedup iteration times.
-
-    Attributes
-    ----------
-    frame : numpy.ndarray
-        The current frame.
-    frame_num : int
-        The current frame number.
-    success : bool
-        True if the frame was successfully loaded.
-    length : int
-        The number of frames in the video.
-    fps : float
-        The frames per second of the video.
-    size : tuple
-        The width and height of the video.
-
-    Methods
-    -------
-    __len__
-    __iter__
-    __next__
-    read
-        Gets the next frame and status from the video.
-
-    """
-
     def __init__(
         self: Self,
         filename: Path | str,
