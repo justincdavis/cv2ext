@@ -14,7 +14,7 @@ import cv2tools
 project = 'cv2tools'
 copyright = '2024, Justin Davis'
 author = 'Justin Davis'
-version = '0.0.0'
+version = '0.0.1'
 
 assert version == cv2tools.__version__
 

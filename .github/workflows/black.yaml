@@ -17,4 +17,4 @@ jobs:
         run: pip install black
 
       - name: Run black check
-        run: black --check src/shiftdetector
+        run: black --check src/cv2tools

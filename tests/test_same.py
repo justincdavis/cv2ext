@@ -1,12 +1,11 @@
 import numpy as np
-from tqdm import tqdm
+from pytube import YouTube
 from cv2tools import IterableVideo
 
 
 VID_LINK = "https://www.youtube.com/watch?v=-DRSruRMZ8o"
 
 def download_youtube_video(url, output_file):
-    from pytube import YouTube
     try:
         # Create a YouTube object with the video URL
         yt = YouTube(url)

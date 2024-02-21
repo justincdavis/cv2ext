@@ -62,6 +62,6 @@ _log = logging.getLogger(__name__)
 from ._iterablevideo import IterableVideo
 
 __all__ = ["IterableVideo"]
-__version__ = "0.0.0"
+__version__ = "0.0.1"
 
 _log.info(f"Initialized cv2tools with version {__version__}")
