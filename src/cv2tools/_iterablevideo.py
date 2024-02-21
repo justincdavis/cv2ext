@@ -13,8 +13,10 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
+import contextlib
 from pathlib import Path
-from threading import Condition, Lock, Thread
+from queue import Empty, Full, Queue
+from threading import Condition, Thread
 
 import cv2  # type: ignore[import-untyped]
 import numpy as np
@@ -62,6 +64,7 @@ class IterableVideo:
         self: Self,
         filename: Path | str,
         channels: int = 3,
+        buffersize: int = 8,
         *,
         use_thread: bool = False,
     ) -> None:
@@ -77,6 +80,10 @@ class IterableVideo:
             This defaults to 3, and is used to pre-allocate a frame,
             such that the first frame is not empty.
             Use 1 for grayscale videos.
+        buffersize : int
+            The size of the buffer for the thread.
+            This is only used if `use_thread` is True.
+            Defaults to 8.
         use_thread : bool
             If True, the frames will be loaded in a separate thread.
             This can help speedup iteration times.
@@ -92,6 +99,7 @@ class IterableVideo:
         self._width = int(self._cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         self._height = int(self._cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self._channels = channels
+        self._buffersize = buffersize
         self._frame: np.ndarray = np.zeros(
             (self._height, self._width, self._channels),
             dtype=np.uint8,
@@ -101,19 +109,25 @@ class IterableVideo:
         self._thread_loads = use_thread
         if self._thread_loads:
             self._thread = Thread(target=self._run)
-            self._frame_lock = Lock()
             self._condition = Condition()
+            self._queue: Queue[tuple[int, np.ndarray]] = Queue(maxsize=self._buffersize)
             self._closed = False
             self._thread.start()
 
     def _run(self: Self) -> None:
         """Read the VideoCapture object."""
         while not self._closed:
-            with self._frame_lock:
-                if self._frame_num == self._length:
-                    return
-                self._got, self._frame = self._cap.read()
-                self._frame_num += 1
+            if self._frame_num == self._length:
+                return
+            self._got, self._frame = self._cap.read()
+            if not self._got:
+                return
+            self._frame_num += 1
+            while not self._closed:
+                with contextlib.suppress(Full):
+                    self._queue.put((self._frame_num, self._frame), timeout=0.1)
+            if self._closed:
+                return
             with self._condition:
                 self._condition.wait()
 
@@ -283,17 +297,17 @@ class IterableVideo:
         """
         if not self._thread_loads:
             self._got, self._frame = self._cap.read()
+            num = self._frame_num
             self._frame_num += 1
             if not self._got:
                 self._stop()
                 raise StopIteration
-            return self._frame_num, self._frame
+            return num, self._frame
         # otherwise use threading
-        with self._frame_lock:
-            if not self._got:
-                self._stop()
-                raise StopIteration
-            num, frame = self._frame_num, self._frame
+        if not self._got:
+            self._stop()
+            raise StopIteration
+        num, frame = self._queue.get()
         with self._condition:
             self._condition.notify()
         return num, frame
@@ -314,5 +328,12 @@ class IterableVideo:
             self._got, self._frame = self._cap.read()
             self._frame_num += 1
             return self._got, self._frame
-        with self._frame_lock:
-            return self._got, self._frame
+        try:
+            _, frame = self._queue.get(timeout=0.1)
+        except Empty:
+            return False, np.zeros(
+                (self._height, self._width, self._channels),
+                dtype=np.uint8,
+            )
+        else:
+            return True, frame

@@ -1,24 +1,10 @@
 import numpy as np
-from pytube import YouTube
 from cv2tools import IterableVideo
 
-
-VID_LINK = "https://www.youtube.com/watch?v=-DRSruRMZ8o"
-
-def download_youtube_video(url, output_file):
-    try:
-        # Create a YouTube object with the video URL
-        yt = YouTube(url)
-        # Get the highest resolution stream available
-        stream = yt.streams.get_highest_resolution()
-        # Download the video to the specified output file
-        stream.download(output_path="", filename=output_file)
-    except Exception as e:
-        # If an exception occurs during the process, print the exception message
-        print("An error occurred:", str(e))
+from _utils import VID_LINK, download_youtube_video
 
 
-def test_video_read():
+def test_video_same():
     download_youtube_video(VID_LINK, "video.mp4")
 
     # get video from dump dir
