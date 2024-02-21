@@ -1,10 +1,10 @@
-cv2tools package
+cv2ext package
 ================
 
 Module contents
 ---------------
 
-.. automodule:: cv2tools
+.. automodule:: cv2ext
    :members:
    :undoc-members:
    :show-inheritance:

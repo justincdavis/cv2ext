@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "cv2tools"
+name = "cv2ext"
 version = "0.0.1"
 authors = [
   {name="Justin Davis", email="davisjustin302@gmail.com"},
@@ -42,8 +42,8 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/justincdavis/cv2tools"
-"Bug Tracker" = "https://github.com/justincdavis/cv2tools/issues"
+"Homepage" = "https://github.com/justincdavis/cv2ext"
+"Bug Tracker" = "https://github.com/justincdavis/cv2ext/issues"
 
 [project.optional-dependencies]
 ci = [
@@ -64,9 +64,9 @@ docs = [
     "myst_parser>=1.0.0",
 ]
 dev = [
-    "cv2tools[ci]",
-    "cv2tools[test]",
-    "cv2tools[docs]",
+    "cv2ext[ci]",
+    "cv2ext[test]",
+    "cv2ext[docs]",
     "twine>=4.0.0",
     "wheel>=0.37.0",
     "bumpver>=2023.1126",
@@ -84,7 +84,7 @@ push            = false
 
 [tool.bumpver.file_patterns]
 "pyproject.toml" = ['current_version = "{version}"', 'version = "{version}"']
-"src/cv2tools/__init__.py" = ["{version}"]
+"src/cv2ext/__init__.py" = ["{version}"]
 "docs/conf.py" = ["{version}"]
 
 [tool.setuptools.packages.find]

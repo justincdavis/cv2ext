@@ -22,4 +22,4 @@ jobs:
 
       - name: Run MyPy check
         run: 
-          python3 -m mypy src/cv2tools --config-file=pyproject.toml
+          python3 -m mypy src/cv2ext --config-file=pyproject.toml

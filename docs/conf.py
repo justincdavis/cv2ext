@@ -6,17 +6,17 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join("..", "src")))
-import cv2tools
+import cv2ext
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'cv2tools'
+project = 'cv2ext'
 copyright = '2024, Justin Davis'
 author = 'Justin Davis'
 version = '0.0.1'
 
-assert version == cv2tools.__version__
+assert version == cv2ext.__version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

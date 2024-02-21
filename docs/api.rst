@@ -1,5 +1,5 @@
 .. toctree::
     :maxdepth: 2
 
-    source/cv2tools
+    source/cv2ext
     source/modules

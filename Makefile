@@ -23,8 +23,8 @@ clean:
 	rm -rf build
 	rm -rf dist
 	rm -rf *.egg-info
-	rm -rf cv2tools/*.egg-info
-	rm -rf src/cv2tools/*.egg-info
+	rm -rf cv2ext/*.egg-info
+	rm -rf src/cv2ext/*.egg-info
 	pyclean .
 	rm -rf .mypy_cache
 	rm -rf .ruff_cache
@@ -32,13 +32,13 @@ clean:
 docs:
 	python3 ci/build_example_docs.py
 	rm -rf docs/source/*
-	sphinx-apidoc -o docs/source/ src/cv2tools/
+	sphinx-apidoc -o docs/source/ src/cv2ext/
 	cd docs && make html
 
 ci: pyupgrade ruff mypy isort black
 
 mypy:
-	python3 -m mypy src/cv2tools --config-file=pyproject.toml
+	python3 -m mypy src/cv2ext --config-file=pyproject.toml
 
 pyright:
 	python3 -m pyright --project=pyproject.toml
@@ -47,13 +47,13 @@ pyupgrade:
 	-./ci/pyupgrade.sh
 
 isort:
-	python3 -m isort src/cv2tools
+	python3 -m isort src/cv2ext
 
 black:
-	python3 -m black src/cv2tools --safe
+	python3 -m black src/cv2ext --safe
 
 ruff:
-	python3 -m ruff ./src/cv2tools --fix --preview
+	python3 -m ruff ./src/cv2ext --fix --preview
 
 test:
 	./ci/run_tests.sh

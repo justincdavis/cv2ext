@@ -2,7 +2,7 @@ name: PyPI Build
 on: [ push ]
 jobs:
   build_check:
-    name: "Build cv2tools package"
+    name: "Build cv2ext package"
 
     runs-on: ubuntu-latest
 
@@ -16,6 +16,6 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install build
-    - name: Build cv2tools
+    - name: Build cv2ext
       run: |
         python -m build

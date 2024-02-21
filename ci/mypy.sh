@@ -4,7 +4,7 @@
 submodules=()
 
 # Iterate over the contents of the directory
-for FILE in src/shiftdetector/*;
+for FILE in src/cv2ext/*;
 do
     # Extract the filename from the full path
     filename=$(basename "$FILE")

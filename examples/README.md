@@ -1,4 +1,4 @@
-Examples for cv2tools
+Examples for cv2ext
 ---------------------
 
 A collection of examples showcasing how to use some of the tools.

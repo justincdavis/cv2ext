@@ -1,13 +1,13 @@
 Usage
 =====
 
-The cv2tools module simply contains tools. The entire workflow is to import and use them as needed.
+The cv2ext module simply contains tools. The entire workflow is to import and use them as needed.
 
-- Using the `cv2tools.IterableVideo` object:
+- Using the `cv2ext.IterableVideo` object:
 
    .. code-block:: python
    
-        from cv2tools import IterableVideo
+        from cv2ext import IterableVideo
 
         # create an IterableVideo object
         video = IterableVideo("path/to/video.mp4")

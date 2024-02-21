@@ -1,7 +1,7 @@
 import os
 
 import numpy as np
-from cv2tools import IterableVideo
+from cv2ext import IterableVideo
 
 from ._utils import VID_LINK, download_youtube_video
 

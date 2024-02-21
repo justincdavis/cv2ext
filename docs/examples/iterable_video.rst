@@ -21,7 +21,7 @@ Example: iterable_video.py
 	"""Example showcasing how to use the IterableVideo class."""
 	from __future__ import annotations
 	
-	from cv2tools import IterableVideo
+	from cv2ext import IterableVideo
 	
 	if __name__ == "__main__":
 	    # create an IterableVideo object

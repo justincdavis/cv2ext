@@ -64,4 +64,4 @@ from ._iterablevideo import IterableVideo
 __all__ = ["IterableVideo"]
 __version__ = "0.0.1"
 
-_log.info(f"Initialized cv2tools with version {__version__}")
+_log.info(f"Initialized cv2ext with version {__version__}")
