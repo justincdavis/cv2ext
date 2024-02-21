@@ -16,7 +16,7 @@ from __future__ import annotations
 import contextlib
 from pathlib import Path
 from queue import Empty, Full, Queue
-from threading import Condition, Thread
+from threading import Thread
 
 import cv2  # type: ignore[import-untyped]
 import numpy as np
@@ -93,6 +93,7 @@ class IterableVideo:
             filename = str(filename.resolve())
         self._cap = cv2.VideoCapture(filename)
         self._frame_num = 0
+        self._consumed = 0
         self._got = False
         self._length = int(self._cap.get(cv2.CAP_PROP_FRAME_COUNT))
         self._fps = float(self._cap.get(cv2.CAP_PROP_FPS))
@@ -108,9 +109,10 @@ class IterableVideo:
         # info for the thread
         self._thread_loads = use_thread
         if self._thread_loads:
-            self._thread = Thread(target=self._run)
-            self._condition = Condition()
-            self._queue: Queue[tuple[int, np.ndarray]] = Queue(maxsize=self._buffersize)
+            self._thread = Thread(target=self._run, daemon=True)
+            self._queue: Queue[tuple[int, bool, np.ndarray]] = Queue(
+                maxsize=self._buffersize,
+            )
             self._closed = False
             self._thread.start()
 
@@ -118,23 +120,35 @@ class IterableVideo:
         """Read the VideoCapture object."""
         while not self._closed:
             if self._frame_num == self._length:
-                return
-            self._got, self._frame = self._cap.read()
-            if not self._got:
-                return
-            self._frame_num += 1
+                break
+            got, frame = self._cap.read()
+            if not got:
+                self._queue.put(
+                    (
+                        self._frame_num,
+                        False,
+                        np.zeros(
+                            (self._height, self._width, self._channels),
+                            dtype=np.uint8,
+                        ),
+                    ),
+                )
+                break
             while not self._closed:
                 with contextlib.suppress(Full):
-                    self._queue.put((self._frame_num, self._frame), timeout=0.1)
+                    self._queue.put((self._frame_num, got, frame), timeout=0.1)
+                    self._frame_num += 1
+                    break
             if self._closed:
                 return
-            with self._condition:
-                self._condition.wait()
+        self._closed = True
 
     @property
     def frame(self: Self) -> np.ndarray:
         """
         Get the current frame.
+
+        When using threading this value will be out of sync from the iterator.
 
         Returns
         -------
@@ -149,6 +163,8 @@ class IterableVideo:
         """
         Get the current frame number.
 
+        When using threading this value will be out of sync from the iterator.
+
         Returns
         -------
         int
@@ -161,6 +177,8 @@ class IterableVideo:
     def success(self: Self) -> bool:
         """
         Get the success of the last frame read.
+
+        When using threading this value will be out of sync from the iterator.
 
         Returns
         -------
@@ -211,6 +229,7 @@ class IterableVideo:
 
     @property
     def channels(self: Self) -> int:
+        self._consumed = 0
         """
         Get the number of channels in the video.
 
@@ -252,8 +271,9 @@ class IterableVideo:
         """Stop the video."""
         if self._thread_loads:
             self._closed = True
-            with self._condition:
-                self._condition.notify()
+            for _ in range(self._buffersize):
+                with contextlib.suppress(Empty):
+                    self._queue.get_nowait()
             self._thread.join()
             self._cap.release()
         else:
@@ -304,12 +324,14 @@ class IterableVideo:
                 raise StopIteration
             return num, self._frame
         # otherwise use threading
-        if not self._got:
+        if self._consumed == self._length:
             self._stop()
             raise StopIteration
-        num, frame = self._queue.get()
-        with self._condition:
-            self._condition.notify()
+        num, got, frame = self._queue.get()
+        self._consumed += 1
+        if not got:
+            self._stop()
+            raise StopIteration
         return num, frame
 
     def read(self: Self) -> tuple[bool, np.ndarray]:
@@ -328,9 +350,10 @@ class IterableVideo:
             self._got, self._frame = self._cap.read()
             self._frame_num += 1
             return self._got, self._frame
+        # otherwise use threading
         try:
-            _, frame = self._queue.get(timeout=0.1)
-        except Empty:
+            _, frame = next(self)
+        except StopIteration:
             return False, np.zeros(
                 (self._height, self._width, self._channels),
                 dtype=np.uint8,
