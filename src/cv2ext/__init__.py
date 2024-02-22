@@ -62,6 +62,6 @@ _log = logging.getLogger(__name__)
 from ._iterablevideo import IterableVideo
 
 __all__ = ["IterableVideo"]
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 
 _log.info(f"Initialized cv2ext with version {__version__}")
