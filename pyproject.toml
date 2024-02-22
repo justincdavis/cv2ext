@@ -90,6 +90,9 @@ push            = false
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+"cv2ext" = ["py.typed"]
+
 [tool.ruff]
 fix = true
 show-fixes = true
