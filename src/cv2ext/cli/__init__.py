@@ -14,25 +14,13 @@
 """
 Command line interface for cv2ext.
 
-Functions
----------
+Submodules
+----------
 resize_video
-    Use --resize_video to resize a video file.
+    Resize videos using opencv.
 """
 from __future__ import annotations
 
-import argparse
+from . import resize_video
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="CLI for cv2ext.")
-    parser.add_argument(
-        "--resize_video",
-        action="store_true",
-        help="Resize a video file.",
-    )
-    args = parser.parse_args()
-
-    if args.resize_video:
-        from cv2ext._cli import resize_video
-
-        resize_video()
+__all__ = ["resize_video"]
