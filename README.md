@@ -18,7 +18,7 @@ A collection of tools for making working with OpenCV in Python easier (and poten
 
 ## Documentation
 
-https://cv2ext.readthedocs.io/en/latest/
+https://cv2tools.readthedocs.io/en/latest/
 
 See Also:
 
