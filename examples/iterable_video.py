@@ -18,14 +18,14 @@ from cv2ext import IterableVideo
 
 if __name__ == "__main__":
     # create an IterableVideo object
-    video = IterableVideo("path/to/video.mp4")
+    video = IterableVideo("video.mp4")
 
     # iterate over the video
     for frame_id, frame in video:
         print(f"Frame {frame_id}: {frame.shape}")
 
     # create it again this time using the thread backend
-    video = IterableVideo("path/to/video.mp4", use_thread=True)
+    video = IterableVideo("video.mp4", use_thread=True)
 
     # iterate over the video
     for frame_id, frame in video:

@@ -17,7 +17,10 @@ Package containing helpful tools for working with opencv.
 
 Classes
 -------
+Display
+    A class for displaying images using a separate thread.
 IterableVideo
+    A class for iterating over frames in a video, optionally with threading.
 """
 from __future__ import annotations
 
@@ -31,7 +34,7 @@ import sys
 # https://stackoverflow.com/questions/7621897/python-logging-module-globally
 def _setup_logger() -> None:
     # get logging level environment variable
-    level = os.getenv("SHIFTDETECTOR_LOG_LEVEL")
+    level = os.getenv("CV2EXT_LOG_LEVEL")
     if level is not None:
         level = level.upper()
     level_map: dict[str | None, int] = {
@@ -59,9 +62,10 @@ _setup_logger()
 _log = logging.getLogger(__name__)
 
 
+from ._display import Display
 from ._iterablevideo import IterableVideo
 
-__all__ = ["IterableVideo"]
+__all__ = ["Display", "IterableVideo"]
 __version__ = "0.0.4"
 
 _log.info(f"Initialized cv2ext with version {__version__}")

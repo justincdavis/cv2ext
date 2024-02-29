@@ -11,18 +11,31 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-from pytube import YouTube
+import os
+import time
 
-VID_LINK = "https://www.youtube.com/watch?v=-DRSruRMZ8o"
+import cv2
+from cv2ext import IterableVideo
 
-def download_youtube_video(url, output_file):
-    try:
-        # Create a YouTube object with the video URL
-        yt = YouTube(url)
-        # Get the highest resolution stream available
-        stream = yt.streams.get_highest_resolution()
-        # Download the video to the specified output file
-        stream.download(output_path="", filename=output_file)
-    except Exception as e:
-        # If an exception occurs during the process, print the exception message
-        print("An error occurred:", str(e))
+from ._utils import download_youtube_video, VID_LINK
+
+
+def test_read() -> float:
+    if not os.path.exists("video.mp4"):
+        download_youtube_video(VID_LINK, "video.mp4")
+
+    video = IterableVideo("video.mp4")
+
+    t0 = time.perf_counter()
+    for _, frame in video:
+        cv2.imshow("Frame", frame)
+        cv2.waitKey(1)
+    t1 = time.perf_counter()
+
+    cv2.destroyAllWindows()
+
+    return t1 - t0
+
+
+if __name__ == "__main__":
+    print(test_read())
