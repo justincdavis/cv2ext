@@ -22,7 +22,7 @@ def test_read():
     if not os.path.exists("video.mp4"):
         download_youtube_video(VID_LINK, "video.mp4")
 
-    video = IterableVideo("video.mp4")
+    video = IterableVideo("video.mp4", use_thread=False)
 
     got = True
     counter = 0

@@ -23,7 +23,7 @@ def test_sequential():
         download_youtube_video(VID_LINK, "video.mp4")
 
     # get video from dump dir
-    video = IterableVideo("video.mp4")
+    video = IterableVideo("video.mp4", use_thread=False)
 
     prev_id = -1
     for frame_id, _ in video:

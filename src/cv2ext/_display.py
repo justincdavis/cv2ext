@@ -13,7 +13,9 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
-from threading import Condition, Lock, Thread
+import contextlib
+from queue import Empty, Queue
+from threading import Condition, Thread
 from typing import TYPE_CHECKING
 
 import cv2  # type: ignore[import-untyped]
@@ -26,7 +28,13 @@ if TYPE_CHECKING:
 class Display:
     """Class for displaying images using a separate thread."""
 
-    def __init__(self: Self, windowname: str, *, show: bool | None = None) -> None:
+    def __init__(
+        self: Self,
+        windowname: str,
+        buffersize: int = 8,
+        *,
+        show: bool | None = None,
+    ) -> None:
         """
         Create a new display.
 
@@ -34,6 +42,9 @@ class Display:
         ----------
         windowname : str
             The name of the window to display the images in.
+        buffersize : int
+            The size of the buffer for the thread.
+            By default, this is 8.
         show : bool | None
             If True, the window will be shown.
             If False, the window will not be shown.
@@ -47,36 +58,27 @@ class Display:
             show = True
         self._windowname = windowname
         self._show = show
+        self._buffersize = buffersize
         # alloocate a dummy image, size does not matter
         self._image: np.ndarray = np.zeros((100, 100, 3), dtype=np.uint8)
-        self._consumed = False
         self._frameid = -1  # no frame yet
         self._running = True
-        self._cond = Condition()
-        self._lock = Lock()
+        self._queue: Queue[np.ndarray] = Queue(maxsize=self._buffersize)
+        self._stopcond = Condition()
         self._thread = Thread(target=self._display, daemon=True)
         self._thread.start()
 
     @property
     def frame(self: Self) -> np.ndarray:
-        """The current frame being displayed."""
+        """The most recent frame."""
         return self._image
-
-    @frame.setter
-    def frame(self: Self, value: np.ndarray) -> None:
-        with self._lock:
-            self._image = value
-            self._frameid += 1
-            self._consumed = False
-        with self._cond:
-            self._cond.notify_all()
 
     @property
     def frameid(self: Self) -> int:
         """The current frame id."""
         return self._frameid
 
-    def __call__(self: Self, frame: np.ndarray) -> None:
+    def __call__(self: Self, frame: np.ndarray, timeout: float | None = None) -> None:
         """
         Update the frame being displayed.
 
@@ -84,14 +86,23 @@ class Display:
         ----------
         frame : np.ndarray
             The frame to display.
+        timeout : float | None
+            The timeout for the queue.
+            Optional, defaults to None.
+            If None, no timeout is used.
+
+        Raises
+        ------
+        queue.Full
+            If timeout is provided, and the queue if full at the end of timeout.
 
         """
-        self.update(frame)
+        self.update(frame, timeout)
 
     def __del__(self: Self) -> None:
-        self.stop()
+        self._stop()
 
-    def update(self: Self, frame: np.ndarray) -> None:
+    def update(self: Self, frame: np.ndarray, timeout: float | None = None) -> None:
         """
         Update the frame being displayed.
 
@@ -99,29 +110,34 @@ class Display:
         ----------
         frame : np.ndarray
             The frame to display.
+        timeout : float | None
+            The timeout for the queue.
+            Optional, defaults to None.
+            If None, no timeout is used.
+
+        Raises
+        ------
+        queue.Full
+            If timeout is provided, and the queue if full at the end of timeout.
 
         """
-        self.frame = frame
+        self._image = frame
+        self._frameid += 1
+        self._queue.put(frame, timeout=timeout)
 
-    def stop(self: Self) -> None:
+    def _stop(self: Self) -> None:
         """Stop the display."""
         self._running = False
-        with self._cond:
-            self._cond.notify()
+        with self._stopcond:
+            self._stopcond.wait()
         cv2.destroyWindow(self._windowname)
 
     def _display(self: Self) -> None:
         while self._running:
-            if not self._consumed:
-                with self._lock:
-                    image = self._image
-                    self._consumed = True
-            else:
-                with self._cond:
-                    self._cond.wait()
-                with self._lock:
-                    image = self._image
-                    self._consumed = True
-            if self._show:
-                cv2.imshow(self._windowname, image)
-                cv2.waitKey(1)
+            with contextlib.suppress(Empty):
+                image = self._queue.get(timeout=0.1)
+                if self._show:
+                    cv2.imshow(self._windowname, image)
+                    cv2.waitKey(1)
+        with self._stopcond:
+            self._stopcond.notify_all()

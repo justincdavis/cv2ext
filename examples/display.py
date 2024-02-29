@@ -19,7 +19,7 @@ from cv2ext import Display, IterableVideo
 if __name__ == "__main__":
     # create an IterableVideo object
     video = IterableVideo("video.mp4")
-    display = Display("example", show=True)
+    display = Display("example")
 
     # iterate over the video
     for frame_id, frame in video:

@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import contextlib
+import logging
 from pathlib import Path
 from queue import Empty, Full, Queue
 from threading import Thread
@@ -21,6 +22,8 @@ from threading import Thread
 import cv2  # type: ignore[import-untyped]
 import numpy as np
 from typing_extensions import Self
+
+_log = logging.getLogger(__name__)
 
 
 class IterableVideo:
@@ -30,7 +33,7 @@ class IterableVideo:
         channels: int = 3,
         buffersize: int = 8,
         *,
-        use_thread: bool = False,
+        use_thread: bool | None = None,
     ) -> None:
         """
         Create a new instance of the video.
@@ -51,6 +54,7 @@ class IterableVideo:
         use_thread : bool
             If True, the frames will be loaded in a separate thread.
             This can help speedup iteration times.
+            Defaults to None, in which case the thread is used.
 
         """
         if isinstance(filename, Path):
@@ -71,6 +75,8 @@ class IterableVideo:
         )
 
         # info for the thread
+        if use_thread is None:
+            use_thread = True
         self._thread_loads = use_thread
         if self._thread_loads:
             self._thread = Thread(target=self._run, daemon=True)

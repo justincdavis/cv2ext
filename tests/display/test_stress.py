@@ -12,30 +12,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 import os
-import time
 
-import cv2
-from cv2ext import IterableVideo
+from cv2ext import IterableVideo, Display
+import numpy as np
 
-from ._utils import download_youtube_video, VID_LINK
+from ._utils import VID_LINK, download_youtube_video
 
 
-def test_read() -> float:
+def test_stress():
     if not os.path.exists("video.mp4"):
         download_youtube_video(VID_LINK, "video.mp4")
 
-    video = IterableVideo("video.mp4")
+    for _ in range(3):
+        display = Display("test", show=False)
 
-    t0 = time.perf_counter()
-    for _, frame in video:
-        cv2.imshow("Frame", frame)
-        cv2.waitKey(1)
-    t1 = time.perf_counter()
+        video = IterableVideo("video.mp4")
 
-    cv2.destroyAllWindows()
-
-    return t1 - t0
-
-
-if __name__ == "__main__":
-    print(test_read())
+        for _, frame in video:
+            display(frame)

@@ -11,3 +11,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
+from .test_update import test_update
+from .test_stress import test_stress
+
+__all__ = [
+    "test_update",
+    "test_stress",
+]

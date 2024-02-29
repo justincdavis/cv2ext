@@ -24,7 +24,7 @@ def test_video_same():
         download_youtube_video(VID_LINK, "video.mp4")
 
     # get video from dump dir
-    video = IterableVideo("video.mp4")
+    video = IterableVideo("video.mp4", use_thread=False)
     video_thread = IterableVideo("video.mp4", use_thread=True)
 
     assert len(video) == len(video_thread)
