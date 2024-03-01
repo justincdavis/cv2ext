@@ -92,11 +92,48 @@ if level is not None and level.upper() not in [
 ]:
     _log.warning(f"Invalid log level: {level}. Using default log level: WARNING")
 
+import contextlib
+from typing import TYPE_CHECKING
+
+import cv2
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
+
+
+class _DEL:
+    def __init__(self: Self) -> None:
+        cv2.startWindowThread()
+        self._windows: list[str] = []
+
+    def __del__(self: Self) -> None:
+        _log.debug("cv2ext is being deleted.")
+        for windowname in self._windows:
+            _log.debug(f"Deleting window {windowname}.")
+            with contextlib.suppress(cv2.error):
+                cv2.destroyWindow(windowname)
+        cv2.destroyAllWindows()
+        cv2.waitKey(1)
+
+    def logwindow(self: Self, windowname: str) -> None:
+        """
+        Queue windowname for deletion.
+
+        Parameters
+        ----------
+        windowname : str
+            The name of the window to delete.
+        """
+        self._windows.append(windowname)
+
+
+_DELOBJ = _DEL()
+
 
 from ._display import Display
 from ._iterablevideo import IterableVideo
 
-__all__ = ["Display", "IterableVideo", "set_log_level"]
+__all__ = ["_DELOBJ", "Display", "IterableVideo", "set_log_level"]
 __version__ = "0.0.4"
 
 _log.info(f"Initialized cv2ext with version {__version__}")

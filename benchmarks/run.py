@@ -16,14 +16,19 @@ from __future__ import annotations
 import argparse
 import os
 import time
+import sys
 
 import cv2
+from cv2ext import Display, IterableVideo
 from tqdm import tqdm
-from cv2ext import Display, IterableVideo, set_log_level
 
 
 def naive(video: str, show: bool) -> float:
     cap = cv2.VideoCapture(video)
+
+    if show:
+        cv2.namedWindow("frame", cv2.WINDOW_NORMAL)
+        cv2.startWindowThread()
 
     t0 = time.perf_counter()
     while True:
@@ -40,11 +45,48 @@ def naive(video: str, show: bool) -> float:
     cap.release()
     if show:
         cv2.destroyWindow("frame")
+        cv2.waitKey(1)
     return t1 - t0
 
+def threadread_naivedisplay(video: str, show: bool) -> float:
+    video = IterableVideo(video, buffersize=128, use_thread=True)
+
+    if show:
+        cv2.namedWindow("frame", cv2.WINDOW_NORMAL)
+        cv2.startWindowThread()
+
+    t0 = time.perf_counter()
+    for _, frame in video:
+        if show:
+            cv2.imshow("frame", frame)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+    t1 = time.perf_counter()
+
+    if show:
+        cv2.destroyWindow("frame")
+        cv2.waitKey(1)
+    return t1 - t0
+
+def naiveread_threaddisplay(video: str, show: bool) -> float:
+    cap = cv2.VideoCapture(video)
+    display = Display("example", show=show)
+
+    t0 = time.perf_counter()
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        if show:
+            display(frame)
+    t1 = time.perf_counter()
+
+    cap.release()
+    return t1 - t0
 
 def threaded(video: str, show: bool) -> float:
-    video = IterableVideo(video, use_thread=True)
+    video = IterableVideo(video, buffersize=128, use_thread=True)
     if show:
         display = Display("example", show=show)
 
@@ -56,28 +98,42 @@ def threaded(video: str, show: bool) -> float:
 
     return t1 - t0
 
-
 def main():
-    set_log_level("DEBUG")
     parser = argparse.ArgumentParser(description="Display a video.")
-    parser.add_argument("--video", help="The video to process.")
+    parser.add_argument("--video", required=True, help="The video to process.")
     parser.add_argument("--show", action="store_true", help="Show the video.")
+    parser.add_argument("--iterations", type=int, default=10, help="The number of iterations to run.")
+    parser.add_argument("--threaded", action="store_true", help="Use the threaded backend.")
+    parser.add_argument("--mix1", action="store_true", help="Use threaded reading and naive display.")
+    parser.add_argument("--mix2", action="store_true", help="Use naive reading and threaded display.")
     args = parser.parse_args()
 
     if not os.path.exists(args.video):
         raise FileNotFoundError(f"Video {args.video} does not exist.")
 
-    threadtimes = []
-    naivetimes = []
-    for _ in tqdm(range(10)):
-        threadedtime = threaded(args.video, args.show)
-        threadtimes.append(threadedtime)
-    for _ in tqdm(range(10)):
-        naivetime = naive(args.video, args.show)
-        naivetimes.append(naivetime)
+    times = []
+    if not args.threaded:
+        for _ in tqdm(range(args.iterations)):
+            naivetime = naive(args.video, args.show)
+            times.append(naivetime)
+    elif args.mix1:
+        for _ in tqdm(range(args.iterations)):
+            threadtime = threadread_naivedisplay(args.video, args.show)
+            times.append(threadtime)
+    elif args.mix2:
+        for _ in tqdm(range(args.iterations)):
+            mixtime = naiveread_threaddisplay(args.video, args.show)
+            times.append(mixtime)
+    else:
+        for _ in tqdm(range(args.iterations)):
+            threadtime = threaded(args.video, args.show)
+            times.append(threadtime)
 
-    print(f"Naive time: {sum(naivetimes) / len(naivetimes):.2f}s")
-    print(f"Threaded time: {sum(threadtimes) / len(threadtimes):.2f}s")
+    avgtime = sum(times) / len(times)
+    print(f"Time: {avgtime:.3f}s")
+
+    return avgtime
 
 if __name__ == "__main__":
-    main()
+    elapsed = main()
+    sys.exit(int((elapsed * 100)))

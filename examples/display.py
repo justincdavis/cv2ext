@@ -14,9 +14,10 @@
 """Example showcasing how to use the IterableVideo class."""
 from __future__ import annotations
 
-from cv2ext import Display, IterableVideo
+from cv2ext import Display, IterableVideo, set_log_level
 
 if __name__ == "__main__":
+    set_log_level("DEBUG")
     # create an IterableVideo object
     video = IterableVideo("video.mp4")
     display = Display("example")

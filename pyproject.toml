@@ -74,6 +74,7 @@ dev = [
     "bumpver>=2023.1126",
     "pyclean>=2.7.0",
     "pyright>=1.1.348",
+    "seaborn>=0.13.0",
 ]
 
 [tool.bumpver]

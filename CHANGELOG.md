@@ -1,3 +1,15 @@
+## 0.0.5 (03-01-2024)
+
+### Added
+
+- Display
+    - Class which allows displays to be threaded for
+        faster iteration.
+- Benchmarking
+    - Added a basic benchmarking setup showcasing 
+        the speedup achieved if using our thread based
+        video reading and display.
+
 ## 0.0.4 (02-23-2024)
 
 ### Added

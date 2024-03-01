@@ -22,6 +22,8 @@ from typing import TYPE_CHECKING
 import cv2  # type: ignore[import-untyped]
 import numpy as np
 
+from cv2ext import _DELOBJ
+
 if TYPE_CHECKING:
     from typing_extensions import Self
 
@@ -63,6 +65,7 @@ class Display:
         self._frameid = -1  # no frame yet
         self._running = True
         self._queue: Queue[np.ndarray] = Queue(maxsize=1)
+        _DELOBJ.logwindow(self._windowname)
         self._thread = Thread(target=self._display, daemon=True)
         self._thread.start()
 
@@ -97,22 +100,29 @@ class Display:
         self._stop()
 
     def _display(self: Self) -> None:
+        if self._show:
+            cv2.namedWindow(self._windowname, cv2.WINDOW_AUTOSIZE)
+            cv2.startWindowThread()
         while self._running:
             _log.debug(f"Display {self._windowname} thread starting new loop")
             with contextlib.suppress(Empty):
                 image = self._queue.get(timeout=0.1)
                 if self._show:
                     cv2.imshow(self._windowname, image)
-                    cv2.waitKey(1)
+                    if cv2.waitKey(1) & 0xFF == ord("q"):
+                        self._stop()
         _log.debug(f"Display {self._windowname} thread stopped")
+        if self._show:
+            _log.debug(f"Destroying window {self._windowname}")
+            cv2.destroyWindow(self._windowname)
+            cv2.waitKey(1)
 
     def _stop(self: Self) -> None:
         """Stop the display."""
         self._running = False
         while self._thread.is_alive():
+            _log.debug(f"Attempting join for display thread {self._windowname}")
             self._thread.join(timeout=0.01)
-        if self._show:
-            cv2.destroyWindow(self._windowname)
 
     def stop(self: Self) -> None:
         """Stop the display."""
