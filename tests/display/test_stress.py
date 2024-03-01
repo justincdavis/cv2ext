@@ -14,9 +14,11 @@
 import os
 
 from cv2ext import IterableVideo, Display
-import numpy as np
 
-from ._utils import VID_LINK, download_youtube_video
+try:
+    from ._utils import VID_LINK, download_youtube_video
+except ImportError:
+    from _utils import VID_LINK, download_youtube_video
 
 
 def test_stress():
@@ -28,5 +30,9 @@ def test_stress():
 
         video = IterableVideo("video.mp4")
 
-        for _, frame in video:
+        for fid, frame in video:
             display(frame)
+
+
+if __name__ == "__main__":
+    test_stress()

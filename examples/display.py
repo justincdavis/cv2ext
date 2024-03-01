@@ -25,3 +25,5 @@ if __name__ == "__main__":
     for frame_id, frame in video:
         display(frame)
         print(f"Frame {frame_id}: {frame.shape}")
+
+    display.stop()

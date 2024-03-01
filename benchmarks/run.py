@@ -18,7 +18,8 @@ import os
 import time
 
 import cv2
-from cv2ext import Display, IterableVideo
+from tqdm import tqdm
+from cv2ext import Display, IterableVideo, set_log_level
 
 
 def naive(video: str, show: bool) -> float:
@@ -37,8 +38,8 @@ def naive(video: str, show: bool) -> float:
     t1 = time.perf_counter()
 
     cap.release()
-    cv2.destroyAllWindows()
-
+    if show:
+        cv2.destroyWindow("frame")
     return t1 - t0
 
 
@@ -57,6 +58,7 @@ def threaded(video: str, show: bool) -> float:
 
 
 def main():
+    set_log_level("DEBUG")
     parser = argparse.ArgumentParser(description="Display a video.")
     parser.add_argument("--video", help="The video to process.")
     parser.add_argument("--show", action="store_true", help="Show the video.")
@@ -65,11 +67,17 @@ def main():
     if not os.path.exists(args.video):
         raise FileNotFoundError(f"Video {args.video} does not exist.")
 
-    naivetime = naive(args.video, args.show)
-    threadedtime = threaded(args.video, args.show)
+    threadtimes = []
+    naivetimes = []
+    for _ in tqdm(range(10)):
+        threadedtime = threaded(args.video, args.show)
+        threadtimes.append(threadedtime)
+    for _ in tqdm(range(10)):
+        naivetime = naive(args.video, args.show)
+        naivetimes.append(naivetime)
 
-    print(f"Naive time: {naivetime:.2f}s")
-    print(f"Threaded time: {threadedtime:.2f}s")
+    print(f"Naive time: {sum(naivetimes) / len(naivetimes):.2f}s")
+    print(f"Threaded time: {sum(threadtimes) / len(threadtimes):.2f}s")
 
 if __name__ == "__main__":
     main()

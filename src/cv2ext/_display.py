@@ -14,8 +14,9 @@
 from __future__ import annotations
 
 import contextlib
-from queue import Empty, Queue
-from threading import Condition, Thread
+import logging
+from queue import Empty, Full, Queue
+from threading import Thread
 from typing import TYPE_CHECKING
 
 import cv2  # type: ignore[import-untyped]
@@ -25,13 +26,15 @@ if TYPE_CHECKING:
     from typing_extensions import Self
 
 
+_log = logging.getLogger(__name__)
+
+
 class Display:
     """Class for displaying images using a separate thread."""
 
     def __init__(
         self: Self,
         windowname: str,
-        buffersize: int = 8,
         *,
         show: bool | None = None,
     ) -> None:
@@ -42,9 +45,6 @@ class Display:
         ----------
         windowname : str
             The name of the window to display the images in.
-        buffersize : int
-            The size of the buffer for the thread.
-            By default, this is 8.
         show : bool | None
             If True, the window will be shown.
             If False, the window will not be shown.
@@ -58,13 +58,11 @@ class Display:
             show = True
         self._windowname = windowname
         self._show = show
-        self._buffersize = buffersize
         # alloocate a dummy image, size does not matter
         self._image: np.ndarray = np.zeros((100, 100, 3), dtype=np.uint8)
         self._frameid = -1  # no frame yet
         self._running = True
-        self._queue: Queue[np.ndarray] = Queue(maxsize=self._buffersize)
-        self._stopcond = Condition()
+        self._queue: Queue[np.ndarray] = Queue(maxsize=1)
         self._thread = Thread(target=self._display, daemon=True)
         self._thread.start()
 
@@ -78,7 +76,7 @@ class Display:
         """The current frame id."""
         return self._frameid
 
-    def __call__(self: Self, frame: np.ndarray, timeout: float | None = None) -> None:
+    def __call__(self: Self, frame: np.ndarray) -> None:
         """
         Update the frame being displayed.
 
@@ -86,10 +84,6 @@ class Display:
         ----------
         frame : np.ndarray
             The frame to display.
-        timeout : float | None
-            The timeout for the queue.
-            Optional, defaults to None.
-            If None, no timeout is used.
 
         Raises
         ------
@@ -97,12 +91,34 @@ class Display:
             If timeout is provided, and the queue if full at the end of timeout.
 
         """
-        self.update(frame, timeout)
+        self.update(frame)
 
     def __del__(self: Self) -> None:
         self._stop()
 
-    def update(self: Self, frame: np.ndarray, timeout: float | None = None) -> None:
+    def _display(self: Self) -> None:
+        while self._running:
+            _log.debug(f"Display {self._windowname} thread starting new loop")
+            with contextlib.suppress(Empty):
+                image = self._queue.get(timeout=0.1)
+                if self._show:
+                    cv2.imshow(self._windowname, image)
+                    cv2.waitKey(1)
+        _log.debug(f"Display {self._windowname} thread stopped")
+
+    def _stop(self: Self) -> None:
+        """Stop the display."""
+        self._running = False
+        while self._thread.is_alive():
+            self._thread.join(timeout=0.01)
+        if self._show:
+            cv2.destroyWindow(self._windowname)
+
+    def stop(self: Self) -> None:
+        """Stop the display."""
+        self._stop()
+
+    def update(self: Self, frame: np.ndarray) -> None:
         """
         Update the frame being displayed.
 
@@ -110,10 +126,6 @@ class Display:
         ----------
         frame : np.ndarray
             The frame to display.
-        timeout : float | None
-            The timeout for the queue.
-            Optional, defaults to None.
-            If None, no timeout is used.
 
         Raises
         ------
@@ -123,21 +135,5 @@ class Display:
         """
         self._image = frame
         self._frameid += 1
-        self._queue.put(frame, timeout=timeout)
-
-    def _stop(self: Self) -> None:
-        """Stop the display."""
-        self._running = False
-        with self._stopcond:
-            self._stopcond.wait()
-        cv2.destroyWindow(self._windowname)
-
-    def _display(self: Self) -> None:
-        while self._running:
-            with contextlib.suppress(Empty):
-                image = self._queue.get(timeout=0.1)
-                if self._show:
-                    cv2.imshow(self._windowname, image)
-                    cv2.waitKey(1)
-        with self._stopcond:
-            self._stopcond.notify_all()
+        with contextlib.suppress(Full):
+            self._queue.put_nowait(frame)

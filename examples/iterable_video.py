@@ -18,7 +18,7 @@ from cv2ext import IterableVideo
 
 if __name__ == "__main__":
     # create an IterableVideo object
-    video = IterableVideo("video.mp4")
+    video = IterableVideo("video.mp4", use_thread=False)
 
     # iterate over the video
     for frame_id, frame in video:

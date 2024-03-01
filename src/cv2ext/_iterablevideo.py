@@ -56,9 +56,17 @@ class IterableVideo:
             This can help speedup iteration times.
             Defaults to None, in which case the thread is used.
 
+        Raises
+        ------
+        FileNotFoundError
+            If the file does not exist.
+
         """
         if isinstance(filename, Path):
             filename = str(filename.resolve())
+        if not Path(filename).exists():
+            err_msg = f"File {filename} does not exist."
+            raise FileNotFoundError(err_msg)
         self._cap = cv2.VideoCapture(filename)
         self._frame_num = 0
         self._consumed = 0
@@ -237,18 +245,6 @@ class IterableVideo:
         """
         return self._height
 
-    def _stop(self: Self) -> None:
-        """Stop the video."""
-        if self._thread_loads:
-            self._closed = True
-            for _ in range(self._buffersize):
-                with contextlib.suppress(Empty):
-                    self._queue.get_nowait()
-            self._thread.join()
-            self._cap.release()
-        else:
-            self._cap.release()
-
     def __len__(self: Self) -> int:
         """
         Get the length of the video.
@@ -303,6 +299,22 @@ class IterableVideo:
             self._stop()
             raise StopIteration
         return num, frame
+
+    def _stop(self: Self) -> None:
+        """Stop the video."""
+        if self._thread_loads:
+            self._closed = True
+            for _ in range(self._buffersize):
+                with contextlib.suppress(Empty):
+                    self._queue.get_nowait()
+            self._thread.join()
+            self._cap.release()
+        else:
+            self._cap.release()
+
+    def stop(self: Self) -> None:
+        """Stop the video."""
+        self._stop()
 
     def read(self: Self) -> tuple[bool, np.ndarray]:
         """
