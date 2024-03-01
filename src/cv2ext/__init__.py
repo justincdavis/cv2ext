@@ -135,6 +135,6 @@ from ._display import Display
 from ._iterablevideo import IterableVideo
 
 __all__ = ["_DELOBJ", "Display", "IterableVideo", "set_log_level"]
-__version__ = "0.0.4"
+__version__ = "0.0.5"
 
 _log.info(f"Initialized cv2ext with version {__version__}")
