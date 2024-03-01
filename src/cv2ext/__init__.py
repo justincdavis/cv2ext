@@ -123,6 +123,7 @@ class _DEL:
         ----------
         windowname : str
             The name of the window to delete.
+
         """
         self._windows.append(windowname)
 
