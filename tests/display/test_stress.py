@@ -13,31 +13,26 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 import os
 
-from cv2ext import IterableVideo
+from cv2ext import IterableVideo, Display
 
-from ._utils import VID_LINK, download_youtube_video
+try:
+    from ._utils import VID_LINK, download_youtube_video
+except ImportError:
+    from _utils import VID_LINK, download_youtube_video
 
 
-def test_sequential():
+def test_stress():
     if not os.path.exists("video.mp4"):
         download_youtube_video(VID_LINK, "video.mp4")
 
-    # get video from dump dir
-    video = IterableVideo("video.mp4", use_thread=False)
+    for _ in range(3):
+        display = Display("test", show=False)
 
-    prev_id = -1
-    for frame_id, _ in video:
-        assert prev_id + 1 == frame_id
-        prev_id = frame_id
+        video = IterableVideo("video.mp4")
 
-def test_sequential_thread():
-    if not os.path.exists("video.mp4"):
-        download_youtube_video(VID_LINK, "video.mp4")
+        for fid, frame in video:
+            display(frame)
 
-    # get video from dump dir
-    video = IterableVideo("video.mp4", use_thread=True)
 
-    prev_id = -1
-    for frame_id, _ in video:
-        assert prev_id + 1 == frame_id
-        prev_id = frame_id
+if __name__ == "__main__":
+    test_stress()

@@ -53,13 +53,13 @@ black:
 	python3 -m black src/cv2ext --safe
 
 ruff:
-	python3 -m ruff ./src/cv2ext --fix --preview
+	python3 -m ruff check ./src/cv2ext --fix --preview
 
 test:
 	./ci/run_tests.sh
 
 example-ci: pyupgrade
-	python3 -m ruff ./examples --fix --preview --ignore=T201,INP001,F841
+	python3 -m ruff check ./examples --fix --preview --ignore=T201,INP001,F841
 	python3 -m isort examples
 	python3 -m black examples --safe
 

@@ -1,7 +1,7 @@
-.. _examples_iterable_video:
+.. _examples_display:
 
-Example: iterable_video.py
-==========================
+Example: display.py
+===================
 
 .. code-block:: python
 
@@ -21,21 +21,18 @@ Example: iterable_video.py
 	"""Example showcasing how to use the IterableVideo class."""
 	from __future__ import annotations
 	
-	from cv2ext import IterableVideo, set_log_level
+	from cv2ext import Display, IterableVideo, set_log_level
 	
 	if __name__ == "__main__":
 	    set_log_level("DEBUG")
 	    # create an IterableVideo object
-	    video = IterableVideo("video.mp4", use_thread=False)
+	    video = IterableVideo("video.mp4")
+	    display = Display("example")
 	
 	    # iterate over the video
 	    for frame_id, frame in video:
+	        display(frame)
 	        print(f"Frame {frame_id}: {frame.shape}")
 	
-	    # create it again this time using the thread backend
-	    video = IterableVideo("video.mp4", use_thread=True)
-	
-	    # iterate over the video
-	    for frame_id, frame in video:
-	        print(f"Frame {frame_id}: {frame.shape}")
+	    display.stop()
 

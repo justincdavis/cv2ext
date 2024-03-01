@@ -1,5 +1,5 @@
-cv2ext package
-==============
+cv2ext.cli package
+==================
 
 Subpackages
 -----------
@@ -7,12 +7,12 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   cv2ext.cli
+   cv2ext.cli.resize_video
 
 Module contents
 ---------------
 
-.. automodule:: cv2ext
+.. automodule:: cv2ext.cli
    :members:
    :undoc-members:
    :show-inheritance:

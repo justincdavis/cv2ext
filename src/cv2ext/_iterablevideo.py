@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import contextlib
+import logging
 from pathlib import Path
 from queue import Empty, Full, Queue
 from threading import Thread
@@ -21,6 +22,8 @@ from threading import Thread
 import cv2  # type: ignore[import-untyped]
 import numpy as np
 from typing_extensions import Self
+
+_log = logging.getLogger(__name__)
 
 
 class IterableVideo:
@@ -30,7 +33,7 @@ class IterableVideo:
         channels: int = 3,
         buffersize: int = 8,
         *,
-        use_thread: bool = False,
+        use_thread: bool | None = None,
     ) -> None:
         """
         Create a new instance of the video.
@@ -51,10 +54,19 @@ class IterableVideo:
         use_thread : bool
             If True, the frames will be loaded in a separate thread.
             This can help speedup iteration times.
+            Defaults to None, in which case the thread is used.
+
+        Raises
+        ------
+        FileNotFoundError
+            If the file does not exist.
 
         """
         if isinstance(filename, Path):
             filename = str(filename.resolve())
+        if not Path(filename).exists():
+            err_msg = f"File {filename} does not exist."
+            raise FileNotFoundError(err_msg)
         self._cap = cv2.VideoCapture(filename)
         self._frame_num = 0
         self._consumed = 0
@@ -71,6 +83,8 @@ class IterableVideo:
         )
 
         # info for the thread
+        if use_thread is None:
+            use_thread = True
         self._thread_loads = use_thread
         if self._thread_loads:
             self._thread = Thread(target=self._run, daemon=True)
@@ -231,18 +245,6 @@ class IterableVideo:
         """
         return self._height
 
-    def _stop(self: Self) -> None:
-        """Stop the video."""
-        if self._thread_loads:
-            self._closed = True
-            for _ in range(self._buffersize):
-                with contextlib.suppress(Empty):
-                    self._queue.get_nowait()
-            self._thread.join()
-            self._cap.release()
-        else:
-            self._cap.release()
-
     def __len__(self: Self) -> int:
         """
         Get the length of the video.
@@ -297,6 +299,22 @@ class IterableVideo:
             self._stop()
             raise StopIteration
         return num, frame
+
+    def _stop(self: Self) -> None:
+        """Stop the video."""
+        if self._thread_loads:
+            self._closed = True
+            for _ in range(self._buffersize):
+                with contextlib.suppress(Empty):
+                    self._queue.get_nowait()
+            self._thread.join()
+            self._cap.release()
+        else:
+            self._cap.release()
+
+    def stop(self: Self) -> None:
+        """Stop the video."""
+        self._stop()
 
     def read(self: Self) -> tuple[bool, np.ndarray]:
         """
