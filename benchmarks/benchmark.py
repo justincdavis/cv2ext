@@ -79,7 +79,7 @@ def main():
         showretcodes[0] / r for r in showretcodes
     ]
     showplot = sns.barplot(
-        x=["Naive", "Threadreads", "Threaddisplays", "Threaded"],
+        x=["Naive", "Thread-reads", "Thread-displays", "Fully-threaded"],
         y=showretcodes,
     )
     showplot.set_title("Speedup over Naive - Visualization")
