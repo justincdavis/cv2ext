@@ -37,6 +37,7 @@ class Display:
     def __init__(
         self: Self,
         windowname: str,
+        stopkey: str = "q",
         *,
         show: bool | None = None,
     ) -> None:
@@ -47,6 +48,9 @@ class Display:
         ----------
         windowname : str
             The name of the window to display the images in.
+        stopkey : str
+            The key to press to stop the display.
+            By default, this is "q".
         show : bool | None
             If True, the window will be shown.
             If False, the window will not be shown.
@@ -59,6 +63,7 @@ class Display:
         if show is None:
             show = True
         self._windowname = windowname
+        self._stopkey = stopkey
         self._show = show
         # alloocate a dummy image, size does not matter
         self._image: np.ndarray = np.zeros((100, 100, 3), dtype=np.uint8)
@@ -78,6 +83,16 @@ class Display:
     def frameid(self: Self) -> int:
         """The current frame id."""
         return self._frameid
+    
+    @property
+    def stopped(self: Self) -> bool:
+        """Whether the display is stopped."""
+        return not self._running
+    
+    @property
+    def is_alive(self: Self) -> bool:
+        """Whether the display is running."""
+        return self._thread.is_alive()
 
     def __call__(self: Self, frame: np.ndarray) -> None:
         """
@@ -109,8 +124,9 @@ class Display:
                 image = self._queue.get(timeout=0.1)
                 if self._show:
                     cv2.imshow(self._windowname, image)
-                    if cv2.waitKey(1) & 0xFF == ord("q"):
-                        self._stop()
+                    if cv2.waitKey(1) & 0xFF == ord(self._stopkey):
+                        self._running = False
+                        continue
         _log.debug(f"Display {self._windowname} thread stopped")
         if self._show:
             _log.debug(f"Destroying window {self._windowname}")
