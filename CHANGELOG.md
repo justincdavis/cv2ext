@@ -7,6 +7,8 @@
         identifying when display has been stopped.
 - template submodule
     - Added match_single and match_multiple
+- metrics submodule
+    - Added ncc (normalized cross correlation)
 - CLI
     - Annotate cli program for annotating a video
         with bounding boxes
