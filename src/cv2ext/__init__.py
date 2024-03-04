@@ -21,6 +21,8 @@ cli
     Submodule containing command line interface tools.
 template
     Submodule containing tools for working with templates in images.
+metrics
+    Submodule containing tools for working with image metrics.
 
 Classes
 -------
@@ -138,11 +140,19 @@ class _DEL:
 _DELOBJ = _DEL()
 
 
-from . import template
+from . import metrics, template
 from ._display import Display
 from ._iterablevideo import IterableVideo
 
-__all__ = ["_DELOBJ", "Display", "IterableVideo", "cli", "set_log_level", "template"]
+__all__ = [
+    "_DELOBJ",
+    "Display",
+    "IterableVideo",
+    "cli",
+    "metrics",
+    "set_log_level",
+    "template",
+]
 __version__ = "0.0.5"
 
 _log.info(f"Initialized cv2ext with version {__version__}")

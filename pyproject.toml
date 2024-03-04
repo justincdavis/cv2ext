@@ -58,7 +58,7 @@ ci = [
 ]
 test = [
     "pytest>=6.2.0",
-    "pytube>=15.0.0",
+    "hypothesis[numpy]>=6.98.0",
 ]
 docs = [
     "sphinx>=6.1.0",
