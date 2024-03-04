@@ -12,17 +12,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
-Command line interface for cv2ext.
+Annotate videos with bounding boxes.
 
-Submodules
-----------
+Functions
+---------
 annotate
-    Annotate videos with bounding boxes.
-resize_video
-    Resize videos using opencv.
+    Annotate a video with bounding boxes
 """
 from __future__ import annotations
 
-from . import annotate, resize_video
+from ._annotate import annotate
 
-__all__ = ["annotate", "resize_video"]
+__all__ = ["annotate"]
