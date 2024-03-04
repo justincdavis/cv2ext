@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   cv2ext.cli.annotate
    cv2ext.cli.resize_video
 
 Module contents

@@ -8,6 +8,8 @@ Subpackages
    :maxdepth: 4
 
    cv2ext.cli
+   cv2ext.metrics
+   cv2ext.template
 
 Module contents
 ---------------

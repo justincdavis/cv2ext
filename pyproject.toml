@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cv2ext"
-version = "0.0.5"
+version = "0.0.6"
 authors = [
   {name="Justin Davis", email="davisjustin302@gmail.com"},
 ]
@@ -58,7 +58,7 @@ ci = [
 ]
 test = [
     "pytest>=6.2.0",
-    "pytube>=15.0.0",
+    "hypothesis[numpy]>=6.98.0",
 ]
 docs = [
     "sphinx>=6.1.0",
@@ -78,7 +78,7 @@ dev = [
 ]
 
 [tool.bumpver]
-current_version = "0.0.5"
+current_version = "0.0.6"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message  = "Bump version {old_version} -> {new_version}"
 commit          = true

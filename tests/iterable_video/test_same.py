@@ -11,21 +11,18 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-import os
+from __future__ import annotations
+
+from pathlib import Path
 
 import numpy as np
 from cv2ext import IterableVideo
 
-from ._utils import VID_LINK, download_youtube_video
-
 
 def test_video_same():
-    if not os.path.exists("video.mp4"):
-        download_youtube_video(VID_LINK, "video.mp4")
-
     # get video from dump dir
-    video = IterableVideo("video.mp4", use_thread=False)
-    video_thread = IterableVideo("video.mp4", use_thread=True)
+    video = IterableVideo(Path("data") / "testvid.mp4", use_thread=False)
+    video_thread = IterableVideo(Path("data") / "testvid.mp4", use_thread=True)
 
     assert len(video) == len(video_thread)
     assert video.fps == video_thread.fps

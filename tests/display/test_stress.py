@@ -11,24 +11,16 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-import os
+from pathlib import Path
 
 from cv2ext import IterableVideo, Display
 
-try:
-    from ._utils import VID_LINK, download_youtube_video
-except ImportError:
-    from _utils import VID_LINK, download_youtube_video
-
 
 def test_stress():
-    if not os.path.exists("video.mp4"):
-        download_youtube_video(VID_LINK, "video.mp4")
-
     for _ in range(3):
         display = Display("test", show=False)
 
-        video = IterableVideo("video.mp4")
+        video = IterableVideo(Path("data") / "testvid.mp4")
 
         for fid, frame in video:
             display(frame)
