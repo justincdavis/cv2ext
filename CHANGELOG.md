@@ -1,3 +1,16 @@
+## 0.0.6 (03-03-2024)
+
+### Added
+
+- Display
+    - Added stopped and is_alive properties for
+        identifying when display has been stopped.
+- template submodule
+    - Added match_single and match_multiple
+- CLI
+    - Annotate cli program for annotating a video
+        with bounding boxes
+
 ## 0.0.5 (03-01-2024)
 
 ### Added

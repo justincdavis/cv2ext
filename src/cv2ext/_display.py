@@ -83,12 +83,12 @@ class Display:
     def frameid(self: Self) -> int:
         """The current frame id."""
         return self._frameid
-    
+
     @property
     def stopped(self: Self) -> bool:
         """Whether the display is stopped."""
         return not self._running
-    
+
     @property
     def is_alive(self: Self) -> bool:
         """Whether the display is running."""

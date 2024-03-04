@@ -11,9 +11,16 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-# ruff: noqa: E402
+# ruff: noqa: E402, I001
 """
 Package containing helpful tools for working with opencv.
+
+Submodules
+----------
+cli
+    Submodule containing command line interface tools.
+template
+    Submodule containing tools for working with templates in images.
 
 Classes
 -------
@@ -131,10 +138,17 @@ class _DEL:
 _DELOBJ = _DEL()
 
 
+from . import template
 from ._display import Display
 from ._iterablevideo import IterableVideo
 
-__all__ = ["_DELOBJ", "Display", "IterableVideo", "set_log_level"]
+__all__ = ["_DELOBJ", "Display", "IterableVideo", "cli", "set_log_level", "template"]
 __version__ = "0.0.5"
 
 _log.info(f"Initialized cv2ext with version {__version__}")
+
+from . import cli
+
+_log.info("cv2ext.cli initialized.")
+
+__all__ += ["cli"]

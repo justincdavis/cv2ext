@@ -12,17 +12,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
-Command line interface for cv2ext.
+Subpackage containing tools for working with templates in images.
 
-Submodules
-----------
-annotate
-    Annotate videos with bounding boxes.
-resize_video
-    Resize videos using opencv.
+Functions
+---------
+match_single
+    Find the best match of a template in an image.
+match_multiple
+    Find all matches of a template in an image above a certain threshold.
+
 """
 from __future__ import annotations
 
-from . import annotate, resize_video
+from ._core import match_multiple, match_single
 
-__all__ = ["annotate", "resize_video"]
+__all__ = ["match_multiple", "match_single"]
