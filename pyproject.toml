@@ -47,6 +47,9 @@ dependencies = [
 "Bug Tracker" = "https://github.com/justincdavis/cv2ext/issues"
 
 [project.optional-dependencies]
+jit = [
+    "numba>=0.59.0",
+]
 ci = [
     "pyupgrade>=3.10",
     "black>=24.0",
@@ -163,6 +166,7 @@ plugins = "numpy.typing.mypy_plugin"
 [[tool.mypy.overrides]]
 module = [
     'cv2',
+    'numba',
 ]
 ignore_errors = true
 

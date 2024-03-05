@@ -102,9 +102,12 @@ if level is not None and level.upper() not in [
     _log.warning(f"Invalid log level: {level}. Using default log level: WARNING")
 
 import contextlib
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 import cv2
+
+if not cv2.useOptimized():
+    cv2.setUseOptimized(True)
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -149,16 +152,67 @@ class _DEL:
 _DELOBJ = _DEL()
 
 
+from dataclasses import dataclass
+
+
+@dataclass
+class _FLAGS:
+    """
+    Class for storing flags for cv2ext.
+
+    Attributes
+    ----------
+    USEJIT : bool
+        Whether or not to use jit.
+
+    """
+
+    USEJIT: bool = True
+
+
+_FLAGSOBJ = _FLAGS()
+
+
+def enable_jit(*, on: bool | None = None) -> None:
+    """
+    Enable just-in-time compilation using Numba for some functions.
+
+    Parameters
+    ----------
+    on : bool | None
+        If True, enable jit. If False, disable jit. If None, enable jit.
+
+    """
+    if on is None:
+        on = True
+    _FLAGS.USEJIT = on
+    _log.info(f"JIT is {'enabled' if on else 'disabled'}.")
+
+
+try:
+    from numba import jit  # type: ignore[import-untyped]
+except ImportError:
+
+    def jit(func: Callable) -> Callable:
+        return func
+
+
+optjit = jit
+
+
 from . import metrics, template
 from ._display import Display
 from ._iterablevideo import IterableVideo
 
 __all__ = [
     "_DELOBJ",
+    "_FLAGSOBJ",
     "Display",
     "IterableVideo",
     "cli",
+    "enable_jit",
     "metrics",
+    "optjit",
     "set_log_level",
     "template",
 ]
