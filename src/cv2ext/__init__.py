@@ -112,8 +112,11 @@ if TYPE_CHECKING:
 
 class _DEL:
     def __init__(self: Self) -> None:
-        cv2.startWindowThread()
+        self._started = False
         self._windows: list[str] = []
+        self._is_windows = os.name == "nt"
+        self._osname = "Windows" if self._is_windows else "Unix"
+        _log.debug(f"cv2ext is running on {self._osname}.")
 
     def __del__(self: Self) -> None:
         _log.debug("cv2ext is being deleted.")
@@ -121,8 +124,10 @@ class _DEL:
             _log.debug(f"Deleting window {windowname}.")
             with contextlib.suppress(cv2.error):
                 cv2.destroyWindow(windowname)
+        _log.debug("Deleting all windows.")
         cv2.destroyAllWindows()
-        cv2.waitKey(1)
+        if self._is_windows:
+            cv2.waitKey(1)
 
     def logwindow(self: Self, windowname: str) -> None:
         """
@@ -134,6 +139,10 @@ class _DEL:
             The name of the window to delete.
 
         """
+        if not self._started:
+            _log.debug("Starting cv2 window thread.")
+            cv2.startWindowThread()
+            self._started = True
         self._windows.append(windowname)
 
 
