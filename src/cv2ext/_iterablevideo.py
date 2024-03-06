@@ -19,7 +19,7 @@ from pathlib import Path
 from queue import Empty, Full, Queue
 from threading import Thread
 
-import cv2  # type: ignore[import-untyped]
+import cv2
 import numpy as np
 from typing_extensions import Self
 

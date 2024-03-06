@@ -67,4 +67,4 @@ example-ci: pyupgrade
 	python3 -m isort examples
 	python3 -m black examples --safe
 
-release: clean ci test docs example-ci
+release: clean install ci test docs example-ci

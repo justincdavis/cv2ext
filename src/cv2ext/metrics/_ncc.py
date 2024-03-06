@@ -14,14 +14,35 @@
 from __future__ import annotations
 
 import contextlib
+import logging
+from typing import Callable
 
 import cv2
 import numpy as np
 
-from cv2ext import optjit
+from cv2ext import _FLAGSOBJ
+
+_log = logging.getLogger(__name__)
+
+try:
+    from numba import jit  # type: ignore[import-untyped]
+except ImportError:
+    jit = None
+    if _FLAGSOBJ.USEJIT:
+        _log.warning(
+            "Numba not installed, but JIT has been enabled. Not using JIT for NCC.",
+        )
 
 
-@optjit
+def _nccjit(
+    nccfunc: Callable[[np.ndarray, np.ndarray], float],
+) -> Callable[[np.ndarray, np.ndarray], float]:
+    if _FLAGSOBJ.USEJIT and jit is not None:
+        nccfunc = jit(nccfunc, nopython=True)
+    return nccfunc
+
+
+@_nccjit
 def _core_ncc(
     image1: np.ndarray,
     image2: np.ndarray,
@@ -31,6 +52,9 @@ def _core_ncc(
 
     img1std = np.std(image1)
     img2std = np.std(image2)
+
+    if img1std == 0.0 or img2std == 0.0:
+        return 0.0
 
     image1_numerator = image1 - np.mean(image1) / img1std
     image2_numerator = image2 - np.mean(image2) / img2std

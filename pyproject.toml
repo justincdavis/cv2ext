@@ -48,7 +48,7 @@ dependencies = [
 
 [project.optional-dependencies]
 jit = [
-    "numba>=0.59.0",
+    "numba>=0.55.0",
 ]
 ci = [
     "pyupgrade>=3.10",

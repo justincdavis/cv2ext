@@ -102,7 +102,7 @@ if level is not None and level.upper() not in [
     _log.warning(f"Invalid log level: {level}. Using default log level: WARNING")
 
 import contextlib
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 import cv2
 
@@ -167,7 +167,7 @@ class _FLAGS:
 
     """
 
-    USEJIT: bool = True
+    USEJIT: bool = False
 
 
 _FLAGSOBJ = _FLAGS()
@@ -189,17 +189,6 @@ def enable_jit(*, on: bool | None = None) -> None:
     _log.info(f"JIT is {'enabled' if on else 'disabled'}.")
 
 
-try:
-    from numba import jit  # type: ignore[import-untyped]
-except ImportError:
-
-    def jit(func: Callable) -> Callable:
-        return func
-
-
-optjit = jit
-
-
 from . import metrics, template
 from ._display import Display
 from ._iterablevideo import IterableVideo
@@ -212,7 +201,6 @@ __all__ = [
     "cli",
     "enable_jit",
     "metrics",
-    "optjit",
     "set_log_level",
     "template",
 ]

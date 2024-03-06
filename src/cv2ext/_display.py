@@ -19,7 +19,7 @@ from queue import Empty, Full, Queue
 from threading import Thread
 from typing import TYPE_CHECKING
 
-import cv2  # type: ignore[import-untyped]
+import cv2
 import numpy as np
 
 from cv2ext import _DELOBJ
