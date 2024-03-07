@@ -69,6 +69,7 @@ docs = [
     "myst_parser>=1.0.0",
 ]
 dev = [
+    "cv2ext[jit]",
     "cv2ext[ci]",
     "cv2ext[test]",
     "cv2ext[docs]",
