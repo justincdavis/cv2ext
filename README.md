@@ -31,4 +31,4 @@ Compared to the naive solution implemented in Python,
 by using the tools in cv2ext you can achieve an 8x speedup
 on reading and displaying videos.
 
-![Performance](benchmarks/showplot.png)
+![Performance](benchmarks/visual/showplot.png)

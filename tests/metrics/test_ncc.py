@@ -56,8 +56,16 @@ def test_random_images1(i1, i2) -> None:
     assert retval <= 1.0
     assert retval >= 0.0
 
+
 @given(arrays(shape=(10,10,3), dtype=np.uint8), arrays(shape=(10,10,3), dtype=np.uint8))
 def test_random_images2(i1, i2) -> None:
     retval = ncc(i1, i2, resize=True)
     assert retval <= 1.0
     assert retval >= 0.0
+
+
+def test_same_retvals():
+    img1 = cv2.imread(str(Path("data") / "testpicto1.png"))
+    img2 = cv2.imread(str(Path("data") / "testpicto1.png"))
+
+    assert ncc(img1, img2) == ncc(img2, img1)

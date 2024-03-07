@@ -8,8 +8,8 @@ Below are the results of said benchmarking.
 
 --------------
 
-![Without Visualization](baseplot.png)
-![Visualized](showplot.png)
+![Without Visualization](visual/baseplot.png)
+![Visualized](visual/showplot.png)
 
 As can be seen from the plot showcasing speedup without
 and active visualization, there is an overhead cost associated

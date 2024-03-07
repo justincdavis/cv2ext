@@ -30,7 +30,7 @@ def main():
     if not Path(args.video).exists():
         raise FileNotFoundError(f"Video {args.video} does not exist.")
 
-    naivecmd = ["python3", "benchmarks/run.py", "--video", args.video, "--iterations", str(args.iterations)]
+    naivecmd = ["python3", str(Path("benchmarks") / "visual" / "run.py"), "--video", args.video, "--iterations", str(args.iterations)]
     naiveshowcmd = naivecmd.copy() + ["--show"]
     threadedcmd = naivecmd.copy() + ["--threaded"]
     threadshowcmd = threadedcmd.copy() + ["--show"]
@@ -61,7 +61,7 @@ def main():
     baseplot.set_ylabel("Speedup")
     basefig = baseplot.get_figure()
     basefig.tight_layout()
-    basefig.savefig(Path("benchmarks") / "baseplot.png")
+    basefig.savefig(Path("benchmarks") / "visual" / "baseplot.png")
     plt.close(basefig)
 
     # Visualization commands
@@ -86,7 +86,7 @@ def main():
     showplot.set_ylabel("Speedup")
     showfig = showplot.get_figure()
     showfig.tight_layout()
-    showfig.savefig(Path("benchmarks") / "showplot.png")
+    showfig.savefig(Path("benchmarks") / "visual" / "showplot.png")
     plt.close(showfig)
 
 if __name__ == "__main__":
