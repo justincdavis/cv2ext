@@ -1,3 +1,14 @@
+## 0.0.7 (03-07-2024)
+
+### Added
+
+- JIT
+    - Added enable_jit function to package, which 
+        enables jit compilation using numba for 
+        certain routines/algorithms
+- Display
+    - Improved display window handling
+
 ## 0.0.6 (03-03-2024)
 
 ### Added

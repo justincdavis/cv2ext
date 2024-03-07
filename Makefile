@@ -1,4 +1,4 @@
-.PHONY: help install clean docs test ci mypy pyright pyupgrade isort black ruff release example-ci
+.PHONY: help install clean docs test ci mypy pyright pyupgrade stubs isort black ruff release example-ci
 
 help: 
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -8,6 +8,7 @@ help:
 	@echo "  ci 	    to run the CI workflows"
 	@echo "  mypy       to run the mypy static type checker"
 	@echo "  pyright    to run the pyright static type checker"
+	@echo "  stubs      to generate the type stubs"
 	@echo "  pyupgrade  to run pyupgrade"
 	@echo "  isort      to run isort"
 	@echo "  black      to run black"
@@ -34,6 +35,9 @@ docs:
 	rm -rf docs/source/*
 	sphinx-apidoc -o docs/source/ src/cv2ext/
 	cd docs && make html
+
+stubs:
+	python3 ci/make_stubs.py
 
 ci: pyupgrade ruff mypy isort black
 
@@ -63,4 +67,4 @@ example-ci: pyupgrade
 	python3 -m isort examples
 	python3 -m black examples --safe
 
-release: clean ci test docs example-ci
+release: clean install ci test docs example-ci

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cv2ext"
-version = "0.0.6"
+version = "0.0.7"
 authors = [
   {name="Justin Davis", email="davisjustin302@gmail.com"},
 ]
@@ -47,6 +47,9 @@ dependencies = [
 "Bug Tracker" = "https://github.com/justincdavis/cv2ext/issues"
 
 [project.optional-dependencies]
+jit = [
+    "numba>=0.55.0",
+]
 ci = [
     "pyupgrade>=3.10",
     "black>=24.0",
@@ -66,6 +69,7 @@ docs = [
     "myst_parser>=1.0.0",
 ]
 dev = [
+    "cv2ext[jit]",
     "cv2ext[ci]",
     "cv2ext[test]",
     "cv2ext[docs]",
@@ -78,7 +82,7 @@ dev = [
 ]
 
 [tool.bumpver]
-current_version = "0.0.6"
+current_version = "0.0.7"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message  = "Bump version {old_version} -> {new_version}"
 commit          = true
@@ -163,6 +167,7 @@ plugins = "numpy.typing.mypy_plugin"
 [[tool.mypy.overrides]]
 module = [
     'cv2',
+    'numba',
 ]
 ignore_errors = true
 

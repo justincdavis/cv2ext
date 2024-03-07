@@ -19,7 +19,7 @@ from queue import Empty, Full, Queue
 from threading import Thread
 from typing import TYPE_CHECKING
 
-import cv2  # type: ignore[import-untyped]
+import cv2
 import numpy as np
 
 from cv2ext import _DELOBJ
@@ -38,6 +38,7 @@ class Display:
         self: Self,
         windowname: str,
         stopkey: str = "q",
+        buffersize: int = 1,
         *,
         show: bool | None = None,
     ) -> None:
@@ -51,6 +52,9 @@ class Display:
         stopkey : str
             The key to press to stop the display.
             By default, this is "q".
+        buffersize : int
+            The size of the buffer for the display.
+            By default, this is 1.
         show : bool | None
             If True, the window will be shown.
             If False, the window will not be shown.
@@ -64,12 +68,16 @@ class Display:
             show = True
         self._windowname = windowname
         self._stopkey = stopkey
+        self._buffersize = buffersize
         self._show = show
-        # alloocate a dummy image, size does not matter
+
+        # allocate runtime variables
         self._image: np.ndarray = np.zeros((100, 100, 3), dtype=np.uint8)
         self._frameid = -1  # no frame yet
         self._running = True
-        self._queue: Queue[np.ndarray] = Queue(maxsize=1)
+        self._queue: Queue[np.ndarray] = Queue(maxsize=self._buffersize)
+
+        # thread allocation
         _DELOBJ.logwindow(self._windowname)
         self._thread = Thread(target=self._display, daemon=True)
         self._thread.start()
@@ -117,7 +125,7 @@ class Display:
     def _display(self: Self) -> None:
         if self._show:
             cv2.namedWindow(self._windowname, cv2.WINDOW_AUTOSIZE)
-            cv2.startWindowThread()
+            # cv2.startWindowThread()
         while self._running:
             _log.debug(f"Display {self._windowname} thread starting new loop")
             with contextlib.suppress(Empty):
@@ -128,10 +136,10 @@ class Display:
                         self._running = False
                         continue
         _log.debug(f"Display {self._windowname} thread stopped")
-        if self._show:
-            _log.debug(f"Destroying window {self._windowname}")
-            cv2.destroyWindow(self._windowname)
-            cv2.waitKey(1)
+        # if self._show:
+        #     _log.debug(f"Destroying window {self._windowname}")
+        #     cv2.destroyWindow(self._windowname)
+        #     cv2.waitKey(1)
 
     def _stop(self: Self) -> None:
         """Stop the display."""
