@@ -11,6 +11,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
+# ruff: noqa: S311
 from __future__ import annotations
 
 import argparse
@@ -28,8 +29,9 @@ def _read_csv(
     csvfile: Path,
 ) -> tuple[list[list[tuple[int, int, int, int]]], str]:
     bboxes: list[list[tuple[int, int, int, int]]] = []
-    with Path(csvfile).open("r", newline="") as csvfile:
-        reader = csv.DictReader(csvfile)
+    formatstr = "xywh"
+    with Path(csvfile).open("r", newline="") as f:
+        reader = csv.DictReader(f)
         for row in reader:
             frame = int(row["frame"])
             if len(bboxes) <= frame:
@@ -39,41 +41,48 @@ def _read_csv(
                 y = int(row["y"])
                 w = int(row["w"])
                 h = int(row["h"])
+                formatstr = "xywh"
                 bboxes[frame].append((x, y, w, h))
             except KeyError:
                 x1 = int(row["x1"])
                 y1 = int(row["y1"])
                 x2 = int(row["x2"])
                 y2 = int(row["y2"])
+                formatstr = "xyxy"
                 bboxes[frame].append((x1, y1, x2, y2))
-    return bboxes
+    return bboxes, formatstr
 
 
 def _read_json(
     jsonfile: Path,
 ) -> tuple[list[list[tuple[int, int, int, int]]], str]:
-    with Path(jsonfile).open("r") as jsonfile:
-        dictdata: dict[str, dict[str, dict[str, int]]] = json.load(jsonfile)
+    with Path(jsonfile).open("r") as f:
+        dictdata: dict[str, dict[str, dict[str, int]]] = json.load(f)
     bboxes: list[list[tuple[int, int, int, int]]] = []
     formatstr = "xywh"
-    for frame, bids in dictdata.items():
-        if len(bboxes) <= frame:
-            bboxes.append([])
+    found_format = False
+    for bids in dictdata.values():
+        local_bboxes: list[tuple[int, int, int, int]] = []
         for bbox in bids.values():
-            try:
+            if not found_format:
+                if "x1" in bbox:
+                    formatstr = "xyxy"
+                found_format = True
+            if formatstr == "xywh":
                 x = bbox["x"]
                 y = bbox["y"]
                 w = bbox["w"]
                 h = bbox["h"]
                 formatstr = "xywh"
-                bboxes.append((x, y, w, h))
-            except KeyError:
+                local_bboxes.append((x, y, w, h))
+            else:
                 x1 = bbox["x1"]
                 y1 = bbox["y1"]
                 x2 = bbox["x2"]
                 y2 = bbox["y2"]
                 formatstr = "xyxy"
-                bboxes.append((x1, y1, x2, y2))
+                local_bboxes.append((x1, y1, x2, y2))
+        bboxes.append(local_bboxes)
     return bboxes, formatstr
 
 
@@ -124,15 +133,15 @@ def _write_yolo(
             for box in boxes:
                 x1, y1, e1, e2 = box
                 if formatstr == "xyxy":
-                    w = e1 - x1
-                    h = e2 - y1
+                    w1 = e1 - x1
+                    h1 = e2 - y1
                 else:
-                    w = e1
-                    h = e2
+                    w1 = e1
+                    h1 = e2
                 x = x1 / frame.shape[1]
                 y = y1 / frame.shape[0]
-                w = w / frame.shape[1]
-                h = h / frame.shape[0]
+                w = w1 / frame.shape[1]
+                h = h1 / frame.shape[0]
                 f.write(f"{classid} {x} {y} {w} {h}\n")
 
     yamlpath = output_dir / "data.yaml"
@@ -144,14 +153,52 @@ def _write_yolo(
 
 
 def convertannotations() -> None:
-    parser = argparse.ArgumentParser(description="Convert annotations to other formats.")
-    parser.add_argument("--input", required=True, type=Path, help="The input file to convert.")
-    parser.add_argument("--format", required=True, type=str, options=["yolo"], help="The format to convert to.")
-    parser.add_argument("--output_dir", type=Path, default=None, help="The output file to write.")
-    parser.add_argument("--input_video", type=Path, default=None, help="The input video file used for annotations.")
-    parser.add_argument("--split", type=float, default=0.8, help="The split ratio for the train/test split.")
-    parser.add_argument("--classid", type=int, default=0, help="The class id to use for the annotations.")
-    parser.add_argument("--classname", type=str, default="object", help="The class name to use.")
+    parser = argparse.ArgumentParser(
+        description="Convert annotations to other formats.",
+    )
+    parser.add_argument(
+        "--input",
+        required=True,
+        type=Path,
+        help="The input file to convert.",
+    )
+    parser.add_argument(
+        "--format",
+        required=True,
+        type=str,
+        options=["yolo"],
+        help="The format to convert to.",
+    )
+    parser.add_argument(
+        "--output_dir",
+        type=Path,
+        default=None,
+        help="The output file to write.",
+    )
+    parser.add_argument(
+        "--input_video",
+        type=Path,
+        default=None,
+        help="The input video file used for annotations.",
+    )
+    parser.add_argument(
+        "--split",
+        type=float,
+        default=0.8,
+        help="The split ratio for the train/test split.",
+    )
+    parser.add_argument(
+        "--classid",
+        type=int,
+        default=0,
+        help="The class id to use for the annotations.",
+    )
+    parser.add_argument(
+        "--classname",
+        type=str,
+        default="object",
+        help="The class name to use.",
+    )
     args = parser.parse_args()
 
     inputfile = args.input
@@ -174,9 +221,19 @@ def convertannotations() -> None:
             err_msg = "Output directory is required for YOLO format."
             raise ValueError(err_msg)
         if args.input_video is None:
-            err_msg = "Input video is for annotation source is required for YOLO format."
+            err_msg = (
+                "Input video is for annotation source is required for YOLO format."
+            )
             raise ValueError(err_msg)
-        _write_yolo(bboxes, args.output_dir, args.input_video, formatstr, args.split, args.classid, args.classname)
+        _write_yolo(
+            bboxes,
+            args.output_dir,
+            args.input_video,
+            formatstr,
+            args.split,
+            args.classid,
+            args.classname,
+        )
     else:
         err_msg = f"Unknown format for conversion: {args.format}"
         raise ValueError(err_msg)
