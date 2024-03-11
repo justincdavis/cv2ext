@@ -13,3 +13,8 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """Convert annotations to other formats."""
 from __future__ import annotations
+
+from ._convert import convertannotations
+
+if __name__ == "__main__":
+    convertannotations()
