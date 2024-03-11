@@ -17,7 +17,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-from hypothesis import given
+from hypothesis import given, reproduce_failure
 from hypothesis.extra.numpy import arrays
 
 from cv2ext.metrics import ncc
@@ -57,6 +57,7 @@ def test_random_images1(i1, i2) -> None:
     assert retval >= 0.0
 
 
+@reproduce_failure('6.99.2', b'AAEAAAAFAAAAAQAHABYAAAA=')
 @given(arrays(shape=(10,10,3), dtype=np.uint8), arrays(shape=(10,10,3), dtype=np.uint8))
 def test_random_images2(i1, i2) -> None:
     retval = ncc(i1, i2, resize=True)
