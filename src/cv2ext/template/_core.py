@@ -13,8 +13,56 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
+import logging
+from typing import Callable
+
 import cv2
 import numpy as np
+
+from cv2ext import _FLAGSOBJ
+
+_log = logging.getLogger(__name__)
+
+try:
+    from numba import jit  # type: ignore[import-untyped]
+except ImportError:
+    jit = None
+    if _FLAGSOBJ.USEJIT:
+        _log.warning(
+            "Numba not installed, but JIT has been enabled. Not using JIT for template matching.",
+        )
+
+
+def _multiplejit(
+    matchfunc: Callable[
+        [np.ndarray, tuple[int, int] | tuple[int, int, int], int, float],
+        list[tuple[int, int, int, int]],
+    ],
+) -> Callable[
+    [np.ndarray, tuple[int, int] | tuple[int, int, int], int, float],
+    list[tuple[int, int, int, int]],
+]:
+    if _FLAGSOBJ.USEJIT and jit is not None:
+        matchfunc = jit(matchfunc, nopython=True)
+    return matchfunc
+
+
+@_multiplejit
+def _core_match_multiple(
+    result: np.ndarray,
+    template_shape: tuple[int, int] | tuple[int, int, int],
+    method: int,
+    threshold: float,
+) -> list[tuple[int, int, int, int]]:
+    if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
+        locations = np.where(result <= threshold)  # type: ignore[operator]
+    else:
+        locations = np.where(result >= threshold)  # type: ignore[operator]
+    matches = []
+    for pt in zip(*locations[::-1]):
+        bottom_right = (pt[0] + template_shape[1], pt[1] + template_shape[0])
+        matches.append((*pt, *bottom_right))
+    return matches
 
 
 def match_single(
@@ -76,12 +124,13 @@ def match_multiple(
 
     """
     result = cv2.matchTemplate(image, template, method)
-    if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
-        locations = np.where(result <= threshold)  # type: ignore[operator]
-    else:
-        locations = np.where(result >= threshold)  # type: ignore[operator]
-    matches = []
-    for pt in zip(*locations[::-1]):
-        bottom_right = (pt[0] + template.shape[1], pt[1] + template.shape[0])
-        matches.append((*pt, *bottom_right))
-    return matches
+    # if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
+    #     locations = np.where(result <= threshold)  # type: ignore[operator]
+    # else:
+    #     locations = np.where(result >= threshold)  # type: ignore[operator]
+    # matches = []
+    # for pt in zip(*locations[::-1]):
+    #     bottom_right = (pt[0] + template.shape[1], pt[1] + template.shape[0])
+    #     matches.append((*pt, *bottom_right))
+    # return matches
+    return _core_match_multiple(result, template.shape, method, threshold)
