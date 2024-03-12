@@ -171,6 +171,7 @@ def convertannotations() -> None:
     )
     parser.add_argument(
         "--output_dir",
+        required=True,
         type=Path,
         default=None,
         help="The output file to write.",
