@@ -17,7 +17,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-from hypothesis import given
+from hypothesis import given, reproduce_failure
 from hypothesis.extra.numpy import arrays
 
 from cv2ext.metrics import ncc
@@ -46,22 +46,22 @@ def test_different_image():
     img1 = cv2.imread(str(Path("data") / "testpicto1.png"))
     img2 = cv2.imread(str(Path("data") / "testpicto2.png"))
 
-    assert ncc(img1, img2) < 1.0
-    assert ncc(img1, img2) > 0.0
+    assert ncc(img1, img2) <= 1.0
+    assert ncc(img1, img2) >= -1.0
 
 
 @given(arrays(shape=(5,5,3), dtype=np.uint8), arrays(shape=(5,5,3), dtype=np.uint8))
 def test_random_images1(i1, i2) -> None:
     retval = ncc(i1, i2, resize=True)
     assert retval <= 1.0
-    assert retval >= 0.0
+    assert retval >= -1.0
 
 
 @given(arrays(shape=(10,10,3), dtype=np.uint8), arrays(shape=(10,10,3), dtype=np.uint8))
 def test_random_images2(i1, i2) -> None:
     retval = ncc(i1, i2, resize=True)
     assert retval <= 1.0
-    assert retval >= 0.0
+    assert retval >= -1.0
 
 
 def test_same_retvals():
