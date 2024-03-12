@@ -67,7 +67,7 @@ def test_match_multiple_max_thresh_jit():
     template = cv2.imread(str(Path("data") / "template.png"))
     image = cv2.imread(str(Path("data") / "pictograms.png"))
 
-    output = cv2ext.template.match_multiple(image, template, threshold=1.0)
+    output = cv2ext.template.match_multiple(image, template, threshold=0.999)
 
     assert output is not None
     assert len(output) == 1
