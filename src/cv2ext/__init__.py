@@ -114,20 +114,21 @@ if TYPE_CHECKING:
 
 
 class _DEL:
-    def __init__(self: Self) -> None:
+    def __init__(self: Self, log: logging.Logger) -> None:
+        self._log = log
         self._started = False
         self._windows: list[str] = []
         self._is_windows = os.name == "nt"
         self._osname = "Windows" if self._is_windows else "Unix"
-        _log.debug(f"cv2ext is running on {self._osname}.")
+        self._log.debug(f"cv2ext is running on {self._osname}.")
 
     def __del__(self: Self) -> None:
-        _log.debug("cv2ext is being deleted.")
+        self._log.debug("cv2ext is being deleted.")
         for windowname in self._windows:
-            _log.debug(f"Deleting window {windowname}.")
+            self._log.debug(f"Deleting window {windowname}.")
             with contextlib.suppress(cv2.error):
                 cv2.destroyWindow(windowname)
-        _log.debug("Deleting all windows.")
+        self._log.debug("Deleting all windows.")
         cv2.destroyAllWindows()
         if self._is_windows:
             cv2.waitKey(1)
@@ -143,13 +144,13 @@ class _DEL:
 
         """
         if not self._started:
-            _log.debug("Starting cv2 window thread.")
+            self._log.debug("Starting cv2 window thread.")
             cv2.startWindowThread()
             self._started = True
         self._windows.append(windowname)
 
 
-_DELOBJ = _DEL()
+_DELOBJ = _DEL(_log)
 
 
 from dataclasses import dataclass
