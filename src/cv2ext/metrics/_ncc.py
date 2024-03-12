@@ -64,7 +64,8 @@ def _core_ncc(
         / (np.sqrt(np.sum(image1_numerator**2)) * np.sqrt(np.sum(image2_numerator**2))),
     )
 
-    return min(1.0, val)
+    # clamp to [-1, 1] incase of floating point errors
+    return max(min(1.0, val), -1.0)
 
 
 def ncc(
