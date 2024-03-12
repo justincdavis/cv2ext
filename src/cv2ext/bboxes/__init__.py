@@ -27,7 +27,7 @@ nms
 from __future__ import annotations
 
 from ._iou import iou, ious
-from ._map import mean_ap
+from ._mean_ap import mean_ap
 from ._nms import nms
 
 __all__ = ["iou", "ious", "mean_ap", "nms"]
