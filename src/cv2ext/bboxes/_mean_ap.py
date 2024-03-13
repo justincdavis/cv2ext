@@ -103,7 +103,6 @@ def _meanap_kernel(
                 )
                 recall[c].append(true_postives[c] / npos)
 
-    # Calculate the average precision (AP) for each class
     ap = {
         c: np.sum(
             [
@@ -114,7 +113,6 @@ def _meanap_kernel(
         for c in range(num_classes)
     }
 
-    # Calculate the mean average precision (mAP)
     return float(np.mean(list(ap.values())))
 
 
