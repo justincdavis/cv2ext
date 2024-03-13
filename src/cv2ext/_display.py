@@ -86,11 +86,12 @@ class Display:
     def frame(self: Self) -> np.ndarray:
         """
         The most recent frame.
-        
+
         Returns
         -------
         np.ndarray
             The most recent frame.
+
         """
         return self._image
 
@@ -98,11 +99,12 @@ class Display:
     def frameid(self: Self) -> int:
         """
         The current frame id.
-        
+
         Returns
         -------
         int
             The current frame id.
+
         """
         return self._frameid
 
@@ -110,11 +112,12 @@ class Display:
     def stopped(self: Self) -> bool:
         """
         Whether the display is stopped.
-        
+
         Returns
         -------
         bool
             Whether the display is stopped.
+
         """
         return not self._running
 
@@ -122,11 +125,12 @@ class Display:
     def is_alive(self: Self) -> bool:
         """
         Whether the display is running.
-        
+
         Returns
         -------
         bool
             Whether the display is running.
+
         """
         return self._thread.is_alive()
 
