@@ -34,11 +34,21 @@ except ImportError:
 
 def _meanapjit(
     meanapfunc: Callable[
-        [list[tuple[tuple[int, int, int, int], int, float]], list[tuple[tuple[int, int, int, int], int]], int, float],
+        [
+            list[tuple[tuple[int, int, int, int], int, float]],
+            list[tuple[tuple[int, int, int, int], int]],
+            int,
+            float,
+        ],
         float,
     ],
 ) -> Callable[
-    [list[tuple[tuple[int, int, int, int], int, float]], list[tuple[tuple[int, int, int, int], int]], int, float],
+    [
+        list[tuple[tuple[int, int, int, int], int, float]],
+        list[tuple[tuple[int, int, int, int], int]],
+        int,
+        float,
+    ],
     float,
 ]:
     if _FLAGSOBJ.USEJIT and jit is not None:
@@ -71,7 +81,6 @@ def _meanap_kernel(
     fp: list[int] = [0] * num_classes
     ap: list[float] = [0.0] * num_classes
     for bbox, class_id, _ in bboxes:
-        # find best matching bounding box greedily
         best_match_iou = 0.0
         best_match_gt_idx = None
         for gt_idx, (gt_bbox, gt_class_id) in enumerate(gt_bboxes):
@@ -81,7 +90,6 @@ def _meanap_kernel(
                     best_match_iou = iou
                     best_match_gt_idx = gt_idx
 
-        # if a match is found, increment tp, otherwise increment fp
         if best_match_iou >= iou_threshold and best_match_gt_idx is not None:
             tp[class_id] += 1
             gt_bboxes.pop(best_match_gt_idx)
@@ -89,7 +97,9 @@ def _meanap_kernel(
             fp[class_id] += 1
 
     for class_id in range(num_classes):
-        npos = len([gt_bbox for gt_bbox, gt_class_id in gt_bboxes if gt_class_id == class_id])
+        npos = len(
+            [gt_bbox for gt_bbox, gt_class_id in gt_bboxes if gt_class_id == class_id],
+        )
         ap[class_id] = calculate_ap(tp[class_id], fp[class_id], npos)
 
     return sum(ap) / num_classes

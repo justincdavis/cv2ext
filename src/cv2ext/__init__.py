@@ -190,7 +190,7 @@ def enable_jit(*, on: bool | None = None) -> None:
     _log.info(f"JIT is {'enabled' if on else 'disabled'}.")
 
 
-from . import metrics, template
+from . import bboxes, metrics, template
 from ._display import Display
 from ._iterablevideo import IterableVideo
 
@@ -199,6 +199,7 @@ __all__ = [
     "_FLAGSOBJ",
     "Display",
     "IterableVideo",
+    "bboxes",
     "cli",
     "enable_jit",
     "metrics",

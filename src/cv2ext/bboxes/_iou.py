@@ -40,8 +40,14 @@ def _iou_kernel_jit(
 
 
 def _iou_list_kernel_jit(
-    iouk_func: Callable[[list[tuple[int, int, int, int]], list[tuple[int, int, int, int]]], list[float]],
-) -> Callable[[list[tuple[int, int, int, int]], list[tuple[int, int, int, int]]], list[float]]:
+    iouk_func: Callable[
+        [list[tuple[int, int, int, int]], list[tuple[int, int, int, int]]],
+        list[float],
+    ],
+) -> Callable[
+    [list[tuple[int, int, int, int]], list[tuple[int, int, int, int]]],
+    list[float],
+]:
     if _FLAGSOBJ.USEJIT and jit is not None:
         iouk_func = jit(iouk_func, nopython=True)
     return iouk_func
@@ -60,10 +66,13 @@ def _iou_kernel(
     x2 = min(x2a, x2b)
     y2 = min(y2a, y2b)
 
-    inter = max(0, x2 - x1 + 1) * max(0, y2 - y1 + 1)
+    inter = max(0, x2 - x1) * max(0, y2 - y1)
 
-    area1 = (x2a - x1a + 1) * (y2a - y1a + 1)
-    area2 = (x2b - x1b + 1) * (y2b - y1b + 1)
+    if inter == 0.0:
+        return 0.0
+
+    area1 = (x2a - x1a) * (y2a - y1a)
+    area2 = (x2b - x1b) * (y2b - y1b)
 
     union = area1 + area2 - inter
 

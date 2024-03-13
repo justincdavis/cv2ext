@@ -33,8 +33,14 @@ except ImportError:
 
 
 def _nmsjit(
-    nmsfunc: Callable[[list[tuple[tuple[int, int, int, int], int, float]], float], list[tuple[tuple[int, int, int, int], int, float]]],
-) -> Callable[[list[tuple[tuple[int, int, int, int], int, float]], float], list[tuple[tuple[int, int, int, int], int, float]]]:
+    nmsfunc: Callable[
+        [list[tuple[tuple[int, int, int, int], int, float]], float],
+        list[tuple[tuple[int, int, int, int], int, float]],
+    ],
+) -> Callable[
+    [list[tuple[tuple[int, int, int, int], int, float]], float],
+    list[tuple[tuple[int, int, int, int], int, float]],
+]:
     if _FLAGSOBJ.USEJIT and jit is not None:
         nmsfunc = jit(nmsfunc, nopython=True)
     return nmsfunc

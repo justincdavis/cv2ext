@@ -124,13 +124,4 @@ def match_multiple(
 
     """
     result = cv2.matchTemplate(image, template, method)
-    # if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
-    #     locations = np.where(result <= threshold)  # type: ignore[operator]
-    # else:
-    #     locations = np.where(result >= threshold)  # type: ignore[operator]
-    # matches = []
-    # for pt in zip(*locations[::-1]):
-    #     bottom_right = (pt[0] + template.shape[1], pt[1] + template.shape[0])
-    #     matches.append((*pt, *bottom_right))
-    # return matches
-    return _core_match_multiple(result, template.shape, method, threshold)
+    return _core_match_multiple(result, template.shape, method, threshold)  # type: ignore[arg-type]
