@@ -27,6 +27,7 @@ def test_sequential():
         assert prev_id + 1 == frame_id
         prev_id = frame_id
 
+
 def test_sequential_thread():
     # get video from dump dir
     video = IterableVideo(Path("data") / "testvid.mp4", use_thread=True)

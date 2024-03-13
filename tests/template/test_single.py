@@ -13,18 +13,21 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
-from .test_ncc import (
-    test_same_image,
-    test_different_image_noresize,
-    test_different_image,
-    test_random_images1,
-    test_random_images2,
-)
+from pathlib import Path
 
-__all__ = [
-    "test_same_image",
-    "test_different_image_noresize",
-    "test_different_image",
-    "test_random_images1",
-    "test_random_images2",
-]
+import cv2
+import cv2ext
+
+from ..helpers import wrapper
+
+
+@wrapper
+def test_match_single():
+    template = cv2.imread(str(Path("data") / "template.png"))
+    image = cv2.imread(str(Path("data") / "pictograms.png"))
+
+    output = cv2ext.template.match_single(image, template)
+
+    assert output is not None
+    assert len(output) == 4
+    assert output == (308, 308, 458, 454)

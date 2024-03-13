@@ -8,6 +8,7 @@ Subpackages
    :maxdepth: 4
 
    cv2ext.cli.annotate
+   cv2ext.cli.convert_annotations
    cv2ext.cli.resize_video
 
 Module contents

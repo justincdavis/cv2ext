@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   cv2ext.bboxes
    cv2ext.cli
    cv2ext.metrics
    cv2ext.template

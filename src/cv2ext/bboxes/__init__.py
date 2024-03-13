@@ -11,20 +11,23 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""
+Subpackage containing tools for working with simple bounding boxes.
+
+Functions
+---------
+iou
+    Calculate the intersection over union of two bounding boxes.
+mean_ap
+    Calculate the mean average precision of a set of bounding boxes.
+nms
+    Perform non-maximum suppression on a set of bounding boxes.
+
+"""
 from __future__ import annotations
 
-from .test_ncc import (
-    test_same_image,
-    test_different_image_noresize,
-    test_different_image,
-    test_random_images1,
-    test_random_images2,
-)
+from ._iou import iou, ious
+from ._mean_ap import mean_ap
+from ._nms import nms
 
-__all__ = [
-    "test_same_image",
-    "test_different_image_noresize",
-    "test_different_image",
-    "test_random_images1",
-    "test_random_images2",
-]
+__all__ = ["iou", "ious", "mean_ap", "nms"]

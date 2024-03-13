@@ -28,6 +28,7 @@ def test_update():
 
         assert np.all(frame == display.frame)
 
+
 def test_id():
     video = IterableVideo(Path("data") / "testvid.mp4")
     display = Display("test", show=False)
@@ -37,6 +38,7 @@ def test_id():
 
         assert np.all(frame == display.frame)
         assert frame_id == display.frameid
+
 
 def test_call():
     video = IterableVideo(Path("data") / "testvid.mp4")

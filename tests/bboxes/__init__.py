@@ -13,18 +13,24 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
-from .test_ncc import (
-    test_same_image,
-    test_different_image_noresize,
-    test_different_image,
-    test_random_images1,
-    test_random_images2,
+from .test_iou import (
+    test_bounds,
+    test_no_overlap,
+    test_partial_overlap,
+    test_complete_overlap,
+    test_bounds_jit,
+    test_no_overlap_jit,
+    test_partial_overlap_jit,
+    test_complete_overlap_jit,
 )
 
 __all__ = [
-    "test_same_image",
-    "test_different_image_noresize",
-    "test_different_image",
-    "test_random_images1",
-    "test_random_images2",
+    "test_bounds",
+    "test_no_overlap",
+    "test_partial_overlap",
+    "test_complete_overlap",
+    "test_bounds_jit",
+    "test_no_overlap_jit",
+    "test_partial_overlap_jit",
+    "test_complete_overlap_jit",
 ]

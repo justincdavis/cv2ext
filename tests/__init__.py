@@ -12,19 +12,3 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
-
-from .test_ncc import (
-    test_same_image,
-    test_different_image_noresize,
-    test_different_image,
-    test_random_images1,
-    test_random_images2,
-)
-
-__all__ = [
-    "test_same_image",
-    "test_different_image_noresize",
-    "test_different_image",
-    "test_random_images1",
-    "test_random_images2",
-]
