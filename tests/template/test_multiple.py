@@ -13,16 +13,16 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
-import importlib
 from pathlib import Path
 
 import cv2
 import cv2ext
 
+from ..helpers import wrapper
 
+
+@wrapper
 def test_match_multiple():
-    importlib.reload(cv2ext)
-
     template = cv2.imread(str(Path("data") / "template.png"))
     image = cv2.imread(str(Path("data") / "pictograms.png"))
 
@@ -34,9 +34,8 @@ def test_match_multiple():
     assert len(output) == 4
 
 
+@wrapper
 def test_match_multiple_threshold():
-    importlib.reload(cv2ext)
-
     template = cv2.imread(str(Path("data") / "template.png"))
     image = cv2.imread(str(Path("data") / "pictograms.png"))
 
@@ -54,9 +53,8 @@ def test_match_multiple_threshold():
         assert num_matches[i] >= num_matches[i + 1]
 
 
+@wrapper
 def test_match_multiple_max_thresh():
-    importlib.reload(cv2ext)
-
     template = cv2.imread(str(Path("data") / "template.png"))
     image = cv2.imread(str(Path("data") / "pictograms.png"))
 
@@ -67,9 +65,8 @@ def test_match_multiple_max_thresh():
     assert output[0] == (308, 308, 458, 454)
 
 
+@wrapper
 def test_match_multiple_above_max_thresh():
-    importlib.reload(cv2ext)
-
     template = cv2.imread(str(Path("data") / "template.png"))
     image = cv2.imread(str(Path("data") / "pictograms.png"))
 

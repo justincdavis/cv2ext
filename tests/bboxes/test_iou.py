@@ -13,9 +13,12 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
+import contextlib
+
 import cv2ext
-from hypothesis import given
+import pybboxes
 import hypothesis.strategies as st
+from hypothesis import given
 
 from ..helpers import wrapper, wrapper_jit
 
@@ -25,7 +28,9 @@ def test_no_overlap():
     a = (0, 0, 10, 10)
     b = (10, 10, 20, 20)
     iou = cv2ext.bboxes.iou(a, b)
+    pyb_iou = pybboxes.BoundingBox(*a).iou(pybboxes.BoundingBox(*b))
     assert iou == 0.0
+    assert iou == pyb_iou
 
 
 @wrapper
@@ -33,7 +38,9 @@ def test_complete_overlap():
     a = (0, 0, 4, 4)
     b = (0, 0, 4, 4)
     iou = cv2ext.bboxes.iou(a, b)
+    pyb_iou = pybboxes.BoundingBox(*a).iou(pybboxes.BoundingBox(*b))
     assert iou == 1.0
+    assert iou == pyb_iou
 
 
 @wrapper
@@ -41,23 +48,34 @@ def test_partial_overlap():
     a = (0, 0, 10, 10)
     b = (5, 5, 10, 10)
     iou = cv2ext.bboxes.iou(a, b)
+    pyb_iou = pybboxes.BoundingBox(*a).iou(pybboxes.BoundingBox(*b))
     assert iou == 0.25
+    assert iou == pyb_iou
 
+
+@wrapper
 @given(
     bbox1=st.tuples(st.integers(), st.integers(), st.integers(), st.integers()),
     bbox2=st.tuples(st.integers(), st.integers(), st.integers(), st.integers()),
 )
-@wrapper
 def test_bounds(bbox1, bbox2):
     iou = cv2ext.bboxes.iou(bbox1, bbox2)
     assert 0 <= iou <= 1
+    pyb_iou = None
+    with contextlib.suppress(ValueError):
+        pyb_iou = pybboxes.BoundingBox(*bbox1).iou(pybboxes.BoundingBox(*bbox2))
+    if pyb_iou is not None:
+        assert iou == pyb_iou
+
 
 @wrapper_jit
 def test_no_overlap_jit():
     a = (0, 0, 10, 10)
     b = (10, 10, 20, 20)
     iou = cv2ext.bboxes.iou(a, b)
+    pyb_iou = pybboxes.BoundingBox(*a).iou(pybboxes.BoundingBox(*b))
     assert iou == 0.0
+    assert iou == pyb_iou
 
 
 @wrapper_jit
@@ -65,7 +83,9 @@ def test_complete_overlap_jit():
     a = (0, 0, 4, 4)
     b = (0, 0, 4, 4)
     iou = cv2ext.bboxes.iou(a, b)
+    pyb_iou = pybboxes.BoundingBox(*a).iou(pybboxes.BoundingBox(*b))
     assert iou == 1.0
+    assert iou == pyb_iou
 
 
 @wrapper_jit
@@ -73,14 +93,21 @@ def test_partial_overlap_jit():
     a = (0, 0, 10, 10)
     b = (5, 5, 10, 10)
     iou = cv2ext.bboxes.iou(a, b)
+    pyb_iou = pybboxes.BoundingBox(*a).iou(pybboxes.BoundingBox(*b))
     assert iou == 0.25
+    assert iou == pyb_iou
 
 
+@wrapper_jit
 @given(
     bbox1=st.tuples(st.integers(), st.integers(), st.integers(), st.integers()),
     bbox2=st.tuples(st.integers(), st.integers(), st.integers(), st.integers()),
 )
-@wrapper_jit
 def test_bounds_jit(bbox1, bbox2):
     iou = cv2ext.bboxes.iou(bbox1, bbox2)
     assert 0 <= iou <= 1
+    pyb_iou = None
+    with contextlib.suppress(ValueError):
+        pyb_iou = pybboxes.BoundingBox(*bbox1).iou(pybboxes.BoundingBox(*bbox2))
+    if pyb_iou is not None:
+        assert iou == pyb_iou

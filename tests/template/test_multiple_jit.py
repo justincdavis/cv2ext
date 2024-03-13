@@ -13,17 +13,16 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
-import importlib
 from pathlib import Path
 
 import cv2
 import cv2ext
 
+from ..helpers import wrapper_jit
 
+
+@wrapper_jit
 def test_match_multiple_jit():
-    importlib.reload(cv2ext)
-    cv2ext.enable_jit()
-
     template = cv2.imread(str(Path("data") / "template.png"))
     image = cv2.imread(str(Path("data") / "pictograms.png"))
 
@@ -34,13 +33,9 @@ def test_match_multiple_jit():
     output = output[0]
     assert len(output) == 4
 
-    importlib.reload(cv2ext)
 
-
+@wrapper_jit
 def test_match_multiple_threshold_jit():
-    importlib.reload(cv2ext)
-    cv2ext.enable_jit()
-
     template = cv2.imread(str(Path("data") / "template.png"))
     image = cv2.imread(str(Path("data") / "pictograms.png"))
 
@@ -57,13 +52,9 @@ def test_match_multiple_threshold_jit():
     for i in range(len(num_matches) - 1):
         assert num_matches[i] >= num_matches[i + 1]
 
-    importlib.reload(cv2ext)
 
-
+@wrapper_jit
 def test_match_multiple_max_thresh_jit():
-    importlib.reload(cv2ext)
-    cv2ext.enable_jit()
-
     template = cv2.imread(str(Path("data") / "template.png"))
     image = cv2.imread(str(Path("data") / "pictograms.png"))
 
@@ -73,13 +64,9 @@ def test_match_multiple_max_thresh_jit():
     assert len(output) == 1
     assert output[0] == (308, 308, 458, 454)
 
-    importlib.reload(cv2ext)
 
-
+@wrapper_jit
 def test_match_multiple_above_max_thresh_jit():
-    importlib.reload(cv2ext)
-    cv2ext.enable_jit()
-    
     template = cv2.imread(str(Path("data") / "template.png"))
     image = cv2.imread(str(Path("data") / "pictograms.png"))
 
@@ -87,5 +74,3 @@ def test_match_multiple_above_max_thresh_jit():
 
     assert output is not None
     assert len(output) == 0
-
-    importlib.reload(cv2ext)

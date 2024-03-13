@@ -13,17 +13,16 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
-import importlib
 from pathlib import Path
 
 import cv2
 import cv2ext
 
+from ..helpers import wrapper
 
 
+@wrapper
 def test_match_single():
-    importlib.reload(cv2ext)
-
     template = cv2.imread(str(Path("data") / "template.png"))
     image = cv2.imread(str(Path("data") / "pictograms.png"))
 
