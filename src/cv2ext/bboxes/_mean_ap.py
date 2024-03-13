@@ -16,6 +16,8 @@ from __future__ import annotations
 import logging
 from typing import Callable
 
+import numpy as np
+
 from cv2ext import _FLAGSOBJ
 
 from ._iou import _iou_kernel
@@ -35,8 +37,8 @@ except ImportError:
 def _meanapjit(
     meanapfunc: Callable[
         [
-            list[tuple[tuple[int, int, int, int], int, float]],
-            list[tuple[tuple[int, int, int, int], int]],
+            list[list[tuple[tuple[int, int, int, int], int, float]]],
+            list[list[tuple[tuple[int, int, int, int], int]]],
             int,
             float,
         ],
@@ -44,8 +46,8 @@ def _meanapjit(
     ],
 ) -> Callable[
     [
-        list[tuple[tuple[int, int, int, int], int, float]],
-        list[tuple[tuple[int, int, int, int], int]],
+        list[list[tuple[tuple[int, int, int, int], int, float]]],
+        list[list[tuple[tuple[int, int, int, int], int]]],
         int,
         float,
     ],
@@ -58,69 +60,83 @@ def _meanapjit(
 
 @_meanapjit
 def _meanap_kernel(
-    bboxes: list[tuple[tuple[int, int, int, int], int, float]],
-    gt_bboxes: list[tuple[tuple[int, int, int, int], int]],
+    bboxes: list[list[tuple[tuple[int, int, int, int], int, float]]],
+    gt_bboxes: list[list[tuple[tuple[int, int, int, int], int]]],
     num_classes: int,
     iou_threshold: float,
 ) -> float:
-    def calculate_ap(tp: int, fp: int, npos: int) -> float:
-        rec = [0.0]
-        prec = [0.0]
-        for i in range(tp + fp):
-            if i > 0:
-                rec.append(tp / npos)
-                prec.append(tp / (tp + fp))
-            if tp + fp > 0:
-                tp -= 1
-            else:
-                break
-        return sum([p * (r - rn) for p, r, rn in zip(prec[:-1], rec[1:], rec[:-1])])
+    precision: list[list[float]] = [[] for _ in range(num_classes)]
+    recall: list[list[float]] = [[] for _ in range(num_classes)]
 
-    bboxes = sorted(bboxes, key=lambda x: x[2], reverse=True)
-    tp: list[int] = [0] * num_classes
-    fp: list[int] = [0] * num_classes
-    ap: list[float] = [0.0] * num_classes
-    for bbox, class_id, _ in bboxes:
-        best_match_iou = 0.0
-        best_match_gt_idx = None
-        for gt_idx, (gt_bbox, gt_class_id) in enumerate(gt_bboxes):
-            if class_id == gt_class_id:
-                iou = _iou_kernel(bbox, gt_bbox)
-                if iou > best_match_iou:
-                    best_match_iou = iou
-                    best_match_gt_idx = gt_idx
+    for image_bboxes, image_gt_bboxes in zip(bboxes, gt_bboxes):
+        s_image_bboxes = sorted(image_bboxes, key=lambda x: x[2], reverse=True)
 
-        if best_match_iou >= iou_threshold and best_match_gt_idx is not None:
-            tp[class_id] += 1
-            gt_bboxes.pop(best_match_gt_idx)
-        else:
-            fp[class_id] += 1
+        true_postives = np.zeros(num_classes)
+        false_postives = np.zeros(num_classes)
 
-    for class_id in range(num_classes):
-        npos = len(
-            [gt_bbox for gt_bbox, gt_class_id in gt_bboxes if gt_class_id == class_id],
+        for bbox, class_id, _ in s_image_bboxes:
+            gt_match = False
+            for gt_bbox, gt_class_id in image_gt_bboxes:
+                if (
+                    class_id == gt_class_id
+                    and _iou_kernel(bbox, gt_bbox) >= iou_threshold
+                ):
+                    true_postives[class_id] += 1
+                    gt_match = True
+                    break
+            if not gt_match:
+                false_postives[class_id] += 1
+
+        for c in range(num_classes):
+            npos = len(
+                [
+                    gt_bbox
+                    for gt_bbox, gt_class_id in image_gt_bboxes
+                    if gt_class_id == c
+                ],
+            )
+            if npos == 0:
+                continue
+            if true_postives[c] + false_postives[c] > 0:
+                precision[c].append(
+                    true_postives[c] / (true_postives[c] + false_postives[c]),
+                )
+                recall[c].append(true_postives[c] / npos)
+
+    # Calculate the average precision (AP) for each class
+    ap = {
+        c: np.sum(
+            [
+                (recall[c][i] - recall[c][i - 1]) * precision[c][i]
+                for i in range(1, len(precision[c]))
+            ],
         )
-        ap[class_id] = calculate_ap(tp[class_id], fp[class_id], npos)
+        for c in range(num_classes)
+    }
 
-    return sum(ap) / num_classes
+    # Calculate the mean average precision (mAP)
+    return float(np.mean(list(ap.values())))
 
 
 def mean_ap(
-    bboxes: list[tuple[tuple[int, int, int, int], int, float]],
-    gt_bboxes: list[tuple[tuple[int, int, int, int], int]],
+    bboxes: list[list[tuple[tuple[int, int, int, int], int, float]]],
+    gt_bboxes: list[list[tuple[tuple[int, int, int, int], int]]],
     num_classes: int,
     iou_threshold: float = 0.5,
 ) -> float:
     """
     Calculate the mean average precision for a set of bounding boxes.
 
+    bboxes and gt_bboxes are lists of lists representing the bounding boxes for each image.
+    Each bounding box is represented as a tuple of the form ((x1, y1, x2, y2), class, confidence).
+
     Parameters
     ----------
     bboxes : list[tuple[tuple[int, int, int, int], int, float]]
-        A list of bounding boxes, each represented as a tuple of the form
+        A list of lists of bounding boxes, each represented as a tuple of the form
         ((x1, y1, x2, y2), class, confidence
     gt_bboxes : list[tuple[tuple[int, int, int, int], int]]
-        A list of ground truth bounding boxes, each represented as a tuple of the form
+        A list of lists of ground truth bounding boxes, each represented as a tuple of the form
         ((x1, y1, x2, y2), class)
     num_classes : int
         The number of classes in the dataset.
@@ -132,5 +148,18 @@ def mean_ap(
     float
         The mean average precision of the bounding boxes.
 
+    Raises
+    ------
+    ValueError
+        If the length of bboxes and gt_bboxes are not equal.
+    ValueError
+        If the length is zero.
+
     """
+    if len(bboxes) != len(gt_bboxes):
+        err_msg = f"Length of bboxes ({len(bboxes)}) and gt_bboxes ({len(gt_bboxes)}) must be equal."
+        raise ValueError(err_msg)
+    if len(bboxes) == 0:
+        err_msg = "Length of bboxes and gt_bboxes must be greater than zero."
+        raise ValueError(err_msg)
     return _meanap_kernel(bboxes, gt_bboxes, num_classes, iou_threshold)
