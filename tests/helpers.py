@@ -23,7 +23,7 @@ def wrapper(func: Callable) -> Callable:
     def inner(*args, **kwargs):
         importlib.reload(cv2ext)
 
-        result =  func(*args, **kwargs)
+        result = func(*args, **kwargs)
 
         importlib.reload(cv2ext)
 
@@ -37,7 +37,7 @@ def wrapper_jit(func: Callable) -> Callable:
         importlib.reload(cv2ext)
         cv2ext.enable_jit()
 
-        result =  func(*args, **kwargs)
+        result = func(*args, **kwargs)
 
         importlib.reload(cv2ext)
 

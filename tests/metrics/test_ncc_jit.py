@@ -55,7 +55,7 @@ def test_different_image_jit():
 
 
 @wrapper_jit
-@given(arrays(shape=(5,5,3), dtype=np.uint8), arrays(shape=(5,5,3), dtype=np.uint8))
+@given(arrays(shape=(5, 5, 3), dtype=np.uint8), arrays(shape=(5, 5, 3), dtype=np.uint8))
 def test_random_images1_jit(i1, i2) -> None:
     retval = cv2ext.metrics.ncc(i1, i2, resize=True)
     assert retval <= 1.0
@@ -63,7 +63,9 @@ def test_random_images1_jit(i1, i2) -> None:
 
 
 @wrapper_jit
-@given(arrays(shape=(10,10,3), dtype=np.uint8), arrays(shape=(10,10,3), dtype=np.uint8))
+@given(
+    arrays(shape=(10, 10, 3), dtype=np.uint8), arrays(shape=(10, 10, 3), dtype=np.uint8)
+)
 def test_random_images2_jit(i1, i2) -> None:
     retval = cv2ext.metrics.ncc(i1, i2, resize=True)
     assert retval <= 1.0

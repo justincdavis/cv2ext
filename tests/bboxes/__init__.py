@@ -12,3 +12,25 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
+
+from .test_iou import (
+    test_bounds,
+    test_no_overlap,
+    test_partial_overlap,
+    test_complete_overlap,
+    test_bounds_jit,
+    test_no_overlap_jit,
+    test_partial_overlap_jit,
+    test_complete_overlap_jit,
+)
+
+__all__ = [
+    "test_bounds",
+    "test_no_overlap",
+    "test_partial_overlap",
+    "test_complete_overlap",
+    "test_bounds_jit",
+    "test_no_overlap_jit",
+    "test_partial_overlap_jit",
+    "test_complete_overlap_jit",
+]

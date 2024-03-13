@@ -39,7 +39,6 @@ def test_match_multiple_threshold():
     template = cv2.imread(str(Path("data") / "template.png"))
     image = cv2.imread(str(Path("data") / "pictograms.png"))
 
-
     num_matches = []
     for thresh in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99]:
         output = cv2ext.template.match_multiple(image, template, threshold=thresh)
