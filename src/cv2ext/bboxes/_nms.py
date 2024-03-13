@@ -18,6 +18,8 @@ from typing import Callable
 
 from cv2ext import _FLAGSOBJ
 
+from ._iou import _iou_kernel
+
 _log = logging.getLogger(__name__)
 
 try:
@@ -43,7 +45,19 @@ def _nms_kernel(
     bboxes: list[tuple[tuple[int, int, int, int], int, float]],
     iou_threshold: float = 0.5,
 ) -> list[tuple[tuple[int, int, int, int], int, float]]:
-    pass
+    bboxes = sorted(bboxes, key=lambda x: x[2], reverse=True)
+    final_bboxes = []
+    for box1 in bboxes:
+        discard = False
+        for box2 in bboxes:
+            if box1 == box2:
+                continue
+            if _iou_kernel(box1[0], box2[0]) > iou_threshold:
+                discard = True
+                break
+        if not discard:
+            final_bboxes.append(box1)
+    return final_bboxes
 
 
 def nms(
