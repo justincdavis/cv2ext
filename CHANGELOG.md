@@ -1,3 +1,27 @@
+## 0.0.8 (03-13-2024)
+
+### Added
+
+- bboxes
+    - Submodule focused on bounding box computations
+    - Has basic routines such as iou, iou for many boxes
+       non-max-suppression, and mean average precision computation
+    - All routines are capable of being accelerated via the JIT
+- template
+    - Added JIT capability to match_multiple function
+
+### Fixed
+
+- Display
+    - Bug when logger gets deleted before global handler.
+        Handler now keeps a reference to package logger.
+
+### Improved
+
+- Testing
+    - Added wrappers to aid in testing JIT vs. normal
+        code execution. Significantly less code in tests
+
 ## 0.0.7 (03-07-2024)
 
 ### Added
