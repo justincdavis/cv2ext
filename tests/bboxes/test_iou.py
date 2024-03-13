@@ -61,11 +61,29 @@ def test_partial_overlap():
 def test_bounds(bbox1, bbox2):
     iou = cv2ext.bboxes.iou(bbox1, bbox2)
     assert 0 <= iou <= 1
-    pyb_iou = None
-    with contextlib.suppress(ValueError):
-        pyb_iou = pybboxes.BoundingBox(*bbox1).iou(pybboxes.BoundingBox(*bbox2))
-    if pyb_iou is not None:
-        assert iou == pyb_iou
+
+
+@wrapper
+@given(
+    data1=st.tuples(
+        st.integers(min_value=0, max_value=1000),
+        st.integers(min_value=0, max_value=1000),
+        st.integers(min_value=1, max_value=1000),
+        st.integers(min_value=1, max_value=1000),
+    ),
+    data2=st.tuples(
+        st.integers(min_value=0, max_value=1000),
+        st.integers(min_value=0, max_value=1000),
+        st.integers(min_value=1, max_value=1000),
+        st.integers(min_value=1, max_value=1000),
+    ),
+)
+def test_parity(data1, data2):
+    bbox1 = data1[0], data1[1], data1[0] + data1[2], data1[1] + data1[3]
+    bbox2 = data2[0], data2[1], data2[0] + data2[2], data2[1] + data2[3]
+    iou = cv2ext.bboxes.iou(bbox1, bbox2)
+    pyb_iou = pybboxes.BoundingBox(*bbox1).iou(pybboxes.BoundingBox(*bbox2))
+    assert iou == pyb_iou
 
 
 @wrapper_jit
@@ -106,8 +124,26 @@ def test_partial_overlap_jit():
 def test_bounds_jit(bbox1, bbox2):
     iou = cv2ext.bboxes.iou(bbox1, bbox2)
     assert 0 <= iou <= 1
-    pyb_iou = None
-    with contextlib.suppress(ValueError):
-        pyb_iou = pybboxes.BoundingBox(*bbox1).iou(pybboxes.BoundingBox(*bbox2))
-    if pyb_iou is not None:
-        assert iou == pyb_iou
+
+
+@wrapper_jit
+@given(
+    data1=st.tuples(
+        st.integers(min_value=0, max_value=1000),
+        st.integers(min_value=0, max_value=1000),
+        st.integers(min_value=1, max_value=1000),
+        st.integers(min_value=1, max_value=1000),
+    ),
+    data2=st.tuples(
+        st.integers(min_value=0, max_value=1000),
+        st.integers(min_value=0, max_value=1000),
+        st.integers(min_value=1, max_value=1000),
+        st.integers(min_value=1, max_value=1000),
+    ),
+)
+def test_parity_jit(data1, data2):
+    bbox1 = data1[0], data1[1], data1[0] + data1[2], data1[1] + data1[3]
+    bbox2 = data2[0], data2[1], data2[0] + data2[2], data2[1] + data2[3]
+    iou = cv2ext.bboxes.iou(bbox1, bbox2)
+    pyb_iou = pybboxes.BoundingBox(*bbox1).iou(pybboxes.BoundingBox(*bbox2))
+    assert iou == pyb_iou
