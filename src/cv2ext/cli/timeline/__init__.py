@@ -12,17 +12,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
-Command line interface for cv2ext.
+Create a timeline image of a video using OpenCV.
 
-Submodules
-----------
-annotate
-    Annotate videos with bounding boxes.
-resize_video
-    Resize videos using opencv.
+Functions
+---------
+timeline
+    Create a timeline image of a video.
 """
 from __future__ import annotations
 
-from . import annotate, convert_annotations, resize_video, timeline
+from ._timeline import timeline, timeline_cli
 
-__all__ = ["annotate", "convert_annotations", "resize_video", "timeline"]
+__all__ = ["timeline", "timeline_cli"]

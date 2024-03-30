@@ -195,7 +195,7 @@ def enable_jit(*, on: bool | None = None) -> None:
     """
     if on is None:
         on = True
-    _FLAGS.USEJIT = on
+    _FLAGSOBJ.USEJIT = on
     _log.info(f"JIT is {'enabled' if on else 'disabled'}.")
 
 
@@ -215,7 +215,7 @@ __all__ = [
     "set_log_level",
     "template",
 ]
-__version__ = "0.0.8"
+__version__ = "0.0.9"
 
 _log.info(f"Initialized cv2ext with version {__version__}")
 

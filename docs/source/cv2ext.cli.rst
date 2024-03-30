@@ -10,6 +10,7 @@ Subpackages
    cv2ext.cli.annotate
    cv2ext.cli.convert_annotations
    cv2ext.cli.resize_video
+   cv2ext.cli.timeline
 
 Module contents
 ---------------
