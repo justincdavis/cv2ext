@@ -186,11 +186,11 @@ def enable_jit(*, on: bool | None = None) -> None:
     """
     if on is None:
         on = True
-    _FLAGS.USEJIT = on
+    _FLAGSOBJ.USEJIT = on
     _log.info(f"JIT is {'enabled' if on else 'disabled'}.")
 
 
-from . import bboxes, jitfuncs, metrics, template
+from . import bboxes, metrics, template
 from ._display import Display
 from ._iterablevideo import IterableVideo
 
@@ -202,7 +202,6 @@ __all__ = [
     "bboxes",
     "cli",
     "enable_jit",
-    "jitfuncs",
     "metrics",
     "set_log_level",
     "template",

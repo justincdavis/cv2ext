@@ -26,8 +26,6 @@ _log = logging.getLogger(__name__)
 
 try:
     from numba import jit  # type: ignore[import-untyped]
-
-    from cv2ext.jitfuncs import grayscale_mean, grayscale_std
 except ImportError:
     jit = None
     if _FLAGSOBJ.USEJIT:
@@ -36,16 +34,15 @@ except ImportError:
         )
 
 
-def _get_ncc_impl() -> Callable[[np.ndarray, np.ndarray], float]:
+def _nccjit(
+    nccfunc: Callable[[np.ndarray, np.ndarray], float],
+) -> Callable[[np.ndarray, np.ndarray], float]:
     if _FLAGSOBJ.USEJIT and jit is not None:
-        jitncc: Callable[[np.ndarray, np.ndarray], float] = jit(
-            _core_ncc_jit,
-            nopython=True,
-        )
-        return jitncc
-    return _core_ncc
+        nccfunc = jit(nccfunc, nopython=True)
+    return nccfunc
 
 
+@_nccjit
 def _core_ncc(
     image1: np.ndarray,
     image2: np.ndarray,
@@ -66,35 +63,6 @@ def _core_ncc(
         np.sum(image1_numerator * image2_numerator)
         / (np.sqrt(np.sum(image1_numerator**2)) * np.sqrt(np.sum(image2_numerator**2))),
     )
-
-    # clamp to [-1, 1] incase of floating point errors
-    return max(min(1.0, val), -1.0)
-
-
-def _core_ncc_jit(
-    image1: np.ndarray,
-    image2: np.ndarray,
-) -> float:
-    image1 = image1.astype(np.float32)
-    image2 = image2.astype(np.float32)
-
-    img1mean = grayscale_mean(image1)
-    img2mean = grayscale_mean(image2)
-
-    img1std = grayscale_std(image1, img1mean)
-    img2std = grayscale_std(image2, img2mean)
-
-    if img1std == 0.0 or img2std == 0.0:
-        return 0.0
-
-    image1_numerator = image1 - img1mean / img1std
-    image2_numerator = image2 - img2mean / img2std
-
-    image_numsum = np.sum(image1_numerator * image2_numerator)
-    image1_denomsum = np.sqrt(np.sum(image1_numerator**2))
-    image2_denomsum = np.sqrt(np.sum(image2_numerator**2))
-
-    val = float(image_numsum / (image1_denomsum * image2_denomsum))
 
     # clamp to [-1, 1] incase of floating point errors
     return max(min(1.0, val), -1.0)
@@ -155,4 +123,4 @@ def ncc(
         image1 = cv2.resize(image1, size, interpolation=cv2.INTER_LINEAR)
         image2 = cv2.resize(image2, size, interpolation=cv2.INTER_LINEAR)
 
-    return _get_ncc_impl()(image1, image2)
+    return _core_ncc(image1, image2)
