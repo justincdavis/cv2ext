@@ -215,7 +215,7 @@ __all__ = [
     "set_log_level",
     "template",
 ]
-__version__ = "0.0.9"
+__version__ = "0.0.10"
 
 _log.info(f"Initialized cv2ext with version {__version__}")
 
