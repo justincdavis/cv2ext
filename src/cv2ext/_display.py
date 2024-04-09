@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import contextlib
 import logging
+import time
 from queue import Empty, Full, Queue
 from threading import Thread
 from typing import TYPE_CHECKING
@@ -39,6 +40,7 @@ class Display:
         windowname: str,
         stopkey: str = "q",
         buffersize: int = 1,
+        fps: int | None = None,
         *,
         show: bool | None = None,
     ) -> None:
@@ -55,6 +57,10 @@ class Display:
         buffersize : int
             The size of the buffer for the display.
             By default, this is 1.
+        fps : int | None
+            The frames per second to display the images at.
+            If None, the display will be as fast as possible.
+            By default, this is None.
         show : bool | None
             If True, the window will be shown.
             If False, the window will not be shown.
@@ -69,6 +75,7 @@ class Display:
         self._windowname = windowname
         self._stopkey = stopkey
         self._buffersize = buffersize
+        self._fps = 1 / fps if fps is not None else None
         self._show = show
 
         # allocate runtime variables
@@ -159,7 +166,8 @@ class Display:
             cv2.namedWindow(self._windowname, cv2.WINDOW_AUTOSIZE)
             # cv2.startWindowThread()
         while self._running:
-            _log.debug(f"Display {self._windowname} thread starting new loop")
+            t0 = time.perf_counter()
+            _log.debug(f"Display {self._windowname} thread starting new loop @ {t0}")
             with contextlib.suppress(Empty):
                 image = self._queue.get(timeout=0.1)
                 if self._show:
@@ -167,6 +175,11 @@ class Display:
                     if cv2.waitKey(1) & 0xFF == ord(self._stopkey):
                         self._running = False
                         continue
+            if self._fps is not None:
+                t1 = time.perf_counter()
+                dt = t1 - t0
+                if dt < self._fps:
+                    time.sleep(self._fps - dt)
         _log.debug(f"Display {self._windowname} thread stopped")
         # if self._show:
         #     _log.debug(f"Destroying window {self._windowname}")
