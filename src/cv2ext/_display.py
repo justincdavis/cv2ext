@@ -91,22 +91,54 @@ class Display:
 
     @property
     def frame(self: Self) -> np.ndarray:
-        """The most recent frame."""
+        """
+        The most recent frame.
+
+        Returns
+        -------
+        np.ndarray
+            The most recent frame.
+
+        """
         return self._image
 
     @property
     def frameid(self: Self) -> int:
-        """The current frame id."""
+        """
+        The current frame id.
+
+        Returns
+        -------
+        int
+            The current frame id.
+
+        """
         return self._frameid
 
     @property
     def stopped(self: Self) -> bool:
-        """Whether the display is stopped."""
+        """
+        Whether the display is stopped.
+
+        Returns
+        -------
+        bool
+            Whether the display is stopped.
+
+        """
         return not self._running
 
     @property
     def is_alive(self: Self) -> bool:
-        """Whether the display is running."""
+        """
+        Whether the display is running.
+
+        Returns
+        -------
+        bool
+            Whether the display is running.
+
+        """
         return self._thread.is_alive()
 
     def __call__(self: Self, frame: np.ndarray) -> None:
@@ -173,11 +205,6 @@ class Display:
         ----------
         frame : np.ndarray
             The frame to display.
-
-        Raises
-        ------
-        queue.Full
-            If timeout is provided, and the queue if full at the end of timeout.
 
         """
         self._image = frame
