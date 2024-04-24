@@ -134,11 +134,15 @@ def _crop_kernel(image: np.ndarray, bbox: tuple[int, int, int, int]) -> np.ndarr
         pad_x[1] = int((x1+3*width/2) - image.shape[1])
     else:
         x_right = int(x1+3*width/2)
-    
+
     # print(pad_y, pad_x)
     # print(y_up, y_down, x_left, x_right)
     cropped_img = image[y_up:y_down, x_left:x_right]
     padded_img = np.pad(cropped_img, (pad_y, pad_x), mode="edge")
+    padded_img = np.pad(padded_img, ((max(0, (image.shape[0] - padded_img.shape[0]) // 2),
+                                      max(0, (image.shape[0] - padded_img.shape[0]) - (image.shape[0] - padded_img.shape[0]) // 2)),
+                                     (max(0, (image.shape[1] - padded_img.shape[1]) // 2),
+                                      max(0, (image.shape[1] - padded_img.shape[1]) - (image.shape[1] - padded_img.shape[1]) // 2))), mode="edge")
     return _window_kernel(padded_img)
 
 
