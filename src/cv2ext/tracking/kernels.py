@@ -34,7 +34,43 @@ csk_detection
 """
 from __future__ import annotations
 
+import logging
+from typing import Callable
+
 import numpy as np
+
+from cv2ext import _FLAGSOBJ
+
+_log = logging.getLogger(__name__)
+
+try:
+    from numba import jit  # type: ignore[import-untyped]
+except ImportError:
+    jit = None
+    if _FLAGSOBJ.USEJIT:
+        _log.warning(
+            "Numba not installed, but JIT has been enabled. Not using JIT for IOU.",
+        )
+
+
+def _window_kernel_jit(
+    window_func: Callable[[np.ndarray], np.ndarray],
+) -> Callable[[np.ndarray], np.ndarray]:
+    if _FLAGSOBJ.USEJIT and jit is not None:
+        window_func = jit(window_func, nopython=True, parallel=_FLAGSOBJ.PARALLEL)
+    return window_func
+
+
+@_window_kernel_jit
+def _window_kernel(image: np.ndarray) -> np.ndarray:
+    height = image.shape[0]
+    width = image.shape[1]
+
+    j = np.arange(0,width)
+    i = np.arange(0,height)
+    jj, ii = np.meshgrid(j,i)
+    window = np.sin(np.pi*jj/width)*np.sin(np.pi*ii/height)
+    return window*((image/255)-0.5)
 
 
 def window(image: np.ndarray) -> np.ndarray:
@@ -55,37 +91,19 @@ def window(image: np.ndarray) -> np.ndarray:
     np.ndarray
         The windowed image.
     """
-    height = image.shape[0]
-    width = image.shape[1]
-
-    j = np.arange(0,width)
-    i = np.arange(0,height)
-    jj, ii = np.meshgrid(j,i)
-    window = np.sin(np.pi*jj/width)*np.sin(np.pi*ii/height)
-    return window*((image/255)-0.5)
+    return _window_kernel(image)
 
 
-def crop(image: np.ndarray, bbox: tuple[int, int, int, int]) -> np.ndarray:
-    """
-    This function crops an image given a bounding box.
+def _crop_kernel_jit(
+    crop_func: Callable[[np.ndarray, tuple[int, int, int, int]], np.ndarray],
+) -> Callable[[np.ndarray, tuple[int, int, int, int]], np.ndarray]:
+    if _FLAGSOBJ.USEJIT and jit is not None:
+        crop_func = jit(crop_func, nopython=True, parallel=_FLAGSOBJ.PARALLEL)
+    return crop_func
 
-    If the image is too large, the function pads the image with the edge values.
-    The image is cropped such that double the height and width
-    of the bounding box is included.
 
-    Parameters
-    ----------
-    image : np.ndarray
-        The input image.
-    bbox : tuple[int, int, int, int]
-        The bounding box of the target.
-        The bbox is represented as (x1, y1, x2, y2).
-
-    Returns
-    -------
-    np.ndarray
-        The cropped image.
-    """
+@_crop_kernel_jit
+def _crop_kernel(image: np.ndarray, bbox: tuple[int, int, int, int]) -> np.ndarray:
     x1, y1, x2, y2 = bbox
     height, width = y2 - y1, x2 - x1
     pad_y = [0, 0]
@@ -119,7 +137,50 @@ def crop(image: np.ndarray, bbox: tuple[int, int, int, int]) -> np.ndarray:
     # print(y_up, y_down, x_left, x_right)
     cropped_img = image[y_up:y_down, x_left:x_right]
     padded_img = np.pad(cropped_img, (pad_y, pad_x), mode="edge")
-    return window(padded_img)
+    return _window_kernel(padded_img)
+
+
+def crop(image: np.ndarray, bbox: tuple[int, int, int, int]) -> np.ndarray:
+    """
+    This function crops an image given a bounding box.
+
+    If the image is too large, the function pads the image with the edge values.
+    The image is cropped such that double the height and width
+    of the bounding box is included.
+
+    Parameters
+    ----------
+    image : np.ndarray
+        The input image.
+    bbox : tuple[int, int, int, int]
+        The bounding box of the target.
+        The bbox is represented as (x1, y1, x2, y2).
+
+    Returns
+    -------
+    np.ndarray
+        The cropped image.
+    """
+    return _crop_kernel(image, bbox)
+
+
+def _csk_target_kernel_jit(
+    csk_target_func: Callable[[int, int], np.ndarray],
+) -> Callable[[int, int], np.ndarray]:
+    if _FLAGSOBJ.USEJIT and jit is not None:
+        csk_target_func = jit(csk_target_func, nopython=True, parallel=_FLAGSOBJ.PARALLEL)
+    return csk_target_func
+
+
+@_csk_target_kernel_jit
+def _csk_target_kernel(height: int, width: int) -> np.ndarray:
+    double_w, double_h = width * 2, height * 2
+    s = np.sqrt(double_w * double_h) / 16
+
+    x = np.arange(0, double_w)
+    y = np.arange(0, double_h)
+    xx, yy = np.meshgrid(x, y)
+    return np.exp(-1.0 * ((xx - width)**2 + (yy - height)**2) / (s**2))
 
 
 def csk_target(height: int, width: int) -> np.ndarray:
@@ -138,13 +199,20 @@ def csk_target(height: int, width: int) -> np.ndarray:
     np.ndarray
         The target for the CSK tracker.
     """
-    double_w, double_h = width * 2, height * 2
-    s = np.sqrt(double_w * double_h) / 16
+    return _csk_target_kernel(height, width)
 
-    x = np.arange(0, double_w)
-    y = np.arange(0, double_h)
-    xx, yy = np.meshgrid(x, y)
-    return np.exp(-1.0 * ((xx - width)**2 + (yy - height)**2) / (s**2))
+
+def _max_response_kernel_jit(
+    max_response_func: Callable[[np.ndarray], tuple[int, int]],
+) -> Callable[[np.ndarray], tuple[int, int]]:
+    if _FLAGSOBJ.USEJIT and jit is not None:
+        max_response_func = jit(max_response_func, nopython=True, parallel=_FLAGSOBJ.PARALLEL)
+    return max_response_func
+
+
+@_max_response_kernel_jit
+def _max_response_kernel(response: np.ndarray) -> tuple[int, int]:
+    return np.unravel_index(np.argmax(response, axis=None), response.shape)
 
 
 def max_response(response: np.ndarray) -> tuple[int, int]:
@@ -161,21 +229,30 @@ def max_response(response: np.ndarray) -> tuple[int, int]:
     tuple[int, int]
         The coordinates of the maximum response.
     """
-    return np.unravel_index(np.argmax(response, axis=None), response.shape)
+    return _max_response_kernel(response)
 
 
-def _dgk_sub(x: np.ndarray, y: np.ndarray, z: np.ndarray, sigma: float) -> np.ndarray:
+def _dgk_sub_kernel_jit(
+    dgk_sub_func: Callable[[np.ndarray, np.ndarray, np.ndarray, float], np.ndarray],
+) -> Callable[[np.ndarray, np.ndarray, np.ndarray, float], np.ndarray]:
+    if _FLAGSOBJ.USEJIT and jit is not None:
+        dgk_sub_func = jit(dgk_sub_func, nopython=True, parallel=_FLAGSOBJ.PARALLEL)
+    return dgk_sub_func
+
+
+@_dgk_sub_kernel_jit
+def _dgk_sub_kernel(x: np.ndarray, y: np.ndarray, z: np.ndarray, sigma: float) -> np.ndarray:
     """
     Sub-routine for computing the dense Gaussian kernel.
     
     Parameters
     ----------
     x : np.ndarray
-        The x coordinates.
+        The x data.
     y : np.ndarray
-        The y coordinates.
+        The y data.
     z : np.ndarray
-        The z coordinates.
+        The z data.
     sigma : float
         The bandwidth of the Gaussian kernel.
     
@@ -192,6 +269,24 @@ def _dgk_sub(x: np.ndarray, y: np.ndarray, z: np.ndarray, sigma: float) -> np.nd
     )
     intermediate = dot_x + dot_y - 2 * z
     return np.exp(-1.0 / sigma ** 2 * np.abs(intermediate) / np.size(x))
+
+
+def _dgk_kernel_jit(
+    dgk_func: Callable[[np.ndarray, np.ndarray, float], np.ndarray],
+) -> Callable[[np.ndarray, np.ndarray, float], np.ndarray]:
+    if _FLAGSOBJ.USEJIT and jit is not None:
+        dgk_func = jit(dgk_func, nopython=True, parallel=_FLAGSOBJ.PARALLEL)
+    return dgk_func
+
+
+@_dgk_kernel_jit
+def _dgk_kernel(x: np.ndarray, y: np.ndarray, sigma: float) -> np.ndarray:
+    fft_x = np.fft.fft2(x)
+    fft_y = np.fft.fft2(y)
+    conj_fft_y = np.conj(fft_y)
+    combo = fft_x * conj_fft_y
+    fft_response = np.fft.fftshift(np.fft.ifft2(combo))
+    return _dgk_sub_kernel(x, x, fft_response, sigma)
 
 
 def dense_gaussian_kernel(x: np.ndarray, y: np.ndarray, sigma: float) -> np.ndarray:
@@ -213,12 +308,21 @@ def dense_gaussian_kernel(x: np.ndarray, y: np.ndarray, sigma: float) -> np.ndar
         The dense Gaussian kernel.
     
     """
-    fft_x = np.fft.fft2(x)
-    fft_y = np.fft.fft2(y)
-    conj_fft_y = np.conj(fft_y)
-    combo = fft_x * conj_fft_y
-    fft_response = np.fft.fftshift(np.fft.ifft2(combo))
-    return _dgk_sub(x, x, fft_response, sigma)
+    return _dgk_kernel(x, y, sigma)
+
+
+def _csk_train_kernel_jit(
+    csk_train_func: Callable[[np.ndarray, np.ndarray, float, float], np.ndarray],
+) -> Callable[[np.ndarray, np.ndarray, float, float], np.ndarray]:
+    if _FLAGSOBJ.USEJIT and jit is not None:
+        csk_train_func = jit(csk_train_func, nopython=True, parallel=_FLAGSOBJ.PARALLEL)
+    return csk_train_func
+
+
+@_csk_train_kernel_jit
+def _csk_train_kernel(image: np.ndarray, target: np.ndarray, sigma: float, lmbda: float) -> np.ndarray:
+    kernel = _dgk_kernel(image, image, sigma)
+    return np.fft.fft2(target) / (np.fft.fft2(kernel) + lmbda)
 
 
 def csk_train(image: np.ndarray, target: np.ndarray, sigma: float, lmbda: float) -> np.ndarray:
@@ -241,8 +345,24 @@ def csk_train(image: np.ndarray, target: np.ndarray, sigma: float, lmbda: float)
     np.ndarray
         The trained CSK tracker.
     """
-    kernel = dense_gaussian_kernel(image, image, sigma)
-    return np.fft.fft2(target) / (np.fft.fft2(kernel) + lmbda)
+    return _csk_train_kernel(image, target, sigma, lmbda)
+
+
+def _csk_detection_kernel_jit(
+    csk_detection_func: Callable[[np.ndarray, np.ndarray, np.ndarray, float], np.ndarray],
+) -> Callable[[np.ndarray, np.ndarray, np.ndarray, float], np.ndarray]:
+    if _FLAGSOBJ.USEJIT and jit is not None:
+        csk_detection_func = jit(csk_detection_func, nopython=True, parallel=_FLAGSOBJ.PARALLEL)
+    return csk_detection_func
+
+
+@_csk_detection_kernel_jit
+def _csk_detection_kernel(last_alphaf: np.ndarray, prev_window: np.ndarray, window: np.ndarray, sigma: float) -> np.ndarray:
+    kernel = _dgk_kernel(prev_window, window, sigma)
+    fft_kernel = np.fft.fft2(kernel)
+    combo = np.fft.ifft2(last_alphaf * fft_kernel)
+    return np.real(combo)
+
 
 def csk_detection(last_alphaf: np.ndarray, prev_window: np.ndarray, window: np.ndarray, sigma: float) -> np.ndarray:
     """
@@ -265,7 +385,4 @@ def csk_detection(last_alphaf: np.ndarray, prev_window: np.ndarray, window: np.n
         The new responses.
 
     """
-    kernel = dense_gaussian_kernel(prev_window, window, sigma)
-    fft_kernel = np.fft.fft2(kernel)
-    combo = np.fft.ifft2(last_alphaf * fft_kernel)
-    return np.real(combo)
+    return _csk_detection_kernel(last_alphaf, prev_window, window, sigma)

@@ -49,6 +49,7 @@ dependencies = [
 [project.optional-dependencies]
 jit = [
     "numba>=0.55.0",
+    "rocket-fft>=0.2.5",
 ]
 ci = [
     "pyupgrade>=3.10",

@@ -178,12 +178,13 @@ class _FLAGS:
     """
 
     USEJIT: bool = False
+    PARALLEL: bool = False
 
 
 _FLAGSOBJ = _FLAGS()
 
 
-def enable_jit(*, on: bool | None = None) -> None:
+def enable_jit(*, on: bool | None = None, parallel: bool | None = None) -> None:
     """
     Enable just-in-time compilation using Numba for some functions.
 
@@ -195,11 +196,14 @@ def enable_jit(*, on: bool | None = None) -> None:
     """
     if on is None:
         on = True
+    if parallel is None:
+        parallel = False
     _FLAGSOBJ.USEJIT = on
-    _log.info(f"JIT is {'enabled' if on else 'disabled'}.")
+    _FLAGSOBJ.PARALLEL = parallel
+    _log.info(f"JIT is {'enabled' if on else 'disabled'}; parallel: {parallel}.")
 
 
-from . import bboxes, metrics, template
+from . import bboxes, metrics, template, tracking
 from ._display import Display
 from ._iterablevideo import IterableVideo
 
@@ -214,6 +218,7 @@ __all__ = [
     "metrics",
     "set_log_level",
     "template",
+    "tracking",
 ]
 __version__ = "0.0.10"
 
