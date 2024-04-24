@@ -71,7 +71,7 @@ class MultiTracker:
 
         """
         for bbox in bboxes:
-            tracker = self._tracker_type(image, bbox)
+            tracker = self._tracker_type()
             tracker.init(image, bbox)
             self._trackers.append(tracker)
 
