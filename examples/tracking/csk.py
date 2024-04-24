@@ -18,8 +18,6 @@ def main():
     for frame_id, frame in IterableVideo("data/testvid.mp4"):
         if frame_id < 100:
             continue
-        if frame_id > 200:
-            continue
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         if not started:
             bbox = (149, 66, 69, 49)
@@ -46,7 +44,7 @@ if __name__ == "__main__":
     parser.add_argument("--parallel", action="store_true", help="Enable parallel JIT.")
     args = parser.parse_args()
 
-    set_log_level("DEBUG")
+    set_log_level("INFO")
 
     if args.jit:
         enable_jit(on=True, parallel=args.parallel)
