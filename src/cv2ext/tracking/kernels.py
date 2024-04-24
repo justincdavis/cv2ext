@@ -57,6 +57,7 @@ def _window_kernel_jit(
     window_func: Callable[[np.ndarray], np.ndarray],
 ) -> Callable[[np.ndarray], np.ndarray]:
     if _FLAGSOBJ.USEJIT and jit is not None:
+        _log.info("JIT Compiling: Window")
         window_func = jit(window_func, nopython=True, parallel=_FLAGSOBJ.PARALLEL)
     return window_func
 
@@ -98,6 +99,7 @@ def _crop_kernel_jit(
     crop_func: Callable[[np.ndarray, tuple[int, int, int, int]], np.ndarray],
 ) -> Callable[[np.ndarray, tuple[int, int, int, int]], np.ndarray]:
     if _FLAGSOBJ.USEJIT and jit is not None:
+        _log.info("JIT Compiling: Crop")
         crop_func = jit(crop_func, nopython=True, parallel=_FLAGSOBJ.PARALLEL)
     return crop_func
 
@@ -168,6 +170,7 @@ def _csk_target_kernel_jit(
     csk_target_func: Callable[[int, int], np.ndarray],
 ) -> Callable[[int, int], np.ndarray]:
     if _FLAGSOBJ.USEJIT and jit is not None:
+        _log.info("JIT Compiling: CSK Target")
         csk_target_func = jit(csk_target_func, nopython=True, parallel=_FLAGSOBJ.PARALLEL)
     return csk_target_func
 
@@ -206,6 +209,7 @@ def _max_response_kernel_jit(
     max_response_func: Callable[[np.ndarray], tuple[int, int]],
 ) -> Callable[[np.ndarray], tuple[int, int]]:
     if _FLAGSOBJ.USEJIT and jit is not None:
+        _log.info("JIT Compiling: Max Response")
         max_response_func = jit(max_response_func, nopython=True, parallel=_FLAGSOBJ.PARALLEL)
     return max_response_func
 
@@ -236,6 +240,7 @@ def _dgk_sub_kernel_jit(
     dgk_sub_func: Callable[[np.ndarray, np.ndarray, np.ndarray, float], np.ndarray],
 ) -> Callable[[np.ndarray, np.ndarray, np.ndarray, float], np.ndarray]:
     if _FLAGSOBJ.USEJIT and jit is not None:
+        _log.info("JIT Compiling: Dense Gaussian Kernel Sub")
         dgk_sub_func = jit(dgk_sub_func, nopython=True, parallel=_FLAGSOBJ.PARALLEL)
     return dgk_sub_func
 
@@ -275,6 +280,7 @@ def _dgk_kernel_jit(
     dgk_func: Callable[[np.ndarray, np.ndarray, float], np.ndarray],
 ) -> Callable[[np.ndarray, np.ndarray, float], np.ndarray]:
     if _FLAGSOBJ.USEJIT and jit is not None:
+        _log.info("JIT Compiling: Dense Gaussian Kernel")
         dgk_func = jit(dgk_func, nopython=True, parallel=_FLAGSOBJ.PARALLEL)
     return dgk_func
 
@@ -315,6 +321,7 @@ def _csk_train_kernel_jit(
     csk_train_func: Callable[[np.ndarray, np.ndarray, float, float], np.ndarray],
 ) -> Callable[[np.ndarray, np.ndarray, float, float], np.ndarray]:
     if _FLAGSOBJ.USEJIT and jit is not None:
+        _log.info("JIT Compiling: CSK Training")
         csk_train_func = jit(csk_train_func, nopython=True, parallel=_FLAGSOBJ.PARALLEL)
     return csk_train_func
 
@@ -352,6 +359,7 @@ def _csk_detection_kernel_jit(
     csk_detection_func: Callable[[np.ndarray, np.ndarray, np.ndarray, float], np.ndarray],
 ) -> Callable[[np.ndarray, np.ndarray, np.ndarray, float], np.ndarray]:
     if _FLAGSOBJ.USEJIT and jit is not None:
+        _log.info("JIT Compiling: CSK Detection")
         csk_detection_func = jit(csk_detection_func, nopython=True, parallel=_FLAGSOBJ.PARALLEL)
     return csk_detection_func
 

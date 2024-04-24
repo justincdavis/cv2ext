@@ -54,6 +54,7 @@ def _meanapjit(
     float,
 ]:
     if _FLAGSOBJ.USEJIT and jit is not None:
+        _log.info("JIT Compiling: meanAP")
         meanapfunc = jit(meanapfunc, nopython=True)
     return meanapfunc
 

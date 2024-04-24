@@ -42,6 +42,7 @@ def _nmsjit(
     list[tuple[tuple[int, int, int, int], int, float]],
 ]:
     if _FLAGSOBJ.USEJIT and jit is not None:
+        _log.info("JIT Compiling: NMS")
         nmsfunc = jit(nmsfunc, nopython=True)
     return nmsfunc
 
