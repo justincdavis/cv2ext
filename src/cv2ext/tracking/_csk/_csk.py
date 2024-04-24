@@ -13,20 +13,32 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 from typing_extensions import Self
 
-from ..kernels import crop, csk_target, max_response, csk_train, csk_detection
+from cv2ext.tracking import TrackerInterface
+from cv2ext.tracking.kernels import (
+    crop,
+    csk_detection,
+    csk_target,
+    csk_train,
+    max_response,
+)
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
-class CSKTracker:
+class CSKTracker(TrackerInterface):
+    """CSK tracker implementation."""
+
     def __init__(
-            self: Self, 
+            self: Self,
             image: np.ndarray | None = None,
             bbox: tuple[int, int, int, int] | None = None,
-            eta: float = 0.075, 
-            sigma: float = 0.2, 
+            eta: float = 0.075,
+            sigma: float = 0.2,
             lmbda: float = 0.01,
         ) -> None:
         # hyperparameters
@@ -44,8 +56,8 @@ class CSKTracker:
 
     def init(self: Self, image: np.ndarray, bbox: tuple[int, int, int, int]) -> None:
         """
-        This method initializes the tracker with the initial bounding box.
-        
+        Initialize the tracker with the initial bounding box.
+
         Parameters
         ----------
         image : np.ndarray
@@ -53,6 +65,7 @@ class CSKTracker:
         bbox : tuple[int, int, int, int]
             The initial bounding box of the target.
             The bbox is represented as (x1, y1, x2, y2).
+
         """
         initial_window = crop(image, bbox)  # x
         initial_target = csk_target(initial_window.shape[0] // 2, initial_window.shape[1] // 2)  # y
@@ -69,13 +82,13 @@ class CSKTracker:
 
     def update(self: Self, image: np.ndarray) -> tuple[int, int, int, int]:
         """
-        This method updates the tracker with the next frame.
+        Update the tracker with the next frame.
 
         Parameters
         ----------
         image : np.ndarray
             The next frame of the video.
-        
+
         Returns
         -------
         tuple[int, int, int, int]
@@ -86,15 +99,17 @@ class CSKTracker:
         ------
         ValueError
             If the tracker has not been initialized yet.
+
         """
         if not self._inited:
-            raise ValueError("The tracker has not been initialized yet.")
+            err_msg = "The tracker has not been initialized yet."
+            raise ValueError(err_msg)
 
         # print("CSKTracker")
 
         # process new image
         window = crop(image, self._prev_bbox)  # z
-        responses = csk_detection(self._alpha_f, self._window, window, self._sigma)  
+        responses = csk_detection(self._alpha_f, self._window, window, self._sigma)
         response = max_response(responses)  # curr
         dx = response[1] - self._prev[1]
         dy = response[0] - self._prev[0]
@@ -108,12 +123,12 @@ class CSKTracker:
         new_bbox = (x1, y1, x2, y2)
 
         # print(f"{self._prev_bbox} -> {new_bbox}")
-        
+
         # re-train the tracker
         new_window = crop(image, new_bbox)
         temp_interop_window = self._eta * new_window + (1 - self._eta) * self._window
         new_alpha_f = self._eta * csk_train(crop(image, new_bbox), self._target, self._sigma, self._lambda) + (1 - self._eta) * self._alpha_f
-        
+
         # state saving
         self._prev_bbox = new_bbox
         self._prev = response

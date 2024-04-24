@@ -11,29 +11,21 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""
-Submodule containing tools for tracking objects in videos.
-
-Submodules
-----------
-kernels
-    Submodule containing the kernels used by the CSK tracker.
-
-Classes
--------
-CSKTracker
-    A class for tracking objects in videos using the CSK tracker.
-MultiTracker
-    A class for tracking multiple objects in videos using a single tracker.
-TrackerInterface
-    An interface for tracking objects in videos.
-
-"""
 from __future__ import annotations
 
-from . import kernels
-from ._csk import CSKTracker
-from ._interface import TrackerInterface
-from ._multi_tracker import MultiTracker
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 
-__all__ = ["CSKTracker", "MultiTracker", "TrackerInterface", "kernels"]
+if TYPE_CHECKING:
+    import numpy as np
+    from typing_extensions import Self
+
+
+class TrackerInterface(ABC):
+    @abstractmethod
+    def init(self: Self, image: np.ndarray, bbox: tuple[int, int, int, int]) -> None:
+        pass
+
+    @abstractmethod
+    def update(self: Self, image: np.ndarray) -> tuple[int, int, int, int]:
+        pass

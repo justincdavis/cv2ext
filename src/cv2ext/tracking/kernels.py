@@ -67,16 +67,16 @@ def _window_kernel(image: np.ndarray) -> np.ndarray:
     height = image.shape[0]
     width = image.shape[1]
 
-    j = np.arange(0,width)
-    i = np.arange(0,height)
-    jj, ii = np.meshgrid(j,i)
-    window = np.sin(np.pi*jj/width)*np.sin(np.pi*ii/height)
-    return window*((image/255)-0.5)
+    j = np.arange(0, width)
+    i = np.arange(0, height)
+    jj, ii = np.meshgrid(j, i)
+    window = np.sin(np.pi * jj / width) * np.sin(np.pi * ii / height)
+    return window * ((image / 255) - 0.5)
 
 
 def window(image: np.ndarray) -> np.ndarray:
     """
-    Applies a windowing to the image.
+    Window a given image.
 
     The input image should be range 0-255.
     The output image is -0.5 to 0.5.
@@ -86,11 +86,12 @@ def window(image: np.ndarray) -> np.ndarray:
     ----------
     image : np.ndarray
         The input image.
-    
+
     Returns
     -------
     np.ndarray
         The windowed image.
+
     """
     return _window_kernel(image)
 
@@ -111,29 +112,29 @@ def _crop_kernel(image: np.ndarray, bbox: tuple[int, int, int, int]) -> np.ndarr
     pad_y = [0, 0]
     pad_x = [0, 0]
 
-    if (y1-height/2) < 0:
+    if (y1 - height / 2) < 0:
         y_up = 0
-        pad_y[0] = int(-(y1-height/2))
+        pad_y[0] = int(-(y1 - height / 2))
     else:
-        y_up = int(y1-height/2)
+        y_up = int(y1 - height / 2)
 
-    if (y1+3*height/2) > image.shape[0]:
+    if (y1 + 3 * height / 2) > image.shape[0]:
         y_down = image.shape[0]
-        pad_y[1] = int((y1+3*height/2) - image.shape[0])
+        pad_y[1] = int((y1 + 3 * height / 2) - image.shape[0])
     else:
-        y_down = int(y1+3*height/2)
+        y_down = int(y1 + 3 * height / 2)
 
-    if (x1-width/2) < 0:
+    if (x1 - width / 2) < 0:
         x_left = 0
-        pad_x[0] = int(-(x1-width/2))
+        pad_x[0] = int(-(x1 - width / 2))
     else:
-        x_left = int(x1-width/2)
+        x_left = int(x1 - width / 2)
 
-    if (x1+3*width/2) > image.shape[1]:
+    if (x1 + 3 * width / 2) > image.shape[1]:
         x_right = image.shape[1]
-        pad_x[1] = int((x1+3*width/2) - image.shape[1])
+        pad_x[1] = int((x1 + 3 * width / 2) - image.shape[1])
     else:
-        x_right = int(x1+3*width/2)
+        x_right = int(x1 + 3 * width / 2)
 
     # print(pad_y, pad_x)
     # print(y_up, y_down, x_left, x_right)
@@ -148,7 +149,7 @@ def _crop_kernel(image: np.ndarray, bbox: tuple[int, int, int, int]) -> np.ndarr
 
 def crop(image: np.ndarray, bbox: tuple[int, int, int, int]) -> np.ndarray:
     """
-    This function crops an image given a bounding box.
+    Crops an image given a bounding box.
 
     If the image is too large, the function pads the image with the edge values.
     The image is cropped such that double the height and width
@@ -166,6 +167,7 @@ def crop(image: np.ndarray, bbox: tuple[int, int, int, int]) -> np.ndarray:
     -------
     np.ndarray
         The cropped image.
+
     """
     return _crop_kernel(image, bbox)
 
@@ -192,7 +194,7 @@ def _csk_target_kernel(height: int, width: int) -> np.ndarray:
 
 def csk_target(height: int, width: int) -> np.ndarray:
     """
-    This function generates the target for the CSK tracker.
+    Generate the target for the CSK tracker.
 
     Parameters
     ----------
@@ -205,6 +207,7 @@ def csk_target(height: int, width: int) -> np.ndarray:
     -------
     np.ndarray
         The target for the CSK tracker.
+
     """
     return _csk_target_kernel(height, width)
 
@@ -225,7 +228,7 @@ def _max_response_kernel(response: np.ndarray) -> tuple[int, int]:
 
 def max_response(response: np.ndarray) -> tuple[int, int]:
     """
-    This function finds the maximum response in the response map.
+    Find the maximum response in the response map.
 
     Parameters
     ----------
@@ -236,6 +239,7 @@ def max_response(response: np.ndarray) -> tuple[int, int]:
     -------
     tuple[int, int]
         The coordinates of the maximum response.
+
     """
     return _max_response_kernel(response)
 
@@ -253,7 +257,7 @@ def _dgk_sub_kernel_jit(
 def _dgk_sub_kernel(x: np.ndarray, y: np.ndarray, z: np.ndarray, sigma: float) -> np.ndarray:
     """
     Sub-routine for computing the dense Gaussian kernel.
-    
+
     Parameters
     ----------
     x : np.ndarray
@@ -264,17 +268,18 @@ def _dgk_sub_kernel(x: np.ndarray, y: np.ndarray, z: np.ndarray, sigma: float) -
         The z data.
     sigma : float
         The bandwidth of the Gaussian kernel.
-    
+
     Returns
     -------
     np.ndarray
         The dense Gaussian kernel.
+
     """
     dot_x = np.dot(
-        np.conj(x.flatten()), x.flatten()
+        np.conj(x.flatten()), x.flatten(),
     )
     dot_y = np.dot(
-        np.conj(y.flatten()), y.flatten()
+        np.conj(y.flatten()), y.flatten(),
     )
     intermediate = dot_x + dot_y - 2 * z
     return np.exp(-1.0 / sigma ** 2 * np.abs(intermediate) / np.size(x))
@@ -301,8 +306,8 @@ def _dgk_kernel(x: np.ndarray, y: np.ndarray, sigma: float) -> np.ndarray:
 
 def dense_gaussian_kernel(x: np.ndarray, y: np.ndarray, sigma: float) -> np.ndarray:
     """
-    Computes the dense Gaussian kernel as used in the CSK tracker.
-    
+    Compute the dense Gaussian kernel as used in the CSK tracker.
+
     Parameters
     ----------
     x : np.ndarray
@@ -311,12 +316,12 @@ def dense_gaussian_kernel(x: np.ndarray, y: np.ndarray, sigma: float) -> np.ndar
         The y coordinates.
     sigma : float
         The bandwidth of the Gaussian kernel.
-    
+
     Returns
     -------
     np.ndarray
         The dense Gaussian kernel.
-    
+
     """
     return _dgk_kernel(x, y, sigma)
 
@@ -338,7 +343,7 @@ def _csk_train_kernel(image: np.ndarray, target: np.ndarray, sigma: float, lmbda
 
 def csk_train(image: np.ndarray, target: np.ndarray, sigma: float, lmbda: float) -> np.ndarray:
     """
-    This function trains the CSK tracker.
+    Create the trained data for the CSK tracker.
 
     Parameters
     ----------
@@ -355,6 +360,7 @@ def csk_train(image: np.ndarray, target: np.ndarray, sigma: float, lmbda: float)
     -------
     np.ndarray
         The trained CSK tracker.
+
     """
     return _csk_train_kernel(image, target, sigma, lmbda)
 
@@ -378,7 +384,7 @@ def _csk_detection_kernel(last_alphaf: np.ndarray, prev_window: np.ndarray, wind
 
 def csk_detection(last_alphaf: np.ndarray, prev_window: np.ndarray, window: np.ndarray, sigma: float) -> np.ndarray:
     """
-    Calculates new responses for the CSK tracker.
+    Calculate new responses for the CSK tracker.
 
     Parameters
     ----------

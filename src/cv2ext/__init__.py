@@ -192,6 +192,9 @@ def enable_jit(*, on: bool | None = None, parallel: bool | None = None) -> None:
     ----------
     on : bool | None
         If True, enable jit. If False, disable jit. If None, enable jit.
+    parallel : bool | None
+        If True, enable parallel jit. If False, disable parallel jit. If None, disable parallel jit.
+
 
     """
     if on is None:
