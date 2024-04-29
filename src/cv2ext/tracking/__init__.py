@@ -31,9 +31,12 @@ TrackerInterface
 """
 from __future__ import annotations
 
-from . import kernels
-from ._csk import CSKTracker
+# block 1 of imports, required for CSKTracker
 from ._interface import TrackerInterface
+from . import kernels
+
+# block 2 of imports, require use of kernels and Interface
+from ._csk import CSKTracker
 from ._multi_tracker import MultiTracker
 
 __all__ = ["CSKTracker", "MultiTracker", "TrackerInterface", "kernels"]
