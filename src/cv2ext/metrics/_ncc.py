@@ -28,17 +28,12 @@ try:
     from numba import jit  # type: ignore[import-untyped]
 except ImportError:
     jit = None
-    if _FLAGSOBJ.USEJIT:
-        _log.warning(
-            "Numba not installed, but JIT has been enabled. Not using JIT for NCC.",
-        )
 
 
 def _nccjit(
     nccfunc: Callable[[np.ndarray, np.ndarray], float],
 ) -> Callable[[np.ndarray, np.ndarray], float]:
     if _FLAGSOBJ.USEJIT and jit is not None:
-        _log.info("JIT Compiling: NCC")
         nccfunc = jit(nccfunc, nopython=True, parallel=_FLAGSOBJ.PARALLEL)
     return nccfunc
 

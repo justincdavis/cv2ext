@@ -25,17 +25,12 @@ try:
     from numba import jit  # type: ignore[import-untyped]
 except ImportError:
     jit = None
-    if _FLAGSOBJ.USEJIT:
-        _log.warning(
-            "Numba not installed, but JIT has been enabled. Not using JIT for IOU.",
-        )
 
 
 def _iou_kernel_jit(
     iouk_func: Callable[[tuple[int, int, int, int], tuple[int, int, int, int]], float],
 ) -> Callable[[tuple[int, int, int, int], tuple[int, int, int, int]], float]:
     if _FLAGSOBJ.USEJIT and jit is not None:
-        _log.info("JIT Compiling: iou")
         iouk_func = jit(iouk_func, nopython=True)
     return iouk_func
 
@@ -50,7 +45,6 @@ def _iou_list_kernel_jit(
     list[float],
 ]:
     if _FLAGSOBJ.USEJIT and jit is not None:
-        _log.info("JIT Compiling: iou_list")
         iouk_func = jit(iouk_func, nopython=True)
     return iouk_func
 

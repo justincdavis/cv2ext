@@ -11,33 +11,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""
-Submodule containing tools for tracking objects in videos.
-
-Submodules
-----------
-kernels
-    Submodule containing the kernels used by the CSK tracker.
-
-Classes
--------
-CSKTracker
-    A class for tracking objects in videos using the CSK tracker.
-MultiTracker
-    A class for tracking multiple objects in videos using a single tracker.
-TrackerInterface
-    An interface for tracking objects in videos.
-
-"""
 from __future__ import annotations
 
-# block 1 of imports, required for CSKTracker
-from ._interface import TrackerInterface
-from . import kernels
+from .test_np_cv_shape import test_shape
 
-
-# block 2 of imports, require use of kernels and Interface
-from ._csk import CSKTracker
-from ._multi_tracker import MultiTracker
-
-__all__ = ["CSKTracker", "MultiTracker", "TrackerInterface", "kernels"]
+__all__ = ["test_shape"]

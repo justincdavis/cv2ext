@@ -24,13 +24,6 @@ if TYPE_CHECKING:
     from ._interface import TrackerInterface
 
 
-def _thread_target(in_queue: Queue[np.ndarray], out_queue: Queue[tuple[int, int, int, int]], tracker: TrackerInterface) -> None:
-    while True:
-        image = in_queue.get()
-        bbox = tracker.update(image)
-        out_queue.put(bbox)
-
-
 class MultiTracker:
     """Handles multiple trackers for tracking multiple objects in a video."""
 
@@ -79,7 +72,7 @@ class MultiTracker:
             self._in_queues = [Queue(maxsize=1) for _ in self._trackers]
             self._out_queues = [Queue(maxsize=1) for _ in self._trackers]
             self._threads = [
-                Thread(target=_thread_target, args=(in_queue, out_queue, tracker), daemon=True)
+                Thread(target=self._thread_target, args=(in_queue, out_queue, tracker), daemon=True)
                 for in_queue, out_queue, tracker in zip(self._in_queues, self._out_queues, self._trackers)
             ]
 
@@ -111,3 +104,10 @@ class MultiTracker:
 
         return [out_queue.get() for out_queue in self._out_queues]
 
+
+    @staticmethod
+    def _thread_target(in_queue: Queue[np.ndarray], out_queue: Queue[tuple[int, int, int, int]], tracker: TrackerInterface) -> None:
+        while True:
+            image = in_queue.get()
+            bbox = tracker.update(image)
+            out_queue.put(bbox)

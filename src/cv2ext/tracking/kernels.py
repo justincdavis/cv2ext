@@ -40,6 +40,7 @@ from typing import Callable
 import numpy as np
 
 from cv2ext import _FLAGSOBJ
+from cv2ext.fft import fft2
 
 _log = logging.getLogger(__name__)
 
@@ -47,10 +48,6 @@ try:
     from numba import jit  # type: ignore[import-untyped]
 except ImportError:
     jit = None
-    if _FLAGSOBJ.USEJIT:
-        _log.warning(
-            "Numba not installed, but JIT has been enabled. Not using JIT for IOU.",
-        )
 
 
 def _window_kernel_jit(

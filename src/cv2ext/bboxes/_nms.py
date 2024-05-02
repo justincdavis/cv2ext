@@ -26,10 +26,6 @@ try:
     from numba import jit  # type: ignore[import-untyped]
 except ImportError:
     jit = None
-    if _FLAGSOBJ.USEJIT:
-        _log.warning(
-            "Numba not installed, but JIT has been enabled. Not using JIT for NMS.",
-        )
 
 
 def _nmsjit(

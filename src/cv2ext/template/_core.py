@@ -27,10 +27,6 @@ try:
     from numba import jit  # type: ignore[import-untyped]
 except ImportError:
     jit = None
-    if _FLAGSOBJ.USEJIT:
-        _log.warning(
-            "Numba not installed, but JIT has been enabled. Not using JIT for template matching.",
-        )
 
 
 def _multiplejit(
@@ -43,7 +39,6 @@ def _multiplejit(
     list[tuple[int, int, int, int]],
 ]:
     if _FLAGSOBJ.USEJIT and jit is not None:
-        _log.info("JIT Compiling: template matching")
         matchfunc = jit(matchfunc, nopython=True)
     return matchfunc
 
