@@ -131,10 +131,10 @@ def mean_ap(
 
     Parameters
     ----------
-    bboxes : list[tuple[tuple[int, int, int, int], int, float]]
+    bboxes : list[list[tuple[tuple[int, int, int, int], int, float]]]
         A list of lists of bounding boxes, each represented as a tuple of the form
         ((x1, y1, x2, y2), class, confidence
-    gt_bboxes : list[tuple[tuple[int, int, int, int], int]]
+    gt_bboxes : list[list[tuple[tuple[int, int, int, int], int]]]
         A list of lists of ground truth bounding boxes, each represented as a tuple of the form
         ((x1, y1, x2, y2), class)
     num_classes : int
