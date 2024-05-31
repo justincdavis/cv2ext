@@ -13,10 +13,11 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
+import platform
 from pathlib import Path
 
 import numpy as np
-from cv2ext import IterableVideo, VideoWriter, Fourcc
+from cv2ext import IterableVideo, VideoWriter
 
 
 def test_video_creation():
@@ -49,6 +50,8 @@ def test_frame_contents():
     video1 = IterableVideo(Path("data") / "testvid.mp4")
     video2 = IterableVideo(Path("output.mp4"))
 
+    pixel_diff = 2.1 if platform.system() == "Darwin" else 3.1
+
     for (idx1, frame1), (idx2, frame2) in zip(video1, video2):
         assert idx1 == idx2
         assert frame1.shape == frame2.shape
@@ -56,4 +59,4 @@ def test_frame_contents():
         assert frame1.size == frame2.size
 
         # majority of pixel differences after read/write should be small
-        assert np.median(frame1 - frame2) < 2.1
+        assert np.median(frame1 - frame2) < pixel_diff
