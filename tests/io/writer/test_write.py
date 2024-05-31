@@ -50,7 +50,7 @@ def test_frame_contents():
     video1 = IterableVideo(Path("data") / "testvid.mp4")
     video2 = IterableVideo(Path("output.mp4"))
 
-    pixel_diff = 2.1 if platform.system() == "Darwin" else 3.1
+    pixel_diff = 3.1 if platform.system() == "Darwin" else 2.1
 
     for (idx1, frame1), (idx2, frame2) in zip(video1, video2):
         assert idx1 == idx2
