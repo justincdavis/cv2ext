@@ -30,7 +30,7 @@ class VideoWriter:
     def __init__(
         self: Self,
         filename: str,
-        fourcc: Fourcc = Fourcc.MP4V,
+        fourcc: Fourcc = Fourcc.mp4v,
         fps: float = 30.0,
         frame_size: tuple[int, int] | None = None,
     ) -> None:

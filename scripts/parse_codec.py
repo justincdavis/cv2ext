@@ -89,6 +89,10 @@ def get_codecs() -> list[str]:
                 pass
             else:
                 raise ValueError(f"Unexpected codec: {codec}")
+            
+    # add lowercase versions
+    codecs.extend([codec.lower() for codec in codecs])
+
     return sorted(list(set(codecs)))
 
 if __name__ == "__main__":
