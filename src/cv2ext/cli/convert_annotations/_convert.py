@@ -30,7 +30,7 @@ def _read_csv(
 ) -> tuple[list[list[tuple[int, int, int, int]]], str]:
     bboxes: list[list[tuple[int, int, int, int]]] = []
     formatstr = "xywh"
-    with Path(csvfile).open("r", newline="") as f:
+    with Path(csvfile).open("r", encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f)
         for row in reader:
             frame = int(row["frame"])
@@ -56,7 +56,7 @@ def _read_csv(
 def _read_json(
     jsonfile: Path,
 ) -> tuple[list[list[tuple[int, int, int, int]]], str]:
-    with Path(jsonfile).open("r") as f:
+    with Path(jsonfile).open("r", encoding="utf-8") as f:
         dictdata: dict[str, dict[str, dict[str, int]]] = json.load(f)
     bboxes: list[list[tuple[int, int, int, int]]] = []
     formatstr = "xywh"

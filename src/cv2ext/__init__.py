@@ -30,8 +30,12 @@ Classes
 -------
 Display
     A class for displaying images using a separate thread.
+Fourcc
+    A class for handling the codecs for video writing.
 IterableVideo
     A class for iterating over frames in a video, optionally with threading.
+VideoWriter
+    A class for writing videos.
 
 Functions
 ---------
@@ -199,18 +203,20 @@ def enable_jit(*, on: bool | None = None) -> None:
     _log.info(f"JIT is {'enabled' if on else 'disabled'}.")
 
 
-from . import bboxes, metrics, template
-from ._display import Display
-from ._iterablevideo import IterableVideo
+from . import bboxes, io, metrics, template
+from .io import Display, Fourcc, IterableVideo, VideoWriter
 
 __all__ = [
     "_DELOBJ",
     "_FLAGSOBJ",
     "Display",
+    "Fourcc",
     "IterableVideo",
+    "VideoWriter",
     "bboxes",
     "cli",
     "enable_jit",
+    "io",
     "metrics",
     "set_log_level",
     "template",

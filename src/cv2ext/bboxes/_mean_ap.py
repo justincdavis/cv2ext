@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import logging
+import operator
 from typing import Callable
 
 import numpy as np
@@ -69,7 +70,7 @@ def _meanap_kernel(
     recall: list[list[float]] = [[] for _ in range(num_classes)]
 
     for image_bboxes, image_gt_bboxes in zip(bboxes, gt_bboxes):
-        s_image_bboxes = sorted(image_bboxes, key=lambda x: x[2], reverse=True)
+        s_image_bboxes = sorted(image_bboxes, key=operator.itemgetter(2), reverse=True)
 
         true_postives = np.zeros(num_classes)
         false_postives = np.zeros(num_classes)
