@@ -13,12 +13,19 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
-from enum import Enum
-
-import cv2
-
-from ._fourcc import Fourcc
+from cv2ext import Fourcc
 
 
-class VideoWriter:
-    def __init__(self, filename: str, fourcc: Fourcc)
+def test_all_ints():
+    values = [e.value for e in Fourcc]
+    for v in values:
+        assert isinstance(v, int)
+        assert v >= 0
+
+def test_all_unique():
+    values = [e.value for e in Fourcc]
+    num_vals = len(values)
+    set_vals = set()
+    for v in values:
+        set_vals.add(v)
+    assert len(set_vals) == num_vals
