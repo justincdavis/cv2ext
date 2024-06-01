@@ -13,8 +13,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
+import numpy as np
 from typing_extensions import Self
 
 from cv2ext.tracking import TrackerInterface
@@ -26,21 +25,18 @@ from cv2ext.tracking.kernels import (
     max_response,
 )
 
-if TYPE_CHECKING:
-    import numpy as np
-
 
 class CSKTracker(TrackerInterface):
     """CSK tracker implementation."""
 
     def __init__(
-            self: Self,
-            image: np.ndarray | None = None,
-            bbox: tuple[int, int, int, int] | None = None,
-            eta: float = 0.075,
-            sigma: float = 0.2,
-            lmbda: float = 0.01,
-        ) -> None:
+        self: Self,
+        image: np.ndarray | None = None,
+        bbox: tuple[int, int, int, int] | None = None,
+        eta: float = 0.075,
+        sigma: float = 0.2,
+        lmbda: float = 0.01,
+    ) -> None:
         # hyperparameters
         self._eta = eta
         self._sigma = sigma
@@ -48,8 +44,8 @@ class CSKTracker(TrackerInterface):
 
         # state saving
         self._inited = False
-        self._prev = None
-        self._alpha_f = None
+        self._prev = (0, 0)
+        self._alpha_f: np.ndarray = np.zeros((10, 10))
 
         if image is not None and bbox is not None:
             self.init(image, bbox)
@@ -68,9 +64,13 @@ class CSKTracker(TrackerInterface):
 
         """
         initial_window = crop(image, bbox)  # x
-        initial_target = csk_target(initial_window.shape[0] // 2, initial_window.shape[1] // 2)  # y
+        initial_target = csk_target(
+            initial_window.shape[0] // 2, initial_window.shape[1] // 2
+        )  # y
         initial_response = max_response(initial_target)  # prev
-        initial_alpha_f = csk_train(initial_window, initial_target, self._sigma, self._lambda)  # alphaf
+        initial_alpha_f = csk_train(
+            initial_window, initial_target, self._sigma, self._lambda
+        )  # alphaf
 
         # state saving
         self._prev_bbox = bbox
@@ -127,7 +127,11 @@ class CSKTracker(TrackerInterface):
         # re-train the tracker
         new_window = crop(image, new_bbox)
         temp_interop_window = self._eta * new_window + (1 - self._eta) * self._window
-        new_alpha_f = self._eta * csk_train(crop(image, new_bbox), self._target, self._sigma, self._lambda) + (1 - self._eta) * self._alpha_f
+        new_alpha_f = (
+            self._eta
+            * csk_train(crop(image, new_bbox), self._target, self._sigma, self._lambda)
+            + (1 - self._eta) * self._alpha_f
+        )
 
         # state saving
         self._prev_bbox = new_bbox
