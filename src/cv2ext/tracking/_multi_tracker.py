@@ -67,7 +67,9 @@ class MultiTracker:
         self._out_queues: list[Queue[tuple[int, int, int, int]]] = []
 
     def init(
-        self: Self, image: np.ndarray, bboxes: list[tuple[int, int, int, int]]
+        self: Self,
+        image: np.ndarray,
+        bboxes: list[tuple[int, int, int, int]],
     ) -> None:
         """
         Initialize the trackers with the initial bounding boxes.
@@ -96,7 +98,9 @@ class MultiTracker:
                     daemon=True,
                 )
                 for in_queue, out_queue, tracker in zip(
-                    self._in_queues, self._out_queues, self._trackers
+                    self._in_queues,
+                    self._out_queues,
+                    self._trackers,
                 )
             ]
 

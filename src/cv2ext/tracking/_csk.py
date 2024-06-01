@@ -16,14 +16,8 @@ from __future__ import annotations
 import numpy as np
 from typing_extensions import Self
 
-from cv2ext.tracking import TrackerInterface
-from cv2ext.tracking.kernels import (
-    crop,
-    csk_detection,
-    csk_target,
-    csk_train,
-    max_response,
-)
+from ._interface import TrackerInterface
+from .kernels import crop, csk_detection, csk_target, csk_train, max_response
 
 
 class CSKTracker(TrackerInterface):
@@ -65,11 +59,15 @@ class CSKTracker(TrackerInterface):
         """
         initial_window = crop(image, bbox)  # x
         initial_target = csk_target(
-            initial_window.shape[0] // 2, initial_window.shape[1] // 2
+            initial_window.shape[0] // 2,
+            initial_window.shape[1] // 2,
         )  # y
         initial_response = max_response(initial_target)  # prev
         initial_alpha_f = csk_train(
-            initial_window, initial_target, self._sigma, self._lambda
+            initial_window,
+            initial_target,
+            self._sigma,
+            self._lambda,
         )  # alphaf
 
         # state saving

@@ -201,7 +201,9 @@ def _csk_target_kernel_jit(
     if _FLAGSOBJ.USEJIT and jit is not None:
         _log.info("JIT Compiling: CSK Target")
         csk_target_func = jit(
-            csk_target_func, nopython=True, parallel=_FLAGSOBJ.PARALLEL
+            csk_target_func,
+            nopython=True,
+            parallel=_FLAGSOBJ.PARALLEL,
         )
     return csk_target_func
 
@@ -215,7 +217,7 @@ def _csk_target_kernel(height: int, width: int) -> np.ndarray:
     y = np.arange(0, double_h)
     xx, yy = np.meshgrid(x, y)
     result: np.ndarray = np.exp(
-        -1.0 * ((xx - width) ** 2 + (yy - height) ** 2) / (s**2)
+        -1.0 * ((xx - width) ** 2 + (yy - height) ** 2) / (s**2),
     )
     return result
 
@@ -246,7 +248,9 @@ def _max_response_kernel_jit(
     if _FLAGSOBJ.USEJIT and jit is not None:
         _log.info("JIT Compiling: Max Response")
         max_response_func = jit(
-            max_response_func, nopython=True, parallel=_FLAGSOBJ.PARALLEL
+            max_response_func,
+            nopython=True,
+            parallel=_FLAGSOBJ.PARALLEL,
         )
     return max_response_func
 
@@ -286,7 +290,10 @@ def _dgk_sub_kernel_jit(
 
 @_dgk_sub_kernel_jit
 def _dgk_sub_kernel(
-    x: np.ndarray, y: np.ndarray, z: np.ndarray, sigma: float
+    x: np.ndarray,
+    y: np.ndarray,
+    z: np.ndarray,
+    sigma: float,
 ) -> np.ndarray:
     """
     Sub-routine for computing the dense Gaussian kernel.
@@ -373,14 +380,20 @@ def _csk_train_kernel_jit(
 
 @_csk_train_kernel_jit
 def _csk_train_kernel(
-    image: np.ndarray, target: np.ndarray, sigma: float, lmbda: float
+    image: np.ndarray,
+    target: np.ndarray,
+    sigma: float,
+    lmbda: float,
 ) -> np.ndarray:
     kernel = _dgk_kernel(image, image, sigma)
     return np.fft.fft2(target) / (np.fft.fft2(kernel) + lmbda)
 
 
 def csk_train(
-    image: np.ndarray, target: np.ndarray, sigma: float, lmbda: float
+    image: np.ndarray,
+    target: np.ndarray,
+    sigma: float,
+    lmbda: float,
 ) -> np.ndarray:
     """
     Create the trained data for the CSK tracker.
@@ -407,20 +420,26 @@ def csk_train(
 
 def _csk_detection_kernel_jit(
     csk_detection_func: Callable[
-        [np.ndarray, np.ndarray, np.ndarray, float], np.ndarray
+        [np.ndarray, np.ndarray, np.ndarray, float],
+        np.ndarray,
     ],
 ) -> Callable[[np.ndarray, np.ndarray, np.ndarray, float], np.ndarray]:
     if _FLAGSOBJ.USEJIT and jit is not None:
         _log.info("JIT Compiling: CSK Detection")
         csk_detection_func = jit(
-            csk_detection_func, nopython=True, parallel=_FLAGSOBJ.PARALLEL
+            csk_detection_func,
+            nopython=True,
+            parallel=_FLAGSOBJ.PARALLEL,
         )
     return csk_detection_func
 
 
 @_csk_detection_kernel_jit
 def _csk_detection_kernel(
-    last_alphaf: np.ndarray, prev_window: np.ndarray, window: np.ndarray, sigma: float
+    last_alphaf: np.ndarray,
+    prev_window: np.ndarray,
+    window: np.ndarray,
+    sigma: float,
 ) -> np.ndarray:
     kernel = _dgk_kernel(prev_window, window, sigma)
     fft_kernel = np.fft.fft2(kernel)
@@ -429,7 +448,10 @@ def _csk_detection_kernel(
 
 
 def csk_detection(
-    last_alphaf: np.ndarray, prev_window: np.ndarray, window: np.ndarray, sigma: float
+    last_alphaf: np.ndarray,
+    prev_window: np.ndarray,
+    window: np.ndarray,
+    sigma: float,
 ) -> np.ndarray:
     """
     Calculate new responses for the CSK tracker.
