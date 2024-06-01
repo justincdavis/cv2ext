@@ -22,6 +22,7 @@ Example: metrics/ncc.py
 	from __future__ import annotations
 	
 	import numpy as np
+	
 	import cv2ext
 	
 	if __name__ == "__main__":
