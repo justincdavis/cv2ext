@@ -1,3 +1,29 @@
+## 0.0.11 (06-01-2024)
+
+### Added
+
+- VideoWriter
+    - Class which makes handling OpenCV VideoWriters easier
+        to use. Add context manager and automatic frame
+        sizing.
+
+### Improvements
+
+- Improved test layout
+
+## 0.0.10 (04-01-2024)
+
+### Improvements
+
+- Fixed missing documentation
+
+## 0.0.9 (03-25-2024)
+
+### Added
+
+- timeline
+    - Add cli for generating timelines of videos
+
 ## 0.0.8 (03-13-2024)
 
 ### Added
