@@ -18,7 +18,7 @@ import argparse
 import cv2
 from tqdm import tqdm
 
-from cv2ext import IterableVideo
+from cv2ext import Fourcc, IterableVideo, VideoWriter
 
 
 def resize_video() -> None:
@@ -47,25 +47,33 @@ def resize_video() -> None:
 
     # parse size
     size = tuple(map(int, args.size.strip("[]").split(",")))
+    tuple_size = 2
+    if len(size) != tuple_size:
+        err_msg = f"Invalid size: {size}"
+        raise ValueError(err_msg)
+    frame_size: tuple[int, int] = size  # type: ignore[assignment]
 
     # open video
     video = IterableVideo(args.video, use_thread=True)
     extension = args.output.split(".")[-1]
     fourcc = None
     if extension == "mp4":
-        fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # type: ignore[attr-defined]
+        fourcc = Fourcc.MP4V
     elif extension == "avi":
-        fourcc = cv2.VideoWriter_fourcc(*"XVID")  # type: ignore[attr-defined]
+        fourcc = Fourcc.XVID
     if fourcc is None:
         err_msg = f"Unsupported file extension: {extension}"
         raise ValueError(err_msg)
-    writer = cv2.VideoWriter(args.output, fourcc, video.fps, size)
 
-    for _, frame in tqdm(video):
-        if args.fast:
-            resized_frame = cv2.resize(frame, size, interpolation=cv2.INTER_LINEAR)
-        else:
-            resized_frame = cv2.resize(frame, size, interpolation=cv2.INTER_CUBIC)
-        writer.write(resized_frame)
-
-    writer.release()
+    with VideoWriter(
+        args.output,
+        fourcc=fourcc,
+        fps=video.fps,
+        frame_size=frame_size,
+    ) as writer:
+        for _, frame in tqdm(video):
+            if args.fast:
+                resized_frame = cv2.resize(frame, size, interpolation=cv2.INTER_LINEAR)
+            else:
+                resized_frame = cv2.resize(frame, size, interpolation=cv2.INTER_CUBIC)
+            writer.write(resized_frame)

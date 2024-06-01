@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import logging
+import operator
 from typing import Callable
 
 from cv2ext import _FLAGSOBJ
@@ -52,7 +53,7 @@ def _nms_kernel(
     bboxes: list[tuple[tuple[int, int, int, int], int, float]],
     iou_threshold: float = 0.5,
 ) -> list[tuple[tuple[int, int, int, int], int, float]]:
-    bboxes = sorted(bboxes, key=lambda x: x[2], reverse=False)
+    bboxes = sorted(bboxes, key=operator.itemgetter(2), reverse=False)
     final_bboxes = []
     for idx1 in range(len(bboxes)):
         box1 = bboxes[idx1]

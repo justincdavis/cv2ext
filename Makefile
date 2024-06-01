@@ -1,4 +1,4 @@
-.PHONY: help install clean docs test ci mypy pyright pyupgrade stubs isort black ruff release example-ci
+.PHONY: help install clean docs test ci mypy pyright pyupgrade stubs codecs isort black ruff release example-ci
 
 help: 
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -9,6 +9,7 @@ help:
 	@echo "  mypy       to run the mypy static type checker"
 	@echo "  pyright    to run the pyright static type checker"
 	@echo "  stubs      to generate the type stubs"
+	@echo "  codecs     to parse and generate the fourcc class"
 	@echo "  pyupgrade  to run pyupgrade"
 	@echo "  isort      to run isort"
 	@echo "  black      to run black"
@@ -38,6 +39,9 @@ docs:
 
 stubs:
 	python3 ci/make_stubs.py
+
+codecs:
+	python3 scripts/parse_codec.py --file=data/codecs.html --output=src/cv2ext/io/_fourcc.py
 
 ci: pyupgrade ruff mypy isort black
 

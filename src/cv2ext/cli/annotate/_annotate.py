@@ -31,7 +31,7 @@ def _write_csv(
     fieldnames = ["frame", "bid", "x1", "y1", "x2", "y2"]
     if formatarg == "xywh":
         fieldnames = ["frame", "bid", "x", "y", "w", "h"]
-    with Path(outputpath).open("w", newline="") as csvfile:
+    with Path(outputpath).open("w", encoding="utf-8", newline="") as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         for idx1, local_bboxes in enumerate(bboxes):
@@ -70,7 +70,7 @@ def _write_json(
                 bboxdict = {"x1": bbox[0], "y1": bbox[1], "x2": bbox[2], "y2": bbox[3]}
             localdictdata[str(idx2)] = bboxdict
         dictdata[str(idx1)] = localdictdata
-    with Path(outputpath).open("w") as f:
+    with Path(outputpath).open("w", encoding="utf-8") as f:
         json.dump(dictdata, f, indent=4)
 
 

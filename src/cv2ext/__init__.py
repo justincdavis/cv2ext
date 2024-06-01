@@ -21,8 +21,12 @@ bboxes
     Submodule containing tools for working with bounding boxes in images.
 cli
     Submodule containing command line interface tools.
+io
+    Submodule containing tools for working with video and image io.
 template
     Submodule containing tools for working with templates in images.
+tracking
+    Submodule containing tools for tracking objects in videos.
 metrics
     Submodule containing tools for working with image metrics.
 
@@ -30,8 +34,12 @@ Classes
 -------
 Display
     A class for displaying images using a separate thread.
+Fourcc
+    A class for handling the codecs for video writing.
 IterableVideo
     A class for iterating over frames in a video, optionally with threading.
+VideoWriter
+    A class for writing videos.
 
 Functions
 ---------
@@ -206,24 +214,26 @@ def enable_jit(*, on: bool | None = None, parallel: bool | None = None) -> None:
     _log.info(f"JIT is {'enabled' if on else 'disabled'}; parallel: {parallel}.")
 
 
-from . import bboxes, metrics, template, tracking
-from ._display import Display
-from ._iterablevideo import IterableVideo
+from . import bboxes, io, metrics, template, tracking
+from .io import Display, Fourcc, IterableVideo, VideoWriter
 
 __all__ = [
     "_DELOBJ",
     "_FLAGSOBJ",
     "Display",
+    "Fourcc",
     "IterableVideo",
+    "VideoWriter",
     "bboxes",
     "cli",
     "enable_jit",
+    "io",
     "metrics",
     "set_log_level",
     "template",
     "tracking",
 ]
-__version__ = "0.0.10"
+__version__ = "0.0.11"
 
 _log.info(f"Initialized cv2ext with version {__version__}")
 
