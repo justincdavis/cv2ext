@@ -1,3 +1,15 @@
+## 0.0.12 (06-01-2024)
+
+### Added
+
+- tracking Submodule
+    - kernels Submodule is available with some generic tracking kernels
+    - TrackerInterface, allows trackers to be implemented and follow
+        same calling conventions
+    - CSKTracker class as a simple computer vision tracking algo
+    - MultiTracker class which can use many trackers which
+        utilize the TrackerInterface
+
 ## 0.0.11 (06-01-2024)
 
 ### Added

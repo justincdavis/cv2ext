@@ -113,7 +113,7 @@ target-version = "py38"
 builtins = ["_"]
 
 [tool.ruff.lint]
-select = ["ALL", "PLR2004"]
+select = ["ALL"]
 ignore = ["PLR", "C901", "E501", "D203", "D212", "ERA"]
 
 # Allow autofix for all enabled rules (when `--fix`) is provided.

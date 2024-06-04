@@ -13,11 +13,15 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
-from typing_extensions import Self
 
 from ._interface import TrackerInterface
 from .kernels import crop, csk_detection, csk_target, csk_train, max_response
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 
 class CSKTracker(TrackerInterface):
