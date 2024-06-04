@@ -24,17 +24,6 @@ if TYPE_CHECKING:
     from ._interface import TrackerInterface
 
 
-def _thread_target(
-    in_queue: Queue[np.ndarray],
-    out_queue: Queue[tuple[int, int, int, int]],
-    tracker: TrackerInterface,
-) -> None:
-    while True:
-        image = in_queue.get()
-        bbox = tracker.update(image)
-        out_queue.put(bbox)
-
-
 class MultiTracker:
     """Handles multiple trackers for tracking multiple objects in a video."""
 
@@ -66,6 +55,29 @@ class MultiTracker:
         self._in_queues: list[Queue[np.ndarray]] = []
         self._out_queues: list[Queue[tuple[int, int, int, int]]] = []
 
+    def _reset(self: Self) -> None:
+        self._stopped = True
+        for thread in self._threads:
+            thread.join()
+        self._stopped = False
+        self._trackers = []
+        self._in_queues = []
+        self._out_queues = []
+        self._threads = []
+
+    def _thread_target(
+        self: Self,
+        initial_image: np.ndarray,
+        initial_bbox: tuple[int, int, int, int],
+        thread_id: int,
+    ) -> None:
+        tracker = self._tracker_type()
+        tracker.init(initial_image, initial_bbox)
+        while not self._stopped:
+            image = self._in_queues[thread_id].get()
+            bbox = tracker.update(image)
+            self._out_queues[thread_id].put(bbox)
+
     def init(
         self: Self,
         image: np.ndarray,
@@ -83,26 +95,25 @@ class MultiTracker:
             Each bbox is represented as (x1, y1, x2, y2).
 
         """
-        for bbox in bboxes:
-            tracker = self._tracker_type()
-            tracker.init(image, bbox)
-            self._trackers.append(tracker)
-
+        self._reset()
         if self._use_threads:
-            self._in_queues = [Queue(maxsize=1) for _ in self._trackers]
-            self._out_queues = [Queue(maxsize=1) for _ in self._trackers]
-            self._threads = [
-                Thread(
-                    target=_thread_target,
-                    args=(in_queue, out_queue, tracker),
-                    daemon=True,
+            for idx, bbox in enumerate(bboxes):
+                in_queue = Queue()
+                out_queue = Queue()
+                self._in_queues.append(in_queue)
+                self._out_queues.append(out_queue)
+                thread = Thread(
+                    target=self._thread_target,
+                    args=(image, bbox, idx),
                 )
-                for in_queue, out_queue, tracker in zip(
-                    self._in_queues,
-                    self._out_queues,
-                    self._trackers,
-                )
-            ]
+                thread.start()
+                self._threads.append(thread)
+        else:
+            for bbox in bboxes:
+                tracker = self._tracker_type()
+                tracker.init(image, bbox)
+                self._trackers.append(tracker)
+
 
     def update(self: Self, image: np.ndarray) -> list[tuple[int, int, int, int]]:
         """
