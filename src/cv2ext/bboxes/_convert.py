@@ -39,7 +39,9 @@ def xyxy_to_xywh(bbox: tuple[int, int, int, int]) -> tuple[int, int, int, int]:
     return x1, y1, x2 - x1, y2 - y1
 
 
-def xywh_to_xyxy(bbox: tuple[int, int, int, int] | Sequence[int]) -> tuple[int, int, int, int]:
+def xywh_to_xyxy(
+    bbox: tuple[int, int, int, int] | Sequence[int],
+) -> tuple[int, int, int, int]:
     """
     Convert a bounding box from (x, y, w, h) to (xmin, ymin, xmax, ymax).
 

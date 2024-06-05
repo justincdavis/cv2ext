@@ -16,6 +16,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import cv2
+from cv2ext.io import IterableVideo
 from cv2ext.tracking import Tracker, TrackerType
 
 
@@ -47,3 +48,22 @@ def check_basic_tracking(tracker_type: TrackerType):
                 init_bbox = bbox
             assert 0 <= bbox[0] <= image.shape[1] and 0 <= bbox[1] <= image.shape[0]
             assert 0 <= bbox[2] <= image.shape[1] and 0 <= bbox[3] <= image.shape[0]
+
+
+def check_full_tracking(tracker_type: TrackerType, use_gray: bool):
+    """Checks that a full run through a video will not crash."""
+    tracker = Tracker(tracker_type)
+    started = False
+    for frame_id, frame in IterableVideo("data/testvid.mp4"):
+        if frame_id < 100:
+            continue
+        if use_gray:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        if not started:
+            bbox = (149, 66, 69, 49)
+            x, y, w, h = bbox
+            bbox = (x, y, x + w, y + h)
+            tracker.init(frame, bbox)
+            started = True
+        else:
+            _, bbox = tracker.update(frame)

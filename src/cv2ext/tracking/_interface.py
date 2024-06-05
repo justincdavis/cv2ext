@@ -35,15 +35,23 @@ class AbstractTracker(ABC):
 
 
 class CVTrackerInterface(AbstractTracker):
-    def __init__(self: Self, tracker: AbstractTracker | cv2.TrackerCSRT | cv2.TrackerKCF | cv2.TrackerMIL) -> None:
-        self._tracker: AbstractTracker | cv2.TrackerCSRT | cv2.TrackerKCF | cv2.TrackerMIL = tracker
+    def __init__(
+        self: Self,
+        tracker: AbstractTracker | cv2.TrackerCSRT | cv2.TrackerKCF | cv2.TrackerMIL,
+    ) -> None:
+        self._tracker: (
+            AbstractTracker | cv2.TrackerCSRT | cv2.TrackerKCF | cv2.TrackerMIL
+        ) = tracker
 
     def _init(self: Self, image: np.ndarray, bbox: tuple[int, int, int, int]) -> None:
         img_shape = image.shape[:2]
         self._image_shape = (img_shape[1], img_shape[0])
         self._tracker.init(image, xyxy_to_xywh(bbox))
 
-    def _update(self: Self, image: np.ndarray) -> tuple[bool, tuple[int, int, int, int]]:
+    def _update(
+        self: Self,
+        image: np.ndarray,
+    ) -> tuple[bool, tuple[int, int, int, int]]:
         retval, (x, y, w, h) = self._tracker.update(image)
         bbox = (int(x), int(y), int(w), int(h))
         xyxy = xywh_to_xyxy(bbox)
@@ -53,9 +61,16 @@ class CVTrackerInterface(AbstractTracker):
 
 class AbstractMultiTracker(ABC):
     @abstractmethod
-    def init(self: Self, image: np.ndarray, bboxes: list[tuple[int, int, int, int]]) -> None:
+    def init(
+        self: Self,
+        image: np.ndarray,
+        bboxes: list[tuple[int, int, int, int]],
+    ) -> None:
         pass
 
     @abstractmethod
-    def update(self: Self, image: np.ndarray) -> list[tuple[bool, tuple[int, int, int, int]]]:
+    def update(
+        self: Self,
+        image: np.ndarray,
+    ) -> list[tuple[bool, tuple[int, int, int, int]]]:
         pass

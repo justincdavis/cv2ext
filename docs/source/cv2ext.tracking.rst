@@ -1,16 +1,13 @@
 cv2ext.tracking package
 =======================
 
-Submodules
-----------
+Subpackages
+-----------
 
-cv2ext.tracking.kernels module
-------------------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: cv2ext.tracking.kernels
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   cv2ext.tracking.cv_trackers
 
 Module contents
 ---------------

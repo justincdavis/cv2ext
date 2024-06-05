@@ -8,7 +8,8 @@ Examples
     examples/bboxes/iou.rst
     examples/bboxes/nms.rst
     examples/metrics/ncc.rst
-    examples/tracking/csk.rst
+    examples/tracking/multi_tracker.rst
+    examples/tracking/tracker.rst
     examples/template/match_single.rst
     examples/template/match_multiple.rst
     examples/io/iterable_video.rst

@@ -27,7 +27,10 @@ _log = logging.getLogger(__name__)
 
 
 def _constrain_kernel_jit(
-    constraink_func: Callable[[tuple[int, int, int, int], tuple[int, int]], tuple[int, int, int, int]],
+    constraink_func: Callable[
+        [tuple[int, int, int, int], tuple[int, int]],
+        tuple[int, int, int, int],
+    ],
 ) -> Callable[[tuple[int, int, int, int], tuple[int, int]], tuple[int, int, int, int]]:
     if _FLAGSOBJ.USEJIT and jit is not None:
         _log.info("JIT Compiling: iou")
@@ -36,7 +39,10 @@ def _constrain_kernel_jit(
 
 
 @_constrain_kernel_jit
-def _constrain_kernel(bbox: tuple[int, int, int, int], image_size: tuple[int, int]) -> tuple[int, int, int, int]:
+def _constrain_kernel(
+    bbox: tuple[int, int, int, int],
+    image_size: tuple[int, int],
+) -> tuple[int, int, int, int]:
     x1, y1, x2, y2 = bbox
     width, height = image_size
     if x1 < 0:
@@ -58,7 +64,10 @@ def _constrain_kernel(bbox: tuple[int, int, int, int], image_size: tuple[int, in
     return x1, y1, x2, y2
 
 
-def constrain(bbox: tuple[int, int, int, int], image_size: tuple[int, int]) -> tuple[int, int, int, int]:
+def constrain(
+    bbox: tuple[int, int, int, int],
+    image_size: tuple[int, int],
+) -> tuple[int, int, int, int]:
     """
     Constrain a bounding box to the dimensions of an image.
 

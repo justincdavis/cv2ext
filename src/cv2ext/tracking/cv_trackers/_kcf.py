@@ -45,6 +45,9 @@ class KCFTracker(CVTrackerInterface):
             where (x, y) is the top-left/bottom-right corner of the box.
 
         """
+        if len(image.shape) == 2 or image.shape[2] == 1:
+            err_msg = "KCF tracker requires a 3-channel image."
+            raise ValueError(err_msg)
         super()._init(image, bbox)
 
     def update(self: Self, image: np.ndarray) -> tuple[bool, tuple[int, int, int, int]]:
@@ -66,4 +69,7 @@ class KCFTracker(CVTrackerInterface):
             where (x, y) is the top-left/bottom-right corner of the box.
 
         """
+        if len(image.shape) == 2 or image.shape[2] == 1:
+            err_msg = "KCF tracker requires a 3-channel image."
+            raise ValueError(err_msg)
         return super()._update(image)

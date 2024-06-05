@@ -24,7 +24,6 @@ Example: template/match_multiple.py
 	from pathlib import Path
 	
 	import cv2
-	
 	import cv2ext
 	
 	if __name__ == "__main__":
