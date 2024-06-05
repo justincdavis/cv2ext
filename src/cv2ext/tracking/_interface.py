@@ -16,7 +16,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
-from cv2ext.bboxes import constrain, xywh_to_xyxy, xyxy_to_xywh
+from cv2ext.bboxes import xywh_to_xyxy, xyxy_to_xywh
 
 if TYPE_CHECKING:
     import cv2
@@ -47,7 +47,7 @@ class CVTrackerInterface(AbstractTracker):
         retval, (x, y, w, h) = self._tracker.update(image)
         bbox = (int(x), int(y), int(w), int(h))
         xyxy = xywh_to_xyxy(bbox)
-        xyxy = constrain(xyxy, self._image_shape)
+        # xyxy = constrain(xyxy, self._image_shape)
         return retval, xyxy
 
 

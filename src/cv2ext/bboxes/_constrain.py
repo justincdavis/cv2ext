@@ -66,8 +66,8 @@ def constrain(bbox: tuple[int, int, int, int], image_size: tuple[int, int]) -> t
     to be within the image at all. As such, it is possible to return (0, 0, 0, 0) or
     (width, height, width, height) if the bounding box is completely outside the image.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     bbox : tuple[int, int, int, int]
         The bounding box to constrain.
         Format is: (x1, y1, x2, y2)
@@ -75,8 +75,8 @@ def constrain(bbox: tuple[int, int, int, int], image_size: tuple[int, int]) -> t
         The dimensions of the image.
         Format is: (width, height)
 
-    Returns:
-    --------
+    Returns
+    -------
     tuple[int, int, int, int]
         The constrained bounding box.
         Format is: (x1, y1, x2, y2)
