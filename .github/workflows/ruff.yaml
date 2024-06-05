@@ -4,12 +4,19 @@ jobs:
   ruff:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: chartboost/ruff-action@v1
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
         with:
-          src: src/cv2ext
-          args: 'format --check'
-      - uses: chartboost/ruff-action@v1
-        with:
-          src: src/cv2ext
-          args: 'lint --check'
+          python-version: 3.9
+
+      - name: Install dependencies
+        run: pip install ruff
+
+      - name: Run Format Check
+        run: ruff format src/cv2ext --check
+
+      - name: Run Lint Check
+        run: ruff lint src/cv2ext
