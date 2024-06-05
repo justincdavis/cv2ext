@@ -13,8 +13,6 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
-import contextlib
-
 import cv2ext
 import pybboxes
 import hypothesis.strategies as st

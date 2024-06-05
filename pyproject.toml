@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cv2ext"
-version = "0.0.11"
+version = "0.0.12"
 authors = [
   {name="Justin Davis", email="davisjustin302@gmail.com"},
 ]
@@ -49,6 +49,7 @@ dependencies = [
 [project.optional-dependencies]
 jit = [
     "numba>=0.55.0",
+    "rocket-fft>=0.2.5",
 ]
 ci = [
     "pyupgrade>=3.10",
@@ -83,7 +84,7 @@ dev = [
 ]
 
 [tool.bumpver]
-current_version = "0.0.11"
+current_version = "0.0.12"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message  = "Bump version {old_version} -> {new_version}"
 commit          = true
@@ -112,7 +113,7 @@ target-version = "py38"
 builtins = ["_"]
 
 [tool.ruff.lint]
-select = ["ALL", "PLR2004"]
+select = ["ALL"]
 ignore = ["PLR", "C901", "E501", "D203", "D212", "ERA"]
 
 # Allow autofix for all enabled rules (when `--fix`) is provided.

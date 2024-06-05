@@ -43,6 +43,7 @@ def _multiplejit(
     list[tuple[int, int, int, int]],
 ]:
     if _FLAGSOBJ.USEJIT and jit is not None:
+        _log.info("JIT Compiling: template matching")
         matchfunc = jit(matchfunc, nopython=True)
     return matchfunc
 

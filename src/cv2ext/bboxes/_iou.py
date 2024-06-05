@@ -35,6 +35,7 @@ def _iou_kernel_jit(
     iouk_func: Callable[[tuple[int, int, int, int], tuple[int, int, int, int]], float],
 ) -> Callable[[tuple[int, int, int, int], tuple[int, int, int, int]], float]:
     if _FLAGSOBJ.USEJIT and jit is not None:
+        _log.info("JIT Compiling: iou")
         iouk_func = jit(iouk_func, nopython=True)
     return iouk_func
 
@@ -49,6 +50,7 @@ def _iou_list_kernel_jit(
     list[float],
 ]:
     if _FLAGSOBJ.USEJIT and jit is not None:
+        _log.info("JIT Compiling: iou_list")
         iouk_func = jit(iouk_func, nopython=True)
     return iouk_func
 

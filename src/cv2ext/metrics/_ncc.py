@@ -38,7 +38,8 @@ def _nccjit(
     nccfunc: Callable[[np.ndarray, np.ndarray], float],
 ) -> Callable[[np.ndarray, np.ndarray], float]:
     if _FLAGSOBJ.USEJIT and jit is not None:
-        nccfunc = jit(nccfunc, nopython=True)
+        _log.info("JIT Compiling: NCC")
+        nccfunc = jit(nccfunc, nopython=True, parallel=_FLAGSOBJ.PARALLEL)
     return nccfunc
 
 

@@ -21,8 +21,12 @@ bboxes
     Submodule containing tools for working with bounding boxes in images.
 cli
     Submodule containing command line interface tools.
+io
+    Submodule containing tools for working with video and image io.
 template
     Submodule containing tools for working with templates in images.
+tracking
+    Submodule containing tools for tracking objects in videos.
 metrics
     Submodule containing tools for working with image metrics.
 
@@ -182,12 +186,13 @@ class _FLAGS:
     """
 
     USEJIT: bool = False
+    PARALLEL: bool = False
 
 
 _FLAGSOBJ = _FLAGS()
 
 
-def enable_jit(*, on: bool | None = None) -> None:
+def enable_jit(*, on: bool | None = None, parallel: bool | None = None) -> None:
     """
     Enable just-in-time compilation using Numba for some functions.
 
@@ -195,15 +200,21 @@ def enable_jit(*, on: bool | None = None) -> None:
     ----------
     on : bool | None
         If True, enable jit. If False, disable jit. If None, enable jit.
+    parallel : bool | None
+        If True, enable parallel jit. If False, disable parallel jit. If None, disable parallel jit.
+
 
     """
     if on is None:
         on = True
+    if parallel is None:
+        parallel = False
     _FLAGSOBJ.USEJIT = on
-    _log.info(f"JIT is {'enabled' if on else 'disabled'}.")
+    _FLAGSOBJ.PARALLEL = parallel
+    _log.info(f"JIT is {'enabled' if on else 'disabled'}; parallel: {parallel}.")
 
 
-from . import bboxes, io, metrics, template
+from . import bboxes, io, metrics, template, tracking
 from .io import Display, Fourcc, IterableVideo, VideoWriter
 
 __all__ = [
@@ -220,8 +231,9 @@ __all__ = [
     "metrics",
     "set_log_level",
     "template",
+    "tracking",
 ]
-__version__ = "0.0.11"
+__version__ = "0.0.12"
 
 _log.info(f"Initialized cv2ext with version {__version__}")
 
