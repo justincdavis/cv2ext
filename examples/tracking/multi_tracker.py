@@ -21,13 +21,13 @@ import cv2
 import numpy as np
 
 from cv2ext import Display, IterableVideo, enable_jit, set_log_level
-from cv2ext.tracking import CSKTracker
+from cv2ext.tracking import CSKTracker, MultiTracker
 
 
 def main() -> None:
     """CSK Tracker example."""
     display = Display("tracking")
-    tracker = CSKTracker(eta=0.09)
+    tracker = MultiTracker(CSKTracker, use_threads=False)
     started = False
     update_times = []
     for frame_id, frame in IterableVideo("data/testvid.mp4"):
@@ -38,11 +38,12 @@ def main() -> None:
             bbox = (149, 66, 69, 49)
             x, y, w, h = bbox
             bbox = (x, y, x + w, y + h)
-            tracker.init(gray_frame, bbox)
+            tracker.init(gray_frame, [bbox])
             started = True
         else:
             t0 = time.perf_counter()
-            bbox = tracker.update(gray_frame)
+            bboxs = tracker.update(gray_frame)
+            bbox = bboxs[0]
             t1 = time.perf_counter()
             update_times.append(t1 - t0)
             cv2.rectangle(

@@ -17,19 +17,19 @@ from queue import Queue
 from threading import Thread
 from typing import TYPE_CHECKING
 
+from ._interface import AbstractMultiTracker, AbstractTracker
+
 if TYPE_CHECKING:
     import numpy as np
     from typing_extensions import Self
 
-    from ._interface import TrackerInterface
 
-
-class MultiTracker:
+class MultiTracker(AbstractMultiTracker):
     """Handles multiple trackers for tracking multiple objects in a video."""
 
     def __init__(
         self: Self,
-        tracker_type: type[TrackerInterface],
+        tracker_type: type[AbstractTracker],
         *,
         use_threads: bool | None = None,
     ) -> None:
@@ -38,7 +38,7 @@ class MultiTracker:
 
         Parameters
         ----------
-        tracker_type : type[TrackerInterface]
+        tracker_type : type[AbstractTracker]
             The type of tracker to use for tracking objects.
         use_threads : bool, optional
             Whether to use threading for tracking, by default None.
@@ -49,7 +49,7 @@ class MultiTracker:
             use_threads = True
 
         self._tracker_type = tracker_type
-        self._trackers: list[TrackerInterface] = []
+        self._trackers: list[AbstractTracker] = []
         self._use_threads = use_threads
         self._threads: list[Thread] = []
         self._in_queues: list[Queue[np.ndarray]] = []
@@ -113,7 +113,6 @@ class MultiTracker:
                 tracker = self._tracker_type()
                 tracker.init(image, bbox)
                 self._trackers.append(tracker)
-
 
     def update(self: Self, image: np.ndarray) -> list[tuple[int, int, int, int]]:
         """

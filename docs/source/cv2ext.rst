@@ -12,6 +12,7 @@ Subpackages
    cv2ext.io
    cv2ext.metrics
    cv2ext.template
+   cv2ext.tracking
 
 Module contents
 ---------------

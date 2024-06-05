@@ -16,28 +16,37 @@ Submodule containing tools for tracking objects in videos.
 
 Submodules
 ----------
-kernels
-    Submodule containing the kernels used by the CSK tracker.
+cv_trackers
+    Contains the wrapped OpenCV trackers.
 
 Classes
 -------
-CSKTracker
-    A class for tracking objects in videos using the CSK tracker.
+AbstractTracker
+    An abstract class for tracking objects in videos.
+AbstractMultiTracker
+    An abstract class for tracking multiple objects in videos.
+CVTrackerInterface
+    A class for making OpenCV trackers compatible with the AbstractTracker interface.
 MultiTracker
-    A class for tracking multiple objects in videos using a single tracker.
-TrackerInterface
-    An interface for tracking objects in videos.
+    A class for tracking multiple objects in videos.
+TrackerType
+    An enumeration of the available tracker types.
+Tracker
+    A generic class, which allows many tracking algorithm backends.
 
 """
 from __future__ import annotations
 
-from . import kernels
-
-# block 2 of imports, require use of kernels and Interface
-from ._csk import CSKTracker
-
-# block 1 of imports, required for CSKTracker
-from ._interface import TrackerInterface
+from ._interface import AbstractMultiTracker, AbstractTracker, CVTrackerInterface
 from ._multi_tracker import MultiTracker
+from ._tracker import Tracker
+from ._tracker_type import TrackerType
 
-__all__ = ["CSKTracker", "MultiTracker", "TrackerInterface", "kernels"]
+__all__ = [
+    "AbstractMultiTracker",
+    "AbstractTracker",
+    "CVTrackerInterface",
+    "MultiTracker",
+    "Tracker",
+    "TrackerType",
+]
