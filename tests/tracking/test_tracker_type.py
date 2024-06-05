@@ -12,3 +12,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
+
+from cv2ext.tracking import cv_trackers, TrackerType
+
+
+def test_all_types_exist():
+    for tracker_type in TrackerType:
+        if "_" in tracker_type.name:
+            first, second = tracker_type.name.split("_")
+            first = first.lower().capitalize()
+            second = second.lower().capitalize()
+            assert hasattr(cv_trackers, first + second + "Tracker")
+        else:
+            try:
+                assert hasattr(cv_trackers, tracker_type.name.lower().capitalize() + "Tracker")
+            except AssertionError:
+                assert hasattr(cv_trackers, tracker_type.name + "Tracker")
