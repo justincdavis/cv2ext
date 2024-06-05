@@ -19,4 +19,4 @@ jobs:
         run: ruff format src/cv2ext --check
 
       - name: Run Lint Check
-        run: ruff lint src/cv2ext
+        run: ruff check src/cv2ext
