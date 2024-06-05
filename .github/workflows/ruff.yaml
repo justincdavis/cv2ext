@@ -9,3 +9,7 @@ jobs:
         with:
           src: src/cv2ext
           args: 'format --check'
+      - uses: chartboost/ruff-action@v1
+        with:
+          src: src/cv2ext
+          args: 'lint --check'
