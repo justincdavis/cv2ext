@@ -59,10 +59,10 @@ def timeline_cli() -> None:
 
     output_path = Path(args.output) if args.output is not None else None
     img_size: tuple[int, int] | None = (
-        tuple(map(int, args.img_size.strip("[]").split(",")))
+        tuple(map(int, args.img_size.strip("[]").split(",")))  # type: ignore[assignment]
         if args.img_size is not None
         else None
-    )  # type: ignore[assignment]
+    )
     max_imgsize = 2
     if img_size is not None and len(img_size) != max_imgsize:
         err_msg = "Image size must be in the format: [width, height]"
@@ -78,8 +78,9 @@ def timeline_cli() -> None:
         with bboxespath.open() as f:
             try:
                 bboxes = [
-                    tuple(map(int, line.strip().split(","))) for line in f.readlines()
-                ]  # type: ignore[misc]
+                    tuple(map(int, line.strip().split(",")))  # type: ignore[misc]
+                    for line in f.readlines()
+                ]
             except ValueError as err:
                 err_msg = "Bounding boxes must be in the format: x1,y1,x2,y2"
                 raise ValueError(err_msg) from err
