@@ -21,8 +21,9 @@ Example: metrics/ncc.py
 	"""Example showcasing ncc computation between two images."""
 	from __future__ import annotations
 	
-	import cv2ext
 	import numpy as np
+	
+	import cv2ext
 	
 	if __name__ == "__main__":
 	    rng = np.random.Generator(np.random.PCG64())

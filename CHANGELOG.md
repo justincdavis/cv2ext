@@ -3,12 +3,21 @@
 ### Added
 
 - tracking Submodule
-    - kernels Submodule is available with some generic tracking kernels
-    - TrackerInterface, allows trackers to be implemented and follow
-        same calling conventions
-    - CSKTracker class as a simple computer vision tracking algo
-    - MultiTracker class which can use many trackers which
-        utilize the TrackerInterface
+    - cv_trackers, all tracking algorithms available through OpenCV
+        are wrapped in the same interface with common errors handled
+        better than cv2.errors.
+    - Tracker, generic class which can use all tracking algorithms
+    - MultiTracker, generic class allowing many objects to be tracked
+        at once, using the underlying single object trackers.
+        Uses threads to achieve parallelism.
+    - TrackerType, enum of all possible tracking algorithms
+    - AbstractTracker, AbstractMultiTracker, CVTrackerInterface
+        Allow custom implementations, and make wrapping OpenCV
+        trackers easier.
+- xyxy_to_xywh and xywh_to_xyxy in bboxes submodule
+    - Allow changing bounding box format
+- constrain in bboxes submodule
+    - Restricts coordinates of bounding boxes to an image size
 
 ## 0.0.11 (06-01-2024)
 
