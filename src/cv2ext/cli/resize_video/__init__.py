@@ -19,6 +19,7 @@ Functions
 resize_video
     Resize a video file.
 """
+
 from __future__ import annotations
 
 from ._resize_video import resize_video

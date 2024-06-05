@@ -22,6 +22,7 @@ match_multiple
     Find all matches of a template in an image above a certain threshold.
 
 """
+
 from __future__ import annotations
 
 from ._core import match_multiple, match_single

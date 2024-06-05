@@ -12,6 +12,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """Example showcasing IoU calculation for bounding boxes."""
+
 from __future__ import annotations
 
 from cv2ext import bboxes

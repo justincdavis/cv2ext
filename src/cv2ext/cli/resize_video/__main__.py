@@ -12,6 +12,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """Resize videos using opencv."""
+
 from __future__ import annotations
 
 from ._resize_video import resize_video

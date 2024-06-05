@@ -12,6 +12,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """Example showcasing how to use the CSK tracker."""
+
 from __future__ import annotations
 
 import argparse
@@ -19,7 +20,6 @@ import time
 
 import cv2
 import numpy as np
-
 from cv2ext import Display, IterableVideo, set_log_level
 from cv2ext.tracking import MultiTracker, TrackerType
 

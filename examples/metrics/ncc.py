@@ -12,11 +12,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """Example showcasing ncc computation between two images."""
+
 from __future__ import annotations
 
-import numpy as np
-
 import cv2ext
+import numpy as np
 
 if __name__ == "__main__":
     rng = np.random.Generator(np.random.PCG64())

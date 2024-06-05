@@ -35,6 +35,7 @@ Tracker
     A generic class, which allows many tracking algorithm backends.
 
 """
+
 from __future__ import annotations
 
 from ._interface import AbstractMultiTracker, AbstractTracker, CVTrackerInterface

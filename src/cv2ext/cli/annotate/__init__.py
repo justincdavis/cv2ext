@@ -19,6 +19,7 @@ Functions
 annotate
     Annotate a video with bounding boxes
 """
+
 from __future__ import annotations
 
 from ._annotate import annotate

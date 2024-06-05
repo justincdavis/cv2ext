@@ -48,6 +48,7 @@ set_log_level
 enable_jit
     Enable just-in-time compilation using Numba for some functions.
 """
+
 from __future__ import annotations
 
 # setup the logger before importing anything else

@@ -26,6 +26,7 @@ VideoWriter
     A video writer object.
 
 """
+
 from __future__ import annotations
 
 from ._display import Display

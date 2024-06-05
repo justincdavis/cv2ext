@@ -19,6 +19,7 @@ Functions
 timeline
     Create a timeline image of a video.
 """
+
 from __future__ import annotations
 
 from ._timeline import timeline, timeline_cli

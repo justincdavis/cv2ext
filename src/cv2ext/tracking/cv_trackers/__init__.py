@@ -32,6 +32,7 @@ TLDTracker
     A class for tracking objects in videos using the TLD tracker.
 
 """
+
 from __future__ import annotations
 
 from ._boosting import BoostingTracker

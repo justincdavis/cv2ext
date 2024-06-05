@@ -19,6 +19,7 @@ Functions
 ncc
     Compute the normalized cross-correlation between two images.
 """
+
 from __future__ import annotations
 
 from ._ncc import ncc

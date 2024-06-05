@@ -21,6 +21,7 @@ annotate
 resize_video
     Resize videos using opencv.
 """
+
 from __future__ import annotations
 
 from . import annotate, convert_annotations, resize_video, timeline

@@ -12,12 +12,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """Example showcasing how to use the IterableVideo class."""
+
 from __future__ import annotations
 
 from pathlib import Path
 
 import cv2
-
 import cv2ext
 
 if __name__ == "__main__":

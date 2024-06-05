@@ -32,6 +32,7 @@ xyxy_to_xywh
     Convert bounding boxes from `(x1, y1, x2, y2)` to `(x, y, w, h)`.
 
 """
+
 from __future__ import annotations
 
 from ._constrain import constrain
