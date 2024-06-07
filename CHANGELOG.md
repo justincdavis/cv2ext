@@ -19,6 +19,10 @@
 - constrain in bboxes submodule
     - Restricts coordinates of bounding boxes to an image size
 
+### Changed
+
+- Changed license to MIT
+
 ## 0.0.11 (06-01-2024)
 
 ### Added
