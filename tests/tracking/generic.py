@@ -16,7 +16,7 @@ def check_basic_tracking(tracker_type: TrackerType):
     init_bbox = (308, 308, 458, 454)
     tracker.init(image, init_bbox)
 
-    if tracker_type == TrackerType.TLD:
+    if tracker_type in [TrackerType.TLD, TrackerType.KLT]:
         for _ in range(10):
             success, bbox = tracker.update(image)
 
