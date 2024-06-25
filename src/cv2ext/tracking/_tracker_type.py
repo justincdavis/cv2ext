@@ -14,6 +14,7 @@ from .cv_trackers import (
     MOSSETracker,
     TLDTracker,
 )
+from .trackers import KLTTracker
 
 
 class TrackerType(Enum):
@@ -26,3 +27,4 @@ class TrackerType(Enum):
     MIL = MILTracker
     MOSSE = MOSSETracker
     TLD = TLDTracker
+    KLT = KLTTracker

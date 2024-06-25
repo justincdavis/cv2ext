@@ -3,7 +3,7 @@
 # MIT License
 from __future__ import annotations
 
-from cv2ext.tracking import cv_trackers, TrackerType
+from cv2ext.tracking import cv_trackers, TrackerType, trackers
 
 
 def test_all_types_exist():
@@ -14,7 +14,12 @@ def test_all_types_exist():
             second = second.lower().capitalize()
             assert hasattr(cv_trackers, first + second + "Tracker")
         else:
+            cv_check1 = hasattr(cv_trackers, tracker_type.name.lower().capitalize() + "Tracker")
+            cv_check2 = hasattr(cv_trackers, tracker_type.name + "Tracker")
             try:
-                assert hasattr(cv_trackers, tracker_type.name.lower().capitalize() + "Tracker")
+                assert cv_check1 or cv_check2
             except AssertionError:
-                assert hasattr(cv_trackers, tracker_type.name + "Tracker")
+                # if tracker is not a CV tracker than must be in trackers module
+                other_check1 = hasattr(trackers, tracker_type.name.lower().capitalize() + "Tracker")
+                other_check2 = hasattr(trackers, tracker_type.name + "Tracker")
+                assert other_check1 or other_check2

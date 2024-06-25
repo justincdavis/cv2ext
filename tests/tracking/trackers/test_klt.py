@@ -8,13 +8,13 @@ from cv2ext.tracking import TrackerType
 from ..generic import check_basic_tracking, check_full_tracking
 
 
-def test_tld_basic():
-    check_basic_tracking(TrackerType.TLD)
+def test_klt_basic():
+    check_basic_tracking(TrackerType.KLT)
 
 
-def test_tld_full():
-    check_full_tracking(TrackerType.TLD, use_gray=False)
+def test_klt_full():
+    check_full_tracking(TrackerType.KLT, use_gray=False)
 
 
-def test_tld_full_gray():
-    check_full_tracking(TrackerType.TLD, use_gray=True)
+def test_klt_full_gray():
+    check_full_tracking(TrackerType.KLT, use_gray=True)

@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from cv2ext.tracking import TrackerType
 
-from .generic import check_basic_tracking, check_full_tracking
+from ..generic import check_basic_tracking, check_full_tracking
 
 
 def test_csrt_basic():
