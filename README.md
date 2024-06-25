@@ -9,7 +9,6 @@
 
 ![MyPy](https://github.com/justincdavis/cv2ext/actions/workflows/mypy.yaml/badge.svg?branch=main)
 ![Ruff](https://github.com/justincdavis/cv2ext/actions/workflows/ruff.yaml/badge.svg?branch=main)
-![Black](https://github.com/justincdavis/cv2ext/actions/workflows/black.yaml/badge.svg?branch=main)
 ![PyPi Build](https://github.com/justincdavis/cv2ext/actions/workflows/build-check.yaml/badge.svg?branch=main)
 
 A collection of tools for making working with OpenCV in Python easier (and potentially faster).
