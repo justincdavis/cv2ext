@@ -8,6 +8,7 @@ Subpackages
    :maxdepth: 4
 
    cv2ext.tracking.cv_trackers
+   cv2ext.tracking.trackers
 
 Module contents
 ---------------
