@@ -2,6 +2,7 @@
 
 [![](https://img.shields.io/pypi/pyversions/cv2ext.svg)](https://pypi.org/pypi/cv2ext/)
 ![PyPI](https://img.shields.io/pypi/v/cv2ext.svg?style=plastic)
+[![CodeFactor](https://www.codefactor.io/repository/github/justincdavis/cv2ext/badge)](https://www.codefactor.io/repository/github/justincdavis/cv2ext)
 
 ![Linux](https://github.com/justincdavis/cv2ext/actions/workflows/unittests-ubuntu.yaml/badge.svg?branch=main)
 ![Windows](https://github.com/justincdavis/cv2ext/actions/workflows/unittests-windows.yaml/badge.svg?branch=main)
