@@ -26,4 +26,13 @@ Example: io/display.py
 	        print(f"Frame {frame_id}: {frame.shape}")
 	
 	    display.stop()
+	
+	    # OR
+	    # use with context manager
+	
+	    video = IterableVideo("video.mp4")
+	    with Display("example") as display:
+	        for frame_id, frame in video:
+	            display(frame)
+	            print(f"Frame {frame_id}: {frame.shape}")
 

@@ -16,9 +16,8 @@ Example: bboxes/filters/kalman.py
 	from pathlib import Path
 	
 	import cv2
-	from cv2ext.io import Display
 	from cv2ext.bboxes.filters import KalmanFilter
-	
+	from cv2ext.io import Display
 	
 	if __name__ == "__main__":
 	    image = cv2.imread(str(Path("data") / "pictograms.png"))
@@ -32,12 +31,23 @@ Example: bboxes/filters/kalman.py
 	        for i in range(iters):
 	            bbox = kf(init_bbox)
 	            new_image = image.copy()
-	            cv2.rectangle(new_image, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (0, 255, 0), 2)
+	            cv2.rectangle(
+	                new_image,
+	                (bbox[0], bbox[1]),
+	                (bbox[2], bbox[3]),
+	                (0, 255, 0),
+	                2,
+	            )
 	            display(new_image)
 	
 	            add_x = int(5.0 - 5.0 * i / iters)
 	            add_y = int(5.0 * i / iters)
-	            init_bbox = (init_bbox[0] + add_x, init_bbox[1] + add_y, init_bbox[2] + add_x, init_bbox[3] + add_y)
+	            init_bbox = (
+	                init_bbox[0] + add_x,
+	                init_bbox[1] + add_y,
+	                init_bbox[2] + add_x,
+	                init_bbox[3] + add_y,
+	            )
 	
 	            time.sleep(0.01)
 
