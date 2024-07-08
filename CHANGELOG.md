@@ -1,4 +1,4 @@
-## 0.0.13 (07-08-2024)
+## 0.0.14 (07-08-2024)
 
 ### Added
 
@@ -10,6 +10,12 @@
 
 - io.Display
     - Added ability to be used with a context manager.
+
+## 0.0.13 (06-28-2024)
+
+### Added
+
+- KLTTracker to the tracking submodule.
 
 ## 0.0.12 (06-01-2024)
 
