@@ -1,3 +1,16 @@
+## 0.0.13 (07-08-2024)
+
+### Added
+
+- bboxes.filters Submodule
+    - KalmanFilter for filtering bounding boxes
+        in video streams.
+
+### Improved
+
+- io.Display
+    - Added ability to be used with a context manager.
+
 ## 0.0.12 (06-01-2024)
 
 ### Added
