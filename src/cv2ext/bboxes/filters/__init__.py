@@ -4,7 +4,3 @@
 """Submodule implementing filters for bounding boxes."""
 
 from __future__ import annotations
-
-from ._kalman import KalmanFilter
-
-__all__ = ["KalmanFilter"]

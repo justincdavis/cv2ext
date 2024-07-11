@@ -13,12 +13,14 @@ cli
     Submodule containing command line interface tools.
 io
     Submodule containing tools for working with video and image io.
+Kalman
+    Submodule implementing a simple Kalman filters.
+metrics
+    Submodule containing tools for working with image metrics.
 template
     Submodule containing tools for working with templates in images.
 tracking
     Submodule containing tools for tracking objects in videos.
-metrics
-    Submodule containing tools for working with image metrics.
 
 Classes
 -------
@@ -205,7 +207,7 @@ def enable_jit(*, on: bool | None = None, parallel: bool | None = None) -> None:
     _log.info(f"JIT is {'enabled' if on else 'disabled'}; parallel: {parallel}.")
 
 
-from . import bboxes, io, metrics, template, tracking
+from . import bboxes, io, metrics, template, tracking, kalman
 from .io import Display, Fourcc, IterableVideo, VideoWriter
 
 __all__ = [
@@ -219,6 +221,7 @@ __all__ = [
     "cli",
     "enable_jit",
     "io",
+    "kalman",
     "metrics",
     "set_log_level",
     "template",

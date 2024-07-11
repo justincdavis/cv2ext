@@ -23,7 +23,7 @@ def _constrain_kernel_jit(
     ],
 ) -> Callable[[tuple[int, int, int, int], tuple[int, int]], tuple[int, int, int, int]]:
     if _FLAGSOBJ.USEJIT and jit is not None:
-        _log.info("JIT Compiling: iou")
+        _log.info("JIT Compiling: bboxes.constrain")
         constraink_func = jit(constraink_func, nopython=True)
     return constraink_func
 

@@ -3,8 +3,6 @@
 # MIT License
 from __future__ import annotations
 
-from typing import Sequence
-
 
 def xyxy_to_xywh(bbox: tuple[int, int, int, int]) -> tuple[int, int, int, int]:
     """
@@ -30,14 +28,14 @@ def xyxy_to_xywh(bbox: tuple[int, int, int, int]) -> tuple[int, int, int, int]:
 
 
 def xywh_to_xyxy(
-    bbox: tuple[int, int, int, int] | Sequence[int],
+    bbox: tuple[int, int, int, int],
 ) -> tuple[int, int, int, int]:
     """
     Convert a bounding box from (x, y, w, h) to (xmin, ymin, xmax, ymax).
 
     Parameters
     ----------
-    bbox : tuple[int, int, int, int] | Sequence[int]
+    bbox : tuple[int, int, int, int]
         The bounding box to convert.
         Bounding box is format (x, y, w, h),
         where (x, y) is the top-left corner and (w, h) is the width and height.
