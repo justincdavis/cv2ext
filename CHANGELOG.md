@@ -1,4 +1,4 @@
-## 0.0.13 (07-18-2024)
+## 0.0.14 (07-18-2024)
 
 ### Added
 
@@ -12,6 +12,13 @@
             in pixels and area differences.
             Useful for assigning confidence scores to bboxes without
             scores when there is a target bounding box.
+
+## 0.0.13 (06-15-2024)
+
+### Added
+
+- tracking Submodule
+    - Added the KLTTracker implementation
 
 ## 0.0.12 (06-01-2024)
 

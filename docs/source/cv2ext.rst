@@ -9,6 +9,8 @@ Subpackages
 
    cv2ext.bboxes
    cv2ext.cli
+   cv2ext.detection
+   cv2ext.image
    cv2ext.io
    cv2ext.metrics
    cv2ext.template
