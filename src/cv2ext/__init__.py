@@ -11,6 +11,10 @@ bboxes
     Submodule containing tools for working with bounding boxes in images.
 cli
     Submodule containing command line interface tools.
+detection
+    Submodule containing tools for performing simple types of detection.
+image
+    Submodule containing tools for working with images.
 io
     Submodule containing tools for working with video and image io.
 template
@@ -207,7 +211,7 @@ def enable_jit(*, on: bool | None = None, parallel: bool | None = None) -> None:
     _log.info(f"JIT is {'enabled' if on else 'disabled'}; parallel: {parallel}.")
 
 
-from . import bboxes, io, metrics, template, tracking, video
+from . import bboxes, detection, image, io, metrics, template, tracking, video
 from .io import Display, Fourcc, IterableVideo, VideoWriter
 
 __all__ = [
@@ -219,7 +223,9 @@ __all__ = [
     "VideoWriter",
     "bboxes",
     "cli",
+    "detection",
     "enable_jit",
+    "image",
     "io",
     "metrics",
     "set_log_level",
