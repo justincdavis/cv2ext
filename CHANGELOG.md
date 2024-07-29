@@ -12,6 +12,8 @@
             in pixels and area differences.
             Useful for assigning confidence scores to bboxes without
             scores when there is a target bounding box.
+- video Submodule
+    - create_timeline and video_from_images
 
 ## 0.0.13 (06-15-2024)
 
