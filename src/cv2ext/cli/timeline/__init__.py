@@ -12,6 +12,6 @@ timeline
 
 from __future__ import annotations
 
-from ._timeline import timeline, timeline_cli
+from ._timeline import timeline_cli
 
-__all__ = ["timeline", "timeline_cli"]
+__all__ = ["timeline_cli"]
