@@ -6,6 +6,8 @@ Subpackage containing tools for working with simple bounding boxes.
 
 Functions
 ---------
+bounding
+    Get a bounding box which encloses all the given bounding boxes.
 constrain
     Constrain a bounding box to be within the bounds of an image.
 draw_bboxes
@@ -43,6 +45,7 @@ yolo_to_xywh
 
 from __future__ import annotations
 
+from ._bounding import bounding
 from ._constrain import constrain
 from ._convert import (
     xywh_to_xyxy,
@@ -60,6 +63,7 @@ from ._nms import nms
 from ._score import score_bbox, score_bboxes
 
 __all__ = [
+    "bounding",
     "constrain",
     "draw_bboxes",
     "euclidean",
