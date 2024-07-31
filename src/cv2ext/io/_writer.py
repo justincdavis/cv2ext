@@ -10,6 +10,7 @@ import cv2
 from ._fourcc import Fourcc
 
 if TYPE_CHECKING:
+    from pathlib import Path
     from types import TracebackType
 
     import numpy as np
@@ -19,7 +20,7 @@ if TYPE_CHECKING:
 class VideoWriter:
     def __init__(
         self: Self,
-        filename: str,
+        filename: Path | str,
         fourcc: Fourcc = Fourcc.mp4v,
         fps: float = 30.0,
         frame_size: tuple[int, int] | None = None,
@@ -29,7 +30,7 @@ class VideoWriter:
 
         Parameters
         ----------
-        filename : str
+        filename : Path | str
             The name of the file to write to.
         fourcc : Fourcc
             The fourcc codec to use.
@@ -43,7 +44,7 @@ class VideoWriter:
             Defaults to None.
 
         """
-        self._filename = filename
+        self._filename = str(filename)
         self._fourcc = fourcc
         self._fps = fps
         self._frame_size = frame_size
