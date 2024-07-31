@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
 from cv2ext.video import video_from_images
 
@@ -34,7 +35,7 @@ def video_from_images_cli() -> None:
     args = parser.parse_args()
 
     video_from_images(
-        directory=args.dir,
-        output=args.output,
-        fps=args.fps,
+        directory=Path(args.dir),
+        output=Path(args.output),
+        fps=float(args.fps),
     )

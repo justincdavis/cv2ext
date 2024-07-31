@@ -1,3 +1,14 @@
+## 0.0.15 (07-31-2024)
+
+### Added
+
+- resize_image and convert_video_color cli
+
+### Fixed
+
+- Bug in video_from_images cli where strings were not
+    converted to Paths correctly.
+
 ## 0.0.14 (07-18-2024)
 
 ### Added
