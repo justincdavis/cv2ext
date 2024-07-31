@@ -10,9 +10,8 @@ from cv2ext.video import video_from_images
 
 def video_from_images_cli() -> None:
     """Create a video from a directory of images."""
-
     parser = argparse.ArgumentParser(
-        description="Create a video from a directory of images."
+        description="Create a video from a directory of images.",
     )
     parser.add_argument(
         "--dir",

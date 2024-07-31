@@ -19,7 +19,7 @@ class CSRTTracker(CVTrackerInterface):
 
     def __init__(self: Self) -> None:
         """Create a new CSRTTracker object."""
-        super().__init__(cv2.TrackerCSRT.create())
+        super().__init__(cv2.TrackerCSRT.create())  # type: ignore[attr-defined]
 
     def init(self: Self, image: np.ndarray, bbox: tuple[int, int, int, int]) -> None:
         """

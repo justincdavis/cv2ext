@@ -19,7 +19,7 @@ class MILTracker(CVTrackerInterface):
 
     def __init__(self: Self) -> None:
         """Create a new MILTracker object."""
-        super().__init__(cv2.TrackerMIL.create())
+        super().__init__(cv2.TrackerMIL.create())  # type: ignore[attr-defined]
 
     def init(self: Self, image: np.ndarray, bbox: tuple[int, int, int, int]) -> None:
         """

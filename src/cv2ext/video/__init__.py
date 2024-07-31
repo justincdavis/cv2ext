@@ -10,7 +10,7 @@ create_timeline
     Create a timeline image of a video.
 video_from_images
     Create a video from a directory of images.
-    
+
 """
 
 from __future__ import annotations

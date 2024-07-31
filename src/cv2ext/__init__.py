@@ -25,7 +25,7 @@ metrics
     Submodule containing tools for working with image metrics.
 video
     Submodule containing tools for working with videos.
-    
+
 Classes
 -------
 Display

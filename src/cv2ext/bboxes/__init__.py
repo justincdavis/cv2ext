@@ -10,10 +10,14 @@ constrain
     Constrain a bounding box to be within the bounds of an image.
 draw_bboxes
     Draw bounding boxes on an image.
+euclidean
+    Compute the euclidean distance between two bounding boxes.
 iou
     Calculate the intersection over union of two bounding boxes.
 ious
     Calculate the intersection over union of a set of bounding boxes.
+manhattan
+    Compute the manhattan distance between two bounding boxes.
 mean_ap
     Calculate the mean average precision of a set of bounding boxes.
 nms
@@ -48,6 +52,7 @@ from ._convert import (
     yolo_to_xywh,
     yolo_to_xyxy,
 )
+from ._distance import euclidean, manhattan
 from ._draw import draw_bboxes
 from ._iou import iou, ious
 from ._mean_ap import mean_ap
@@ -57,8 +62,10 @@ from ._score import score_bbox, score_bboxes
 __all__ = [
     "constrain",
     "draw_bboxes",
+    "euclidean",
     "iou",
     "ious",
+    "manhattan",
     "mean_ap",
     "nms",
     "score_bbox",

@@ -14,3 +14,5 @@ video_from_images_cli
 from __future__ import annotations
 
 from ._convert import video_from_images_cli
+
+__all__ = ["video_from_images_cli"]

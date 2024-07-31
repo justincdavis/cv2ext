@@ -27,11 +27,9 @@ class AbstractTracker(ABC):
 class CVTrackerInterface(AbstractTracker):
     def __init__(
         self: Self,
-        tracker: AbstractTracker | cv2.TrackerCSRT | cv2.TrackerKCF | cv2.TrackerMIL,
+        tracker: cv2.Tracker,
     ) -> None:
-        self._tracker: (
-            AbstractTracker | cv2.TrackerCSRT | cv2.TrackerKCF | cv2.TrackerMIL
-        ) = tracker
+        self._tracker: cv2.Tracker = tracker
 
     def _init(self: Self, image: np.ndarray, bbox: tuple[int, int, int, int]) -> None:
         img_shape = image.shape[:2]

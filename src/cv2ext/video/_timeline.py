@@ -3,12 +3,15 @@
 # MIT License
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import cv2
 import numpy as np
 
 from cv2ext.io import IterableVideo
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def create_timeline(
@@ -18,7 +21,7 @@ def create_timeline(
     offset: int = 20,
     slices: int = 6,
     img_size: tuple[int, int] | None = None,
-) -> None:
+) -> np.ndarray:
     """
     Create a timeline image of a video.
 
@@ -37,6 +40,11 @@ def create_timeline(
         Number of frames to include in the timeline.
     img_size : tuple[int, int], optional
         Size of the images in the timeline.
+
+    Returns
+    -------
+    np.ndarray
+        The timeline image.
 
     Raises
     ------
@@ -87,7 +95,7 @@ def create_timeline(
             cv2.resize(frame, framesize, interpolation=cv2.INTER_CUBIC)
             for frame in frames
         ]
-    timeline = np.concatenate(frames, axis=1)
+    timeline: np.ndarray = np.concatenate(frames, axis=1)
 
     if output is not None:
         cv2.imwrite(str(output), timeline)
