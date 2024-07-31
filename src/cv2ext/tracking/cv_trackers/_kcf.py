@@ -19,7 +19,7 @@ class KCFTracker(CVTrackerInterface):
 
     def __init__(self: Self) -> None:
         """Create a new KCFTracker object."""
-        super().__init__(cv2.TrackerKCF.create())
+        super().__init__(cv2.TrackerKCF.create())  # type: ignore[attr-defined]
 
     def init(self: Self, image: np.ndarray, bbox: tuple[int, int, int, int]) -> None:
         """
@@ -33,6 +33,11 @@ class KCFTracker(CVTrackerInterface):
             The bounding box of the object to track.
             Bounding box is format (x, y, x, y),
             where (x, y) is the top-left/bottom-right corner of the box.
+
+        Raises
+        ------
+        ValueError
+            If the image is not 3-channel.
 
         """
         if len(image.shape) == 2 or image.shape[2] == 1:
@@ -57,6 +62,11 @@ class KCFTracker(CVTrackerInterface):
             The bounding box of the tracked object.
             Bounding box is format (x, y, x, y),
             where (x, y) is the top-left/bottom-right corner of the box.
+
+        Raises
+        ------
+        ValueError
+            If the image is not 3-channel.
 
         """
         if len(image.shape) == 2 or image.shape[2] == 1:

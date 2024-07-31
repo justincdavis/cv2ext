@@ -1,3 +1,27 @@
+## 0.0.14 (07-18-2024)
+
+### Added
+
+- detection Submodule
+    - BlobDetector and detect_blobs
+- bboxes Submodule
+    - xyxy, xywh, and yolo conversion methods
+    - draw_bboxes
+    - score_bbox and score_bboxes
+        - Simple bbox scoring methods based on euclidean distance
+            in pixels and area differences.
+            Useful for assigning confidence scores to bboxes without
+            scores when there is a target bounding box.
+- video Submodule
+    - create_timeline and video_from_images
+
+## 0.0.13 (06-15-2024)
+
+### Added
+
+- tracking Submodule
+    - Added the KLTTracker implementation
+
 ## 0.0.12 (06-01-2024)
 
 ### Added

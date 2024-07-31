@@ -42,6 +42,11 @@ class BoostingTracker(CVTrackerInterface):
             Bounding box is format (x, y, x, y),
             where (x, y) is the top-left/bottom-right corner of the box.
 
+        Raises
+        ------
+        ValueError
+            If the image is not 3-channel.
+
         """
         if len(image.shape) == 2 or image.shape[2] == 1:
             err_msg = "Boosting tracker requires a 3-channel image."
@@ -65,6 +70,11 @@ class BoostingTracker(CVTrackerInterface):
             The bounding box of the tracked object.
             Bounding box is format (x, y, x, y),
             where (x, y) is the top-left/bottom-right corner of the box.
+
+        Raises
+        ------
+        ValueError
+            If the image is not 3-channel.
 
         """
         if len(image.shape) == 2 or image.shape[2] == 1:

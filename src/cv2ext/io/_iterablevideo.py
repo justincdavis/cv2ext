@@ -270,6 +270,11 @@ class IterableVideo:
         numpy.ndarray
             The current frame.
 
+        Raises
+        ------
+        StopIteration
+            If the video has ended
+
         """
         if not self._thread_loads:
             self._got, self._frame = self._cap.read()
