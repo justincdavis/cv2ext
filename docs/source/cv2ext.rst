@@ -15,6 +15,7 @@ Subpackages
    cv2ext.metrics
    cv2ext.template
    cv2ext.tracking
+   cv2ext.video
 
 Module contents
 ---------------
