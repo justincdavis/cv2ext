@@ -38,14 +38,12 @@ def resize_image_cli() -> None:
     )
     parser.add_argument(
         "--width",
-        "-w",
         type=int,
         required=True,
         help="The width of the output image.",
     )
     parser.add_argument(
         "--height",
-        "-h",
         type=int,
         required=True,
         help="The height of the output image.",
