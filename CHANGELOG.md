@@ -1,3 +1,18 @@
+## 0.0.16 (08-12-2024)
+
+### Added
+
+- Tiling functions to the image submodule
+    - Create an image using tiles or iterate over an image
+        getting progessively tiled.
+    - create_tiled_image
+    - image_tiler
+
+### Improved
+
+- Display now has enter and exit statements so it can be
+    used with the 'with' statement.
+
 ## 0.0.15 (07-31-2024)
 
 ### Added
