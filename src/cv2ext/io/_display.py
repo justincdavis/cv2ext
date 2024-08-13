@@ -16,6 +16,8 @@ import numpy as np
 from cv2ext import _DELOBJ
 
 if TYPE_CHECKING:
+    from types import TracebackType
+
     from typing_extensions import Self
 
 
@@ -150,6 +152,17 @@ class Display:
 
     def __del__(self: Self) -> None:
         self._stop()
+
+    def __enter__(self: Self) -> Self:
+        return self
+
+    def __exit__(
+        self: Self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        self.stop()
 
     def _display(self: Self) -> None:
         if self._show:

@@ -12,11 +12,22 @@ dominant_color
     Compute the dominant color in an image.
 mean_color
     Compute the mean color in an image.
+image_tiler
+    Tile an image across another image.
+create_tiled_image
+    Tile an image across another image, or create a new image of the tile.
 
 """
 
 from __future__ import annotations
 
 from ._color import color_euclidean_dist, dominant_color, mean_color
+from ._tiling import create_tiled_image, image_tiler
 
-__all__ = ["color_euclidean_dist", "dominant_color", "mean_color"]
+__all__ = [
+    "color_euclidean_dist",
+    "create_tiled_image",
+    "dominant_color",
+    "image_tiler",
+    "mean_color",
+]
