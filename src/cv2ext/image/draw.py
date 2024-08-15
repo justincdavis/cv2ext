@@ -60,6 +60,7 @@ def rectangle(
         In BGR format and the default is red or (0, 0, 255).
     thickness : int, optional
         The thickness of the rectangle lines.
+        A negative value such as cv2.FILLED will fill the rectangle.
         Default is 2.
     linetype : int, optional
         The type of line to draw.
@@ -95,6 +96,61 @@ def rectangle(
             err_msg = "If p1 is a single point, then p2 must be provided."
             raise ValueError(err_msg)
         cv2.rectangle(canvas, p1, p2, color, thickness, linetype)
+
+    return canvas
+
+
+def circle(
+    image: np.ndarray,
+    center: tuple[int, int],
+    radius: int,
+    color: tuple[int, int, int] = (0, 0, 255),
+    thickness: int = 2,
+    linetype: int = cv2.LINE_8,
+    *,
+    copy: bool | None = None,
+) -> np.ndarray:
+    """
+    Wrapper around cv2.circle with autofilled args.
+
+    While the image is returned from this function, the circle is drawn
+    in memory, so the image is modified in place. Thus, the return value
+    can be ignored unless the copy parameter is set to True.
+
+    Parameters
+    ----------
+    image : np.ndarray
+        The image to draw the circle on.
+    center : tuple[int, int]
+        The center of the circle.
+    radius : int
+        The radius of the circle.
+    color : tuple[int, int, int], optional
+        The color to draw the circle.
+        In BGR format and the default is red or (0, 0, 255).
+    thickness : int, optional
+        The thickness of the circle lines.
+        A negative value such as cv2.FILLED will fill the circle.
+        Default is 2.
+    linetype : int, optional
+        The type of line to draw.
+        Default is cv2.LINE_8.
+        The options are cv2.FILLED, cv2.LINE_4, cv2.LINE_8, cv2.LINE_AA.
+    copy : bool, optional
+        Whether or not to draw on a copy of the image and return that.
+        Default is False.
+
+    Returns
+    -------
+    np.ndarray
+        The image with the circle drawn.
+
+    """
+    canvas = image
+    if copy:
+        canvas = image.copy()
+
+    cv2.circle(canvas, center, radius, color, thickness, linetype)
 
     return canvas
 
@@ -168,6 +224,6 @@ def text(
     if copy:
         canvas = image.copy()
 
-    cv2.putText(canvas, text, p, font, font_scale, color, thickness, linetype)
+    cv2.putText(canvas, text, p, font, font_scale, color, thickness, linetype, bottom_left_origin)
 
     return canvas
