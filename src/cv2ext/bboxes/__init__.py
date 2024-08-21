@@ -24,10 +24,14 @@ mean_ap
     Calculate the mean average precision of a set of bounding boxes.
 nms
     Perform non-maximum suppression on a set of bounding boxes.
+resize
+    Resize a bounding box based on one image size to another.
 score_bbox
     Score a bounding box relative to a target bbox.
 score_bboxes
     Score a set of bounding boxes relative to a target bbox.
+valid
+    Check if a bounding box is valid.
 xywh_to_xyxy
     Convert bounding boxes from `(x, y, w, h)` to `(x1, y1, x2, y2)`.
 xyxy_to_xywh
@@ -60,7 +64,9 @@ from ._draw import draw_bboxes
 from ._iou import iou, ious
 from ._mean_ap import mean_ap
 from ._nms import nms
+from ._resize import resize
 from ._score import score_bbox, score_bboxes
+from ._valid import valid
 
 __all__ = [
     "bounding",
@@ -72,8 +78,10 @@ __all__ = [
     "manhattan",
     "mean_ap",
     "nms",
+    "resize",
     "score_bbox",
     "score_bboxes",
+    "valid",
     "xywh_to_xyxy",
     "xywh_to_yolo",
     "xyxy_to_xywh",
