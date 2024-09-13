@@ -1,14 +1,14 @@
-.. _examples_io/video_writer:
+.. _examples_io/write_and_display:
 
-Example: io/video_writer.py
-===========================
+Example: io/write_and_display.py
+================================
 
 .. code-block:: python
 
 	# Copyright (c) 2024 Justin Davis (davisjustin302@gmail.com)
 	#
 	# MIT License
-	"""Example showcasing how to use the VideoWriter class."""
+	"""Example showcasing how to write and display the same video."""
 	
 	from __future__ import annotations
 	
@@ -19,7 +19,7 @@ Example: io/video_writer.py
 	    # create an IterableVideo object
 	    video = IterableVideo("video.mp4")
 	
-	    with VideoWriter("output.mp4") as writer:
+	    with VideoWriter("output.mp4", show=True) as writer:
 	        # iterate over the video
 	        for frame_id, frame in video:
 	            writer.write(frame)

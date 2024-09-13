@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 import cv2
 
+from ._display import Display
 from ._fourcc import Fourcc
 
 if TYPE_CHECKING:
@@ -24,6 +25,8 @@ class VideoWriter:
         fourcc: Fourcc = Fourcc.mp4v,
         fps: float = 30.0,
         frame_size: tuple[int, int] | None = None,
+        *,
+        show: bool | None = None,
     ) -> None:
         """
         Create a new video writer.
@@ -42,6 +45,12 @@ class VideoWriter:
             The size of the frames.
             If None, the first frame written will determine the size.
             Defaults to None.
+        show : bool | None
+            If True, the video will be displayed while writing.
+            If False, the video will not be displayed.
+            If None, the video will not be displayed.
+            Useful if a video stream should be written to disk
+            and displayed.
 
         """
         self._filename = str(filename)
@@ -51,6 +60,11 @@ class VideoWriter:
 
         # allocate writer once first frame is written
         self._writer: cv2.VideoWriter | None = None
+
+        # handle display allocation
+        self._display = None
+        if show is not None:
+            self._display = Display(self._filename)
 
     def __enter__(self: Self) -> Self:
         return self
@@ -85,8 +99,14 @@ class VideoWriter:
             )
         self._writer.write(frame)
 
+        if self._display:
+            self._display(frame)
+
     def release(self: Self) -> None:
         """Release the video writer."""
         if self._writer is None:
             return
         self._writer.release()
+
+        if self._display:
+            self._display.stop()

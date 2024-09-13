@@ -1,7 +1,7 @@
 # Copyright (c) 2024 Justin Davis (davisjustin302@gmail.com)
 #
 # MIT License
-"""Example showcasing how to use the VideoWriter class."""
+"""Example showcasing how to write and display the same video."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ if __name__ == "__main__":
     # create an IterableVideo object
     video = IterableVideo("video.mp4")
 
-    with VideoWriter("output.mp4") as writer:
+    with VideoWriter("output.mp4", show=True) as writer:
         # iterate over the video
         for frame_id, frame in video:
             writer.write(frame)
