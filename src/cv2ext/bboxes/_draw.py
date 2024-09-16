@@ -79,6 +79,13 @@ def draw_bboxes(
                 classid = class_map[classid]
             tag = f"{classid}: {tag}"
         if tag:
-            text(drawing, tag, bbox[:2], color=color, thickness=1, bottom_left_origin=True)
+            text(
+                drawing,
+                tag,
+                bbox[:2],
+                color=color,
+                thickness=1,
+                bottom_left_origin=True,
+            )
 
     return drawing

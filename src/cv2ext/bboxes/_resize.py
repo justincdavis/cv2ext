@@ -4,10 +4,14 @@
 from __future__ import annotations
 
 
-def resize(bbox: tuple[int, int, int, int], s1: tuple[int, int], s2: tuple[int, int]) -> tuple[int, int, int, int]:
+def resize(
+    bbox: tuple[int, int, int, int],
+    s1: tuple[int, int],
+    s2: tuple[int, int],
+) -> tuple[int, int, int, int]:
     """
     Resizes a bounding box based on one image size to another.
-    
+
     Parameters
     ----------
     bbox : tuple[int, int, int, int]
@@ -19,13 +23,13 @@ def resize(bbox: tuple[int, int, int, int], s1: tuple[int, int], s2: tuple[int, 
     s2 : tuple[int, int]
         The size of the second image.
         In form (width, height).
-    
+
     Returns
     -------
     tuple[int, int, int, int]
         The resized bounding box.
         Bounding box is in form xyxy.
-    
+
     """
     x1, y1, x2, y2 = bbox
     w1, h1 = s1

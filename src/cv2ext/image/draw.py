@@ -37,8 +37,8 @@ def rectangle(
     copy: bool | None = None,
 ) -> np.ndarray:
     """
-    Wrapper around cv2.rectangle with autofilled args and flexible types.
-    
+    cv2.rectangle with autofilled args and flexible types.
+
     While the image is returned from this function, the rectangle is drawn
     in memory, so the image is modified in place. Thus, the return value
     can be ignored unless the copy parameter is set to True.
@@ -69,7 +69,7 @@ def rectangle(
     copy : bool, optional
         Whether or not to draw on a copy of the image and return that.
         Default is False.
-        
+
     Returns
     -------
     np.ndarray
@@ -84,13 +84,15 @@ def rectangle(
     canvas = image
     if copy:
         canvas = image.copy()
-    
+
     if len(p1) == 4:
         if p2 is not None:
-            _log.warning("p2 is provided, but p1 is a full rectangle. p2 will be ignored.")
-        p1 = p1[:2]
-        p2 = p1[2:]
-        cv2.rectangle(canvas, p1, p2, color, thickness, linetype)
+            _log.warning(
+                "p2 is provided, but p1 is a full rectangle. p2 will be ignored.",
+            )
+        point1 = p1[:2]
+        point2 = p1[2:]
+        cv2.rectangle(canvas, point1, point2, color, thickness, linetype)
     elif len(p1) == 2:
         if p2 is None:
             err_msg = "If p1 is a single point, then p2 must be provided."
@@ -111,7 +113,7 @@ def circle(
     copy: bool | None = None,
 ) -> np.ndarray:
     """
-    Wrapper around cv2.circle with autofilled args.
+    cv2.circle with autofilled args.
 
     While the image is returned from this function, the circle is drawn
     in memory, so the image is modified in place. Thus, the return value
@@ -169,7 +171,7 @@ def text(
     bottom_left_origin: bool | None = None,
 ) -> np.ndarray:
     """
-    Wrapper around cv2.putText with autofilled args.
+    cv2.putText with autofilled args.
 
     While the image is returned from this function, the text is drawn
     in memory, so the image is modified in place. Thus, the return value
@@ -223,7 +225,19 @@ def text(
     canvas = image
     if copy:
         canvas = image.copy()
+    if bottom_left_origin is None:
+        bottom_left_origin = False
 
-    cv2.putText(canvas, text, p, font, font_scale, color, thickness, linetype, bottom_left_origin)
+    cv2.putText(
+        canvas,
+        text,
+        p,
+        font,
+        font_scale,
+        color,
+        thickness,
+        linetype,
+        bottom_left_origin,
+    )
 
     return canvas
