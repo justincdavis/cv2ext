@@ -179,6 +179,8 @@ class _FLAGS:
     ----------
     USEJIT : bool
         Whether or not to use jit.
+    PARALLEL : bool
+        Whether or not to use parallel compilation in the jit.
 
     """
 
