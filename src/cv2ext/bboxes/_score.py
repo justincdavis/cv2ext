@@ -61,7 +61,10 @@ def _score_bbox_kernel(
     ns = nh * nw
     ncx = nx1 + nw / 2
     ncy = ny1 + nh / 2
-    dist = math.sqrt((tcx - ncx) ** 2 + (tcy - ncy) ** 2) / max(th + nh, tw + nw)
+    divisor = math.sqrt((th + nh) ** 2 + (tw + nw) ** 2)
+    if divisor == 0:
+        divisor = 1.0
+    dist = math.sqrt((tcx - ncx) ** 2 + (tcy - ncy) ** 2) / divisor
     area_diff = abs(ts - ns) / max(ts, ns)
     return 1.0 - min(1.0, dist + area_diff)
 

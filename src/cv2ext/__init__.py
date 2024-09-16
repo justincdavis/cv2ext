@@ -179,6 +179,8 @@ class _FLAGS:
     ----------
     USEJIT : bool
         Whether or not to use jit.
+    PARALLEL : bool
+        Whether or not to use parallel compilation in the jit.
 
     """
 
@@ -233,7 +235,7 @@ __all__ = [
     "tracking",
     "video",
 ]
-__version__ = "0.0.16"
+__version__ = "0.0.17"
 
 _log.info(f"Initialized cv2ext with version {__version__}")
 

@@ -1,3 +1,16 @@
+## 0.0.17 (09-15-2024)
+
+### Added
+
+- image.draw submodule
+    - Provides wrappers around some basic cv2
+        drawing functions. Primary focuses on
+        providing general auto-filling of
+        arguments
+- io.VideoWriter now has show flag on initialization.
+    Will create an io.Display and display frames
+    as they are written.
+
 ## 0.0.16 (08-12-2024)
 
 ### Added

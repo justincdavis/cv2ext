@@ -10,6 +10,7 @@ import time
 
 import cv2
 import numpy as np
+
 from cv2ext import Display, IterableVideo, set_log_level
 from cv2ext.tracking import MultiTracker, TrackerType
 

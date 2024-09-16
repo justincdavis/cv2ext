@@ -13,6 +13,8 @@ def euclidean(
     """
     Compute the euclidean distance between two bboxes.
 
+    The computation is performed between the centers of the bounding boxes.
+
     Parameters
     ----------
     bbox1 : tuple[int, int, int, int]
@@ -28,7 +30,11 @@ def euclidean(
         The euclidean distance between the two bounding boxes.
 
     """
-    return math.sqrt((bbox1[0] - bbox2[0]) ** 2 + (bbox1[1] - bbox2[1]) ** 2)
+    cx1 = (bbox1[0] + bbox1[2]) / 2
+    cy1 = (bbox1[1] + bbox1[3]) / 2
+    cx2 = (bbox2[0] + bbox2[2]) / 2
+    cy2 = (bbox2[1] + bbox2[3]) / 2
+    return math.sqrt((cx1 - cx2) ** 2 + (cy1 - cy2) ** 2)
 
 
 def manhattan(
@@ -37,6 +43,8 @@ def manhattan(
 ) -> float:
     """
     Compute the manhattan distance between two bboxes.
+
+    The computation is performed between the centers of the bounding boxes.
 
     Parameters
     ----------
@@ -53,4 +61,8 @@ def manhattan(
         The manhattan distance between the two bounding boxes.
 
     """
-    return abs(bbox1[0] - bbox2[0]) + abs(bbox1[1] - bbox2[1])
+    cx1 = (bbox1[0] + bbox1[2]) / 2
+    cy1 = (bbox1[1] + bbox1[3]) / 2
+    cx2 = (bbox2[0] + bbox2[2]) / 2
+    cy2 = (bbox2[1] + bbox2[3]) / 2
+    return abs(cx1 - cx2) + abs(cy1 - cy2)

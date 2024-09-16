@@ -4,6 +4,11 @@
 """
 Submodule containing utilities for working with images.
 
+Submodules
+----------
+draw
+    Drawing utilities for images.
+
 Functions
 ---------
 color_euclidean_dist
@@ -21,6 +26,7 @@ create_tiled_image
 
 from __future__ import annotations
 
+from . import draw
 from ._color import color_euclidean_dist, dominant_color, mean_color
 from ._tiling import create_tiled_image, image_tiler
 
@@ -28,6 +34,7 @@ __all__ = [
     "color_euclidean_dist",
     "create_tiled_image",
     "dominant_color",
+    "draw",
     "image_tiler",
     "mean_color",
 ]
