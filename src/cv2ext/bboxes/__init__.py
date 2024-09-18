@@ -32,18 +32,46 @@ score_bboxes
     Score a set of bounding boxes relative to a target bbox.
 valid
     Check if a bounding box is valid.
-xywh_to_xyxy
-    Convert bounding boxes from `(x, y, w, h)` to `(x1, y1, x2, y2)`.
+xyxy_to_nxyxy
+    Convert bounding boxes from `(x1, y1, x2, y2)` to normalized `(x1, y1, x2, y2)`.
 xyxy_to_xywh
     Convert bounding boxes from `(x1, y1, x2, y2)` to `(x, y, w, h)`.
+xyxy_to_nxywh
+    Convert bounding boxes from ;'x1, y1, x2, y2' to normalized '(x, y, w, h)'.
 xyxy_to_yolo
-    Convert bounding boxes from `(x1, y1, x2, y2)` to `(x, y, w, h)` in YOLO format.
+    Convert bounding boxes from `(x1, y1, x2, y2)` to `(cx, cy, w, h)` in YOLO format.
+xywh_to_xyxy
+    Convert bounding boxes from `(x, y, w, h)` to `(x1, y1, x2, y2)`.
+xywh_to_nxyxy
+    Convert bounding boxes from `(x, y, w, h)` to normalized `(x1, y1, x2, y2)`.
+xywh_to_nxywh
+    Convert bounding boxes from `(x, y, w, h)` to normalized `(x, y, w, h)`.
 xywh_to_yolo
-    Convert bounding boxes from `(x, y, w, h)` to `(x, y, w, h)` in YOLO format.
+    Convert bounding boxes from `(x, y, w, h)` to `(cx, cy, w, h)` in YOLO format.
+nxyxy_to_xyxy
+    Convert bounding boxes from normalized `(x1, y1, x2, y2)` to `(x1, y1, x2, y2)`.
+nxywh_to_xywh
+    Convert bounding boxes from normalized `(x, y, w, h)` to `(x, y, w, h)`.
+nxywh_to_nxywh
+    Convert bounding boxes from normalized `(x, y, w, h)` to normalized `(x, y, w, h)`.
+nxyxy_to_yolo
+    Convert bounding boxes from normalized `(x1, y1, x2, y2)` to `(cx, cy, w, h)` in YOLO format.
+nxywh_to_xyxy
+    Convert bounding boxes from normalized `(x, y, w, h)` to `(x1, y1, x2, y2)`.
+nxywh_to_nxyxy
+    Convert bounding boxes from normalized `(x, y, w, h)` to normalized `(x1, y1, x2, y2)`.
+nxywh_to_xywh
+    Convert bounding boxes from normalized `(x, y, w, h)` to `(x, y, w, h)`.
+nxywh_to_yolo
+    Convert bounding boxes from normalized `(x, y, w, h)` to `(cx, cy, w, h)` in YOLO format.
 yolo_to_xyxy
-    Convert bounding boxes from `(x, y, w, h)` in YOLO format to `(x1, y1, x2, y2)`.
+    Convert bounding boxes from YOLO format `(cx, cy, w, h)` to `(x1, y1, x2, y2)`.
+yolo_to_nxyxy
+    Convert bounding boxes from YOLO format `(cx, cy, w, h)` to normalized `(x1, y1, x2, y2)`.
 yolo_to_xywh
-    Convert bounding boxes from `(x, y, w, h)` in YOLO format to `(x, y, w, h)`.
+    Convert bounding boxes from YOLO format `(cx, cy, w, h)` to `(x, y, w, h)`.
+yolo_to_nxywh
+    Convert bounding boxes from YOLO format `(cx, cy, w, h)` to normalized `(x, y, w, h)`.
 
 """
 
@@ -52,10 +80,24 @@ from __future__ import annotations
 from ._bounding import bounding
 from ._constrain import constrain
 from ._convert import (
+    nxywh_to_nxyxy,
+    nxywh_to_xywh,
+    nxywh_to_xyxy,
+    nxywh_to_yolo,
+    nxyxy_to_nxywh,
+    nxyxy_to_xywh,
+    nxyxy_to_xyxy,
+    nxyxy_to_yolo,
+    xywh_to_nxywh,
+    xywh_to_nxyxy,
     xywh_to_xyxy,
     xywh_to_yolo,
+    xyxy_to_nxywh,
+    xyxy_to_nxyxy,
     xyxy_to_xywh,
     xyxy_to_yolo,
+    yolo_to_nxywh,
+    yolo_to_nxyxy,
     yolo_to_xywh,
     yolo_to_xyxy,
 )
@@ -78,14 +120,28 @@ __all__ = [
     "manhattan",
     "mean_ap",
     "nms",
+    "nxywh_to_nxyxy",
+    "nxywh_to_xywh",
+    "nxywh_to_xyxy",
+    "nxywh_to_yolo",
+    "nxyxy_to_nxywh",
+    "nxyxy_to_xywh",
+    "nxyxy_to_xyxy",
+    "nxyxy_to_yolo",
     "resize",
     "score_bbox",
     "score_bboxes",
     "valid",
+    "xywh_to_nxywh",
+    "xywh_to_nxyxy",
     "xywh_to_xyxy",
     "xywh_to_yolo",
+    "xyxy_to_nxywh",
+    "xyxy_to_nxyxy",
     "xyxy_to_xywh",
     "xyxy_to_yolo",
+    "yolo_to_nxywh",
+    "yolo_to_nxyxy",
     "yolo_to_xywh",
     "yolo_to_xyxy",
 ]

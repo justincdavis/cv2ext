@@ -20,6 +20,8 @@ from typing import TYPE_CHECKING
 
 import cv2
 
+from .color import Color
+
 if TYPE_CHECKING:
     import numpy as np
 
@@ -30,7 +32,7 @@ def rectangle(
     image: np.ndarray,
     p1: tuple[int, int] | tuple[int, int, int, int],
     p2: tuple[int, int] | None = None,
-    color: tuple[int, int, int] = (0, 0, 255),
+    color: Color | tuple[int, int, int] = Color.RED,
     thickness: int = 2,
     linetype: int = cv2.LINE_8,
     *,
@@ -55,9 +57,9 @@ def rectangle(
     p2 : tuple[int, int], optional
         The bottom-right point of the rectangle.
         If this is provided, then p1 should be the top-left point.
-    color : tuple[int, int, int], optional
+    color : Color | tuple[int, int, int], optional
         The color to draw the rectangle.
-        In BGR format and the default is red or (0, 0, 255).
+        In BGR format and the default is Color.RED or (0, 0, 255).
     thickness : int, optional
         The thickness of the rectangle lines.
         A negative value such as cv2.FILLED will fill the rectangle.
@@ -85,6 +87,9 @@ def rectangle(
     if copy:
         canvas = image.copy()
 
+    if isinstance(color, Color):
+        color = color.value
+
     if len(p1) == 4:
         if p2 is not None:
             _log.warning(
@@ -106,7 +111,7 @@ def circle(
     image: np.ndarray,
     center: tuple[int, int],
     radius: int,
-    color: tuple[int, int, int] = (0, 0, 255),
+    color: Color | tuple[int, int, int] = Color.RED,
     thickness: int = 2,
     linetype: int = cv2.LINE_8,
     *,
@@ -127,9 +132,9 @@ def circle(
         The center of the circle.
     radius : int
         The radius of the circle.
-    color : tuple[int, int, int], optional
+    color : Color | tuple[int, int, int], optional
         The color to draw the circle.
-        In BGR format and the default is red or (0, 0, 255).
+        In BGR format and the default is Color.RED or (0, 0, 255).
     thickness : int, optional
         The thickness of the circle lines.
         A negative value such as cv2.FILLED will fill the circle.
@@ -152,6 +157,9 @@ def circle(
     if copy:
         canvas = image.copy()
 
+    if isinstance(color, Color):
+        color = color.value
+
     cv2.circle(canvas, center, radius, color, thickness, linetype)
 
     return canvas
@@ -163,7 +171,7 @@ def text(
     p: tuple[int, int],
     font: int = cv2.FONT_HERSHEY_SIMPLEX,
     font_scale: float = 1.0,
-    color: tuple[int, int, int] = (0, 0, 255),
+    color: Color | tuple[int, int, int] = Color.RED,
     thickness: int = 2,
     linetype: int = cv2.LINE_8,
     *,
@@ -199,9 +207,9 @@ def text(
     font_scale : float, optional
         The size of the font.
         Default is 1.0.
-    color : tuple[int, int, int], optional
+    color : Color, tuple[int, int, int], optional
         The color of the text.
-        Default is red or (0, 0, 255).
+        Default is Color.RED or (0, 0, 255).
     thickness : int, optional
         The thickness of the text.
         Default is 2.
@@ -227,6 +235,9 @@ def text(
         canvas = image.copy()
     if bottom_left_origin is None:
         bottom_left_origin = False
+
+    if isinstance(color, Color):
+        color = color.value
 
     cv2.putText(
         canvas,
