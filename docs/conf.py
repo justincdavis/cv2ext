@@ -14,7 +14,7 @@ import cv2ext
 project = 'cv2ext'
 copyright = '2024, Justin Davis'
 author = 'Justin Davis'
-version = '0.0.17'
+version = '0.0.18'
 
 assert version == cv2ext.__version__
 
