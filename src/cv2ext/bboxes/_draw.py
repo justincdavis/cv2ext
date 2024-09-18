@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from cv2ext.image.color import Color
 from cv2ext.image.draw import rectangle, text
 
 if TYPE_CHECKING:
@@ -19,7 +20,7 @@ def draw_bboxes(
     confidences: Sequence[float] | None = None,
     classes: Sequence[str | int] | None = None,
     class_map: dict[int, str] | None = None,
-    color: tuple[int, int, int] = (0, 0, 255),
+    color: Color | tuple[int, int, int] = Color.RED,
     thickness: int = 1,
     *,
     copy: bool | None = None,
@@ -46,9 +47,9 @@ def draw_bboxes(
         the class_map.
     class_map : dict[int, str], optional
         The class map to use for converting class indices to labels.
-    color : tuple[int, int, int], optional
+    color : Color, tuple[int, int, int], optional
         The color to draw the bounding boxes.
-        In BGR format and the default is red.
+        In BGR format and the default is Color.RED.
     thickness : int, optional
         The thickness of the bounding box lines.
         Default is 2.
