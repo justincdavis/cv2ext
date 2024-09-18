@@ -1,3 +1,19 @@
+## 0.0.18 (09-18-2024)
+
+### Added
+
+- image.color submodule
+    - Color enum for getting BGR colors and
+        the color in other formats
+- Added nxyxy and nxywh formats to the bboxes
+    submodule.
+
+## Fixed
+
+- yolo format in bboxes submodules was incorrectly
+    using nxywh format. Renamed and addedd
+    correct yolo format.
+
 ## 0.0.17 (09-15-2024)
 
 ### Added
