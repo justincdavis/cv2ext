@@ -23,12 +23,15 @@ image_tiler
     Tile an image across another image.
 create_tiled_image
     Tile an image across another image, or create a new image of the tile.
+letterbox
+    Resize an image using the letterbox method.
 
 """
 
 from __future__ import annotations
 
 from . import color, draw
+from ._augment import letterbox
 from ._color import color_euclidean_dist, dominant_color, mean_color
 from ._tiling import create_tiled_image, image_tiler
 
@@ -39,5 +42,6 @@ __all__ = [
     "dominant_color",
     "draw",
     "image_tiler",
+    "letterbox",
     "mean_color",
 ]

@@ -1,3 +1,10 @@
+## 0.0.19 (09-20-2024)
+
+### Added
+
+- image.letterbox function
+    - Resize an image using the letterbox method
+
 ## 0.0.18 (09-18-2024)
 
 ### Added
