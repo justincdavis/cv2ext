@@ -1,3 +1,10 @@
+## 0.0.20 (09-24-2024)
+
+### Fixed
+
+- A Display would be created (but unused) if
+    show was set to False in VideoWriter
+
 ## 0.0.19 (09-20-2024)
 
 ### Added
