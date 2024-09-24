@@ -63,7 +63,7 @@ class VideoWriter:
 
         # handle display allocation
         self._display = None
-        if show is not None:
+        if show:
             self._display = Display(self._filename)
 
     def __enter__(self: Self) -> Self:
