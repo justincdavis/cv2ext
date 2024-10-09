@@ -10,14 +10,14 @@ if TYPE_CHECKING:
 
 
 def divide(
-        image: np.ndarray,
-        num_rows: int,
-        num_cols: int,
-        padding: int | tuple[int, int] | None = None,
-        overlap_ratio: float | None = None,
-        *,
-        copy: bool | None = None,
-    ) -> list[list[np.ndarray]]:
+    image: np.ndarray,
+    num_rows: int,
+    num_cols: int,
+    padding: int | tuple[int, int] | None = None,
+    overlap_ratio: float | None = None,
+    *,
+    copy: bool | None = None,
+) -> list[list[np.ndarray]]:
     """
     Split an image into multiple sub-images.
 

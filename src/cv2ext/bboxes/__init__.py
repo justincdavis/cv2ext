@@ -36,6 +36,8 @@ score_bboxes
     Score a set of bounding boxes relative to a target bbox.
 valid
     Check if a bounding box is valid.
+within
+    Check if a bounding box is within the bounds of an image.
 xyxy_to_nxyxy
     Convert bounding boxes from `(x1, y1, x2, y2)` to normalized `(x1, y1, x2, y2)`.
 xyxy_to_xywh
@@ -113,7 +115,7 @@ from ._nms import nms
 from ._resize import resize
 from ._scale import scale, scale_many
 from ._score import score_bbox, score_bboxes
-from ._valid import valid
+from ._valid import valid, within
 
 __all__ = [
     "bounding",
@@ -139,6 +141,7 @@ __all__ = [
     "score_bbox",
     "score_bboxes",
     "valid",
+    "within",
     "xywh_to_nxywh",
     "xywh_to_nxyxy",
     "xywh_to_xyxy",

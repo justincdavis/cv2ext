@@ -4,7 +4,11 @@
 from __future__ import annotations
 
 
-def scale(bbox: tuple[int, int, int, int], s1: tuple[int, int], s2: tuple[int, int]) -> tuple[int, int, int, int]:
+def scale(
+    bbox: tuple[int, int, int, int],
+    s1: tuple[int, int],
+    s2: tuple[int, int],
+) -> tuple[int, int, int, int]:
     """
 
     Scale a bounding box from one image size to another.
@@ -43,7 +47,11 @@ def scale(bbox: tuple[int, int, int, int], s1: tuple[int, int], s2: tuple[int, i
     return (scaled_x1, scaled_y1, scaled_x2, scaled_y2)
 
 
-def scale_many(bboxes: list[tuple[int, int, int, int]], s1: tuple[int, int], s2: tuple[int, int]) -> list[tuple[int, int, int, int]]:
+def scale_many(
+    bboxes: list[tuple[int, int, int, int]],
+    s1: tuple[int, int],
+    s2: tuple[int, int],
+) -> list[tuple[int, int, int, int]]:
     """
 
     Scale a bounding box from one image size to another.
