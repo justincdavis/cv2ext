@@ -26,3 +26,9 @@ def test_valid_basic():
 def test_not_valid_basic():
     assert not valid((10, 10, 5, 5))
     assert not valid((10, 10, 0, 0))
+
+
+def test_not_valid_compound():
+    assert not valid((0, 0, -10, -10))
+    assert not valid((-1, -1, -10, -10))
+    assert not valid((-1, -20, -10, -10))
