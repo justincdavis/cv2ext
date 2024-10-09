@@ -15,6 +15,8 @@ Functions
 ---------
 color_euclidean_dist
     Compute the euclidean distance between two colors.
+divide
+    Divide an image into multiple sub-images.
 dominant_color
     Compute the dominant color in an image.
 mean_color
@@ -33,12 +35,14 @@ from __future__ import annotations
 from . import color, draw
 from ._augment import letterbox
 from ._color import color_euclidean_dist, dominant_color, mean_color
+from ._divide import divide
 from ._tiling import create_tiled_image, image_tiler
 
 __all__ = [
     "color",
     "color_euclidean_dist",
     "create_tiled_image",
+    "divide",
     "dominant_color",
     "draw",
     "image_tiler",

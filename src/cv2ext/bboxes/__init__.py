@@ -26,6 +26,10 @@ nms
     Perform non-maximum suppression on a set of bounding boxes.
 resize
     Resize a bounding box based on one image size to another.
+scale
+    Scale a bounding box from one image size to another.
+scale_many
+    Scale a set of bounding boxes from one image size to another.
 score_bbox
     Score a bounding box relative to a target bbox.
 score_bboxes
@@ -107,6 +111,7 @@ from ._iou import iou, ious
 from ._mean_ap import mean_ap
 from ._nms import nms
 from ._resize import resize
+from ._scale import scale, scale_many
 from ._score import score_bbox, score_bboxes
 from ._valid import valid
 
@@ -129,6 +134,8 @@ __all__ = [
     "nxyxy_to_xyxy",
     "nxyxy_to_yolo",
     "resize",
+    "scale",
+    "scale_many",
     "score_bbox",
     "score_bboxes",
     "valid",
