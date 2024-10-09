@@ -32,13 +32,11 @@ def valid(
 
     """
     x1, y1, x2, y2 = bbox
-    if any(coord < 0 for coord in bbox):
-        return False
-    if not x1 < x2 and y1 < y2:
-        return False
-    if shape is not None:
-        return within(bbox, shape)
-    return True
+    negative_check = not any(coord < 0 for coord in bbox)
+    order_check = x1 < x2 and y1 < y2
+    if shape:
+        return negative_check and order_check and within(bbox, shape)
+    return negative_check and order_check
 
 
 def within(bbox: tuple[int, int, int, int], shape: tuple[int, int]) -> bool:

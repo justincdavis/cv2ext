@@ -62,7 +62,7 @@ ci = [
 test = [
     "pytest>=6.2.0",
     "hypothesis[numpy]>=6.98.0",
-    "pybboxes>=0.1.6",
+    "pybboxes>=0.1.0",
 ]
 docs = [
     "sphinx>=6.1.0",
