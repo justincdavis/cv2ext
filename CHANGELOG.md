@@ -1,3 +1,14 @@
+## 0.0.21 (10-09-2024)
+
+### Added
+
+- image.divide
+    Divides an image into regions via the number
+    of rows and columns given.
+- bboxes.scale and bboxes.scale_many
+    Scale bounding boxes from one image size
+    to another.
+
 ## 0.0.20 (09-24-2024)
 
 ### Fixed
