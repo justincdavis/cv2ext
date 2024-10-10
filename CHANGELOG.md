@@ -1,3 +1,10 @@
+## 0.0.22 (10-09-2024)
+
+### Fixed
+
+- image.divide
+    Docstring error, added test case coverage
+
 ## 0.0.21 (10-09-2024)
 
 ### Added

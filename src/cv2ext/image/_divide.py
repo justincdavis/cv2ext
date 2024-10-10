@@ -30,8 +30,8 @@ def divide(
     num_cols : int
         The number of columns to divide the image into
     padding : int, tuple[int, int], optional
-        The padding to add to each region. This value is in total
-        so half the padding is added to each side.
+        The padding to add to each region.
+        Adds this value to each side (edges do not get padding).
         Can be a single value integer or a tuple representing
         the padding for (x, y)
     overlap_ratio : float, optional
