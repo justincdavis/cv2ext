@@ -3,7 +3,6 @@
 # MIT License
 from __future__ import annotations
 
-from copy import deepcopy
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -93,7 +92,7 @@ def divide(
 
             subimage = image[y_start:y_end, x_start:x_end]
             if copy:
-                subimage = deepcopy(subimage)
+                subimage = subimage.copy()
             row_subimages.append(subimage)
         subimages.append(row_subimages)
 
