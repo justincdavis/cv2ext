@@ -27,6 +27,8 @@ create_tiled_image
     Tile an image across another image, or create a new image of the tile.
 letterbox
     Resize an image using the letterbox method.
+patch
+    Divide an image into equal size patches.
 
 """
 
@@ -35,7 +37,7 @@ from __future__ import annotations
 from . import color, draw
 from ._augment import letterbox
 from ._color import color_euclidean_dist, dominant_color, mean_color
-from ._divide import divide
+from ._divide import divide, patch
 from ._tiling import create_tiled_image, image_tiler
 
 __all__ = [
@@ -48,4 +50,5 @@ __all__ = [
     "image_tiler",
     "letterbox",
     "mean_color",
+    "patch",
 ]

@@ -1,3 +1,15 @@
+## 0.0.23 (10-28-2024)
+
+### Added
+
+- image.patch
+    Generate patches of a fixed size across and image.
+
+### Changed
+
+- image.divide
+    Now returns the subimages and offsets
+
 ## 0.0.22 (10-09-2024)
 
 ### Fixed

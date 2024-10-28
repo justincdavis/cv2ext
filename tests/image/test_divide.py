@@ -11,7 +11,7 @@ def test_divide_size_basic():
     rng = np.random.default_rng()
     image = rng.integers(0, 255, (100, 100, 3), dtype=np.uint8)
 
-    images = divide(image, 10, 10)
+    images, offsets = divide(image, 10, 10)
     assert len(images) == 10
     for row in images:
         assert len(row) == 10
@@ -23,7 +23,7 @@ def test_divide_size_padding():
     rng = np.random.default_rng()
     image = rng.integers(0, 255, (100, 100, 3), dtype=np.uint8)
 
-    images = divide(image, 10, 10, padding=2)
+    images, offsets = divide(image, 10, 10, padding=2)
     assert len(images) == 10
     for row in images:
         assert len(row) == 10
@@ -36,7 +36,7 @@ def test_divide_size_ratio():
     rng = np.random.default_rng()
     image = rng.integers(0, 255, (100, 100, 3), dtype=np.uint8)
 
-    images = divide(image, 10, 10, overlap_ratio=0.1)
+    images, offsets = divide(image, 10, 10, overlap_ratio=0.1)
     assert len(images) == 10
     for row in images:
         assert len(row) == 10
@@ -49,7 +49,7 @@ def test_divide_only_cols():
     rng = np.random.default_rng()
     image = rng.integers(0, 255, (100, 100, 3), dtype=np.uint8)
 
-    images = divide(image, 1, 10)
+    images, offsets = divide(image, 1, 10)
     assert len(images) == 1
     assert len(images[0]) == 10
     for img in images[0]:
@@ -60,7 +60,7 @@ def test_divide_only_rows():
     rng = np.random.default_rng()
     image = rng.integers(0, 255, (100, 100, 3), dtype=np.uint8)
 
-    images = divide(image, 10, 1)
+    images, offsets = divide(image, 10, 1)
     assert len(images) == 10
     for img in images:
         assert len(img) == 1
