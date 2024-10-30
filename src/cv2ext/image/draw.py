@@ -16,16 +16,31 @@ text
 from __future__ import annotations
 
 import logging
+from functools import partial
 from typing import TYPE_CHECKING
 
 import cv2
+import numpy as np
 
 from .color import Color
 
 if TYPE_CHECKING:
-    import numpy as np
+    from collections.abc import Callable
 
 _log = logging.getLogger(__name__)
+
+
+def _opacity(
+    image: np.ndarray,
+    call: Callable[[np.ndarray], np.ndarray],
+    opacity: float,
+) -> np.ndarray:
+    shapes = np.zeros_like(image, np.uint8)
+    shapes = call(shapes)
+    output = image.copy()
+    mask = shapes.astype(bool)
+    output[mask] = cv2.addWeighted(image, 1 - opacity, shapes, opacity, 0)[mask]
+    return output
 
 
 def rectangle(
@@ -35,6 +50,7 @@ def rectangle(
     color: Color | tuple[int, int, int] = Color.RED,
     thickness: int = 2,
     linetype: int = cv2.LINE_8,
+    opacity: float | None = None,
     *,
     copy: bool | None = None,
 ) -> np.ndarray:
@@ -68,6 +84,9 @@ def rectangle(
         The type of line to draw.
         Default is cv2.LINE_8.
         The options are cv2.FILLED, cv2.LINE_4, cv2.LINE_8, cv2.LINE_AA.
+    opacity : float, optional
+        The opacity to use for drawing. By default None or 100% opacity.
+        Opacity should be in the range [0.0, 1.0]
     copy : bool, optional
         Whether or not to draw on a copy of the image and return that.
         Default is False.
@@ -81,6 +100,7 @@ def rectangle(
     ------
     ValueError
         If p1 is a single point and p2 is not provided.
+        If a valid combination from p1/p2 cannot be achieved.
 
     """
     canvas = image
@@ -90,6 +110,7 @@ def rectangle(
     if isinstance(color, Color):
         color = color.value
 
+    call: Callable[[np.ndarray], np.ndarray]
     if len(p1) == 4:
         if p2 is not None:
             _log.warning(
@@ -97,14 +118,32 @@ def rectangle(
             )
         point1 = p1[:2]
         point2 = p1[2:]
-        cv2.rectangle(canvas, point1, point2, color, thickness, linetype)
+        call = partial(
+            cv2.rectangle,
+            pt1=point1,
+            pt2=point2,
+            color=color,
+            thickness=thickness,
+            lineType=linetype,
+        )
     elif len(p1) == 2:
         if p2 is None:
             err_msg = "If p1 is a single point, then p2 must be provided."
             raise ValueError(err_msg)
-        cv2.rectangle(canvas, p1, p2, color, thickness, linetype)
+        call = partial(
+            cv2.rectangle,
+            pt1=p1,
+            pt2=p2,
+            color=color,
+            thickness=thickness,
+            lineType=linetype,
+        )
+    else:
+        err_msg = "Could not get a valid combination of points from p1/p2."
+        raise ValueError(err_msg)
 
-    return canvas
+    # set type ignore despite type hint for call
+    return _opacity(canvas, call, opacity) if opacity else call(canvas)  # type: ignore[return-value]
 
 
 def circle(
@@ -114,6 +153,7 @@ def circle(
     color: Color | tuple[int, int, int] = Color.RED,
     thickness: int = 2,
     linetype: int = cv2.LINE_8,
+    opacity: float | None = None,
     *,
     copy: bool | None = None,
 ) -> np.ndarray:
@@ -143,6 +183,9 @@ def circle(
         The type of line to draw.
         Default is cv2.LINE_8.
         The options are cv2.FILLED, cv2.LINE_4, cv2.LINE_8, cv2.LINE_AA.
+    opacity : float, optional
+        The opacity to use for drawing. By default None or 100% opacity.
+        Opacity should be in the range [0.0, 1.0]
     copy : bool, optional
         Whether or not to draw on a copy of the image and return that.
         Default is False.
@@ -160,9 +203,16 @@ def circle(
     if isinstance(color, Color):
         color = color.value
 
-    cv2.circle(canvas, center, radius, color, thickness, linetype)
+    call: Callable[[np.ndarray], np.ndarray] = partial(
+        cv2.circle,
+        center=center,
+        radius=radius,
+        color=color,
+        thickness=thickness,
+        lineType=linetype,
+    )
 
-    return canvas
+    return _opacity(canvas, call, opacity) if opacity else call(canvas)
 
 
 def text(
@@ -174,6 +224,7 @@ def text(
     color: Color | tuple[int, int, int] = Color.RED,
     thickness: int = 2,
     linetype: int = cv2.LINE_8,
+    opacity: float | None = None,
     *,
     copy: bool | None = None,
     bottom_left_origin: bool | None = None,
@@ -217,6 +268,9 @@ def text(
         The type of line to draw.
         Default is cv2.LINE_8.
         The options are cv2.FILLED, cv2.LINE_4, cv2.LINE_8, cv2.LINE_AA.
+    opacity : float, optional
+        The opacity to use for drawing. By default None or 100% opacity.
+        Opacity should be in the range [0.0, 1.0]
     copy : bool, optional
         Whether or not to draw on a copy of the image and return that.
         Default is False.
@@ -239,16 +293,16 @@ def text(
     if isinstance(color, Color):
         color = color.value
 
-    cv2.putText(
-        canvas,
-        text,
-        p,
-        font,
-        font_scale,
-        color,
-        thickness,
-        linetype,
-        bottom_left_origin,
+    call: Callable[[np.ndarray], np.ndarray] = partial(
+        cv2.putText,
+        text=text,
+        org=p,
+        fontFace=font,
+        fontScale=font_scale,
+        color=color,
+        thickness=thickness,
+        lineType=linetype,
+        bottomLeftOrigin=bottom_left_origin,
     )
 
-    return canvas
+    return _opacity(canvas, call, opacity) if opacity else call(canvas)

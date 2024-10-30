@@ -24,7 +24,16 @@ def bounding(bboxes: Sequence[tuple[int, int, int, int]]) -> tuple[int, int, int
     tuple[int, int, int, int]
         The bounding box which encloses all the given bounding boxes.
 
+    Raises
+    ------
+    ValueError
+        If the length of bboxes is zero.
+
     """
+    if len(bboxes) == 0:
+        err_msg = "Cannot create bounding from 0 boxes."
+        raise ValueError(err_msg)
+
     min_x1, min_y1, max_x2, max_y2 = float("inf"), float("inf"), 0, 0
     for x1, y1, x2, y2 in bboxes:
         min_x1 = min(min_x1, x1)

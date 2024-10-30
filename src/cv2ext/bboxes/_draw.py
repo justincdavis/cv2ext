@@ -21,7 +21,8 @@ def draw_bboxes(
     classes: Sequence[str | int] | None = None,
     class_map: dict[int, str] | None = None,
     color: Color | tuple[int, int, int] = Color.RED,
-    thickness: int = 1,
+    thickness: int = 2,
+    opacity: float | None = None,
     *,
     copy: bool | None = None,
 ) -> np.ndarray:
@@ -53,6 +54,9 @@ def draw_bboxes(
     thickness : int, optional
         The thickness of the bounding box lines.
         Default is 2.
+    opacity : float, optional
+        The opacity to draw the bounding boxes with.
+        By default None or 100%. Can have a high performance impact.
     copy : bool, optional
         Whether or not to copy the image before drawing.
         Default is False.
@@ -69,7 +73,7 @@ def draw_bboxes(
 
     # only draw the boxes
     for idx, bbox in enumerate(bboxes):
-        rectangle(drawing, bbox, color=color, thickness=thickness)
+        rectangle(drawing, bbox, color=color, thickness=thickness, opacity=opacity)
         tag = ""
         if confidences is not None:
             confidence = confidences[idx]
