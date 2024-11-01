@@ -3,6 +3,9 @@
 ### Added
 
 - opacity argument to all functions in image.draw
+- image.rescale
+    Rescale an image from [0:255] to a different range.
+    Preserves scale within range.
 
 ### Changed
 
