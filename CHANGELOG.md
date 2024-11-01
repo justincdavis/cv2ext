@@ -1,3 +1,11 @@
+## 0.0.24 (10-31-2024)
+
+### Added
+
+- image.rescale
+    Rescale an image from [0:255] to a different range.
+    Preserves scale within range.
+
 ## 0.0.23 (10-28-2024)
 
 ### Added

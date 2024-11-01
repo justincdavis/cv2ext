@@ -29,6 +29,8 @@ letterbox
     Resize an image using the letterbox method.
 patch
     Divide an image into equal size patches.
+rescale
+    Rescale an image from [0:255] to another range.
 
 """
 
@@ -38,6 +40,7 @@ from . import color, draw
 from ._augment import letterbox
 from ._color import color_euclidean_dist, dominant_color, mean_color
 from ._divide import divide, patch
+from ._scale import rescale
 from ._tiling import create_tiled_image, image_tiler
 
 __all__ = [
@@ -51,4 +54,5 @@ __all__ = [
     "letterbox",
     "mean_color",
     "patch",
+    "rescale",
 ]
