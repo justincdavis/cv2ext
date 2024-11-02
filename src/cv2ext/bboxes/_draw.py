@@ -5,13 +5,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import cv2
+import numpy as np
+
 from cv2ext.image.color import Color
 from cv2ext.image.draw import rectangle, text
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
-
-    import numpy as np
 
 
 def draw_bboxes(
@@ -71,9 +72,9 @@ def draw_bboxes(
     if copy:
         drawing = image.copy()
 
-    # only draw the boxes
-    for idx, bbox in enumerate(bboxes):
-        rectangle(drawing, bbox, color=color, thickness=thickness, opacity=opacity)
+    # generate the tags
+    tags: list[str] = []
+    for idx in range(len(bboxes)):
         tag = ""
         if confidences is not None:
             confidence = confidences[idx]
@@ -83,6 +84,26 @@ def draw_bboxes(
             if isinstance(classid, int) and class_map is not None:
                 classid = class_map[classid]
             tag = f"{classid}: {tag}"
+        tags.append(tag)
+
+    shapes: np.ndarray | None = None
+    if opacity:
+        shapes = np.zeros_like(drawing, np.uint8)
+
+    # only draw the boxes
+    for bbox in bboxes:
+        if opacity and shapes is not None:
+            rectangle(shapes, bbox, color=color, thickness=thickness)
+        else:
+            rectangle(drawing, bbox, color=color, thickness=thickness)
+
+    # blend if opacity and shapes
+    if opacity and shapes is not None:
+        mask = shapes.astype(bool)
+        drawing[mask] = cv2.addWeighted(drawing, 1 - opacity, shapes, opacity, 0)[mask]
+
+    # draw the tags
+    for tag, bbox in zip(tags, bboxes):
         if tag:
             text(
                 drawing,

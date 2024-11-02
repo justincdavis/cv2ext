@@ -22,6 +22,8 @@ from typing import TYPE_CHECKING
 import cv2
 import numpy as np
 
+from cv2ext.bboxes._constrain import constrain
+
 from .color import Color
 
 if TYPE_CHECKING:
@@ -34,13 +36,38 @@ def _opacity(
     image: np.ndarray,
     call: Callable[[np.ndarray], np.ndarray],
     opacity: float,
+    bounds: tuple[int, int, int, int] | None = None,
 ) -> np.ndarray:
+    if not bounds:
+        # draw shapes
+        shapes = np.zeros_like(image, np.uint8)
+        shapes = call(shapes)
+
+        # generate mask and blend
+        mask = shapes.astype(bool)
+        image[mask] = cv2.addWeighted(image, 1 - opacity, shapes, opacity, 0)[mask]
+
+        return image
+    # get roi from bounds
+    x1, y1, x2, y2 = bounds
+    roi = image[y1:y2, x1:x2]
+
+    # draw shapes
     shapes = np.zeros_like(image, np.uint8)
     shapes = call(shapes)
-    output = image.copy()
+    shapes = shapes[y1:y2, x1:x2]
+
+    # generate mask and blend
     mask = shapes.astype(bool)
-    output[mask] = cv2.addWeighted(image, 1 - opacity, shapes, opacity, 0)[mask]
-    return output
+    image[y1:y2, x1:x2][mask] = cv2.addWeighted(
+        roi,
+        1 - opacity,
+        shapes,
+        opacity,
+        0,
+    )[mask]
+
+    return image
 
 
 def rectangle(
@@ -111,6 +138,7 @@ def rectangle(
         color = color.value
 
     call: Callable[[np.ndarray], np.ndarray]
+    bounds: tuple[int, int, int, int]
     if len(p1) == 4:
         if p2 is not None:
             _log.warning(
@@ -126,6 +154,7 @@ def rectangle(
             thickness=thickness,
             lineType=linetype,
         )
+        bounds = p1
     elif len(p1) == 2:
         if p2 is None:
             err_msg = "If p1 is a single point, then p2 must be provided."
@@ -138,12 +167,23 @@ def rectangle(
             thickness=thickness,
             lineType=linetype,
         )
+        bounds = (*p1, *p2)
     else:
         err_msg = "Could not get a valid combination of points from p1/p2."
         raise ValueError(err_msg)
 
-    # set type ignore despite type hint for call
-    return _opacity(canvas, call, opacity) if opacity else call(canvas)  # type: ignore[return-value]
+    if opacity is not None:
+        # add thickness to bounds and constrain
+        bounds = (
+            bounds[0] - thickness,
+            bounds[1] - thickness,
+            bounds[2] + thickness,
+            bounds[3] + thickness,
+        )
+        h, w = canvas.shape[:2]
+        bounds = constrain(bounds, (w, h))
+        return _opacity(canvas, call, opacity)
+    return call(canvas)  # type: ignore[return-value]
 
 
 def circle(
@@ -212,7 +252,19 @@ def circle(
         lineType=linetype,
     )
 
-    return _opacity(canvas, call, opacity) if opacity else call(canvas)
+    if opacity is not None:
+        # add thickness to bounds and constrain
+        x, y = center
+        bounds = (
+            x - thickness - radius,
+            y - thickness - radius,
+            x + thickness + radius,
+            y + thickness + radius,
+        )
+        h, w = canvas.shape[:2]
+        bounds = constrain(bounds, (w, h))
+        return _opacity(canvas, call, opacity)
+    return call(canvas)  # type: ignore[return-value]
 
 
 def text(
@@ -305,4 +357,4 @@ def text(
         bottomLeftOrigin=bottom_left_origin,
     )
 
-    return _opacity(canvas, call, opacity) if opacity else call(canvas)
+    return _opacity(canvas, call, opacity) if opacity is not None else call(canvas)
