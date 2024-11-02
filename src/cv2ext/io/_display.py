@@ -73,6 +73,7 @@ class Display:
         # allocate runtime variables
         self._image: np.ndarray = np.zeros((100, 100, 3), dtype=np.uint8)
         self._frameid = -1  # no frame yet
+        self._stopped = False
         self._running = True
         self._queue: Queue[np.ndarray] = Queue(maxsize=self._buffersize)
 
@@ -110,7 +111,10 @@ class Display:
     @property
     def stopped(self: Self) -> bool:
         """
-        Whether the display is stopped.
+        Whether the stop key has been pressed.
+
+        If it has been pressed, this property will be reset.
+        Should be used for control loops on user side.
 
         Returns
         -------
@@ -118,12 +122,15 @@ class Display:
             Whether the display is stopped.
 
         """
-        return not self._running
+        val = self._stopped
+        if val:
+            self._stopped = False
+        return val
 
     @property
     def is_alive(self: Self) -> bool:
         """
-        Whether the display is running.
+        Whether the display thread is running.
 
         Returns
         -------
@@ -176,7 +183,7 @@ class Display:
                 if self._show:
                     cv2.imshow(self._windowname, image)
                     if cv2.waitKey(1) & 0xFF == ord(self._stopkey):
-                        self._running = False
+                        self._stopped = True
                         continue
             if self._fps is not None:
                 t1 = time.perf_counter()

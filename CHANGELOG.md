@@ -1,3 +1,27 @@
+## 0.0.24 (11-02-2024)
+
+### Added
+
+- opacity argument to all functions in image.draw
+- image.rescale
+    Rescale an image from [0:255] to a different range.
+    Preserves scale within range.
+
+### Changed
+
+- Display.stopped now looks at whether the stop
+    key has been pressed. When stopped is called
+    the value will reset. Enables easier use in
+    use control flows. Display.is_alive still exists
+    and holds the same function as the old
+    stopped and is_alive (is_alive is unchanged, just
+    preferred now.)
+
+### Improved
+
+- bboxes.bounding now raises ValueError if
+    the sequence is empty.
+
 ## 0.0.23 (10-28-2024)
 
 ### Added

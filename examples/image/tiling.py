@@ -13,8 +13,9 @@ import cv2ext
 
 def main() -> None:
     """Image tiling example."""
-    base = cv2.imread(str(Path(__file__).parent / "data" / "blank.png"))
-    tile = cv2.imread(str(Path(__file__).parent / "data" / "person.png"))
+    data_path = Path(__file__).parent.parent.parent / "data"
+    base = cv2.imread(str(data_path / "blank.png"))
+    tile = cv2.imread(str(data_path / "person.png"))
 
     tiled_image = cv2ext.image.create_tiled_image(tile, base)
 
