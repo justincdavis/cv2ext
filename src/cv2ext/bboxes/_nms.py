@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import logging
 import operator
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 from cv2ext import _FLAGSOBJ
 
@@ -22,15 +22,21 @@ except ImportError:
             "Numba not installed, but JIT has been enabled. Not using JIT for NMS.",
         )
 
+if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
+
+Detections: TypeAlias = "list[tuple[tuple[int, int, int, int], float, int]]"
+
 
 def _nmsjit(
     nmsfunc: Callable[
-        [list[tuple[tuple[int, int, int, int], int, float]], float],
-        list[tuple[tuple[int, int, int, int], int, float]],
+        [Detections, float],
+        Detections,
     ],
 ) -> Callable[
-    [list[tuple[tuple[int, int, int, int], int, float]], float],
-    list[tuple[tuple[int, int, int, int], int, float]],
+    [Detections, float],
+    Detections,
 ]:
     if _FLAGSOBJ.USEJIT and jit is not None:
         _log.info("JIT Compiling: NMS")
@@ -40,17 +46,17 @@ def _nmsjit(
 
 @_nmsjit
 def _nms_kernel(
-    bboxes: list[tuple[tuple[int, int, int, int], int, float]],
+    bboxes: Detections,
     iou_threshold: float = 0.5,
-) -> list[tuple[tuple[int, int, int, int], int, float]]:
-    bboxes = sorted(bboxes, key=operator.itemgetter(2), reverse=False)
+) -> Detections:
+    bboxes = sorted(bboxes, key=operator.itemgetter(1), reverse=False)
     final_bboxes = []
     for idx1 in range(len(bboxes)):
         box1 = bboxes[idx1]
         discard = False
         for idx2 in range(idx1 + 1, len(bboxes)):
             box2 = bboxes[idx2]
-            if _iou_kernel(box1[0], box2[0]) > iou_threshold and box1[2] < box2[2]:
+            if _iou_kernel(box1[0], box2[0]) > iou_threshold and box1[1] < box2[1]:
                 discard = True
                 break
         if not discard:
@@ -59,25 +65,25 @@ def _nms_kernel(
 
 
 def nms(
-    bboxes: list[tuple[tuple[int, int, int, int], int, float]],
+    bboxes: list[tuple[tuple[int, int, int, int], float, int]],
     iou_threshold: float = 0.5,
-) -> list[tuple[tuple[int, int, int, int], int, float]]:
+) -> list[tuple[tuple[int, int, int, int], float, int]]:
     """
     Perform non-maximum suppression on a list of bounding boxes.
 
     Parameters
     ----------
-    bboxes : list[tuple[tuple[int, int, int, int], int, float]]
+    bboxes : list[tuple[tuple[int, int, int, int], float, int]]
         A list of bounding boxes, each represented as a tuple of the form
-        ((x1, y1, x2, y2), class, confidence
+        ((x1, y1, x2, y2), confidence, class
     iou_threshold : float
         The intersection over union threshold for non-maximum suppression.
 
     Returns
     -------
-    list[tuple[tuple[int, int, int, int], int, float]]
+    list[tuple[tuple[int, int, int, int], float, int]]
         A list of bounding boxes, each represented as a tuple of the form
-        ((x1, y1, x2, y2), class, confidence
+        ((x1, y1, x2, y2), confidence, class
 
     """
     return _nms_kernel(bboxes, iou_threshold)

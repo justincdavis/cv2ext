@@ -36,7 +36,7 @@ def rescale(image: np.ndarray, value_range: tuple[float, float]) -> np.ndarray:
         err_msg = "Low value of range cannot be higher than or equal to high value."
         raise ValueError(err_msg)
 
-    img_float = image.astype(float)
+    img_float: np.ndarray = image.astype(float)
 
     if low == 0.0:
         scaling_factor = high / 255.0

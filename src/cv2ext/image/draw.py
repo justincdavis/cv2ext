@@ -38,6 +38,11 @@ def _opacity(
     opacity: float,
     bounds: tuple[int, int, int, int] | None = None,
 ) -> np.ndarray:
+    # type hints
+    shapes: np.ndarray
+    mask: np.ndarray
+
+    # if no bounds provided default case, no optimization
     if not bounds:
         # draw shapes
         shapes = np.zeros_like(image, np.uint8)
@@ -48,6 +53,8 @@ def _opacity(
         image[mask] = cv2.addWeighted(image, 1 - opacity, shapes, opacity, 0)[mask]
 
         return image
+
+    # if bounds have been passes, can optimize copies and image ops
     # get roi from bounds
     x1, y1, x2, y2 = bounds
     roi = image[y1:y2, x1:x2]

@@ -1,3 +1,11 @@
+## 0.0.25 (11-07-2024)
+
+### Added
+
+- bboxes.get_boxes_in_region
+    Get the bounding boxes from a list of bounding boxes
+    which are contained inside the region
+
 ## 0.0.24 (11-02-2024)
 
 ### Added
