@@ -2,9 +2,14 @@
 
 ### Added
 
-- bboxes.get_boxes_in_region
+- bboxes.filter_bboxes_by_region
     Get the bounding boxes from a list of bounding boxes
     which are contained inside the region
+
+### Changed
+
+- bboxes.nms now has conf and classid switched
+    in the bounding box entries.
 
 ## 0.0.24 (11-02-2024)
 
