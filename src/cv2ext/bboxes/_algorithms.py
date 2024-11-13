@@ -46,6 +46,9 @@ def filter_bboxes_by_region(
         y2 = min(b_y2, r_y2)
         intersection_area = max(0, x2 - x1) * max(0, y2 - y1)
 
+        if area == 0:
+            continue
+
         # Calculate the percentage of the bbox area that is inside the region
         overlap_percentage = intersection_area / area
         if overlap_percentage >= overlap:

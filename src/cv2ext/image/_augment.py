@@ -97,3 +97,30 @@ def letterbox(
     )
 
     return image, ratio, (dw, dh)
+
+
+def resize_linear(
+    image: np.ndarray,
+    new_shape: tuple[int, int],
+) -> tuple[np.ndarray, tuple[float, float]]:
+    """
+    Resize an image using linear scaling.
+
+    Parameters
+    ----------
+    image : np.ndarray
+        The image to resize.
+    new_shape : tuple[int, int]
+        The shape to resize the image to.
+        In form (width, height)
+
+    Returns
+    -------
+    tuple[np.ndarray, tuple[float, float]]
+        The resized image and the scaling factors from resizing
+
+    """
+    tensor = cv2.resize(image, new_shape, interpolation=cv2.INTER_LINEAR)
+    h, w = image.shape[:2]
+    ratios = (new_shape[1] / w, new_shape[0] / h)
+    return tensor, ratios
