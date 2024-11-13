@@ -12,7 +12,7 @@ from ..helpers import wrapper, wrapper_jit
 
 @wrapper
 def test_one_box():
-    boxes = [((0, 0, 10, 10), 1, 0.5)]
+    boxes = [((0, 0, 10, 10), 0.5, 1)]
     sboxes = cv2ext.bboxes.nms(boxes, 0.5)
     assert boxes == sboxes
 
@@ -20,8 +20,8 @@ def test_one_box():
 @wrapper
 def test_overlapping_boxes_1():
     boxes = [
-        ((0, 0, 10, 10), 1, 0.9),
-        ((1, 1, 9, 9), 1, 0.8),
+        ((0, 0, 10, 10), 0.9, 1),
+        ((1, 1, 9, 9), 0.8, 1),
     ]
     sboxes = cv2ext.bboxes.nms(boxes, 0.5)
     assert len(sboxes) == 1
@@ -31,13 +31,17 @@ def test_overlapping_boxes_1():
 @wrapper
 def test_overlapping_boxes_2():
     boxes = [
-        ((0, 0, 10, 10), 1, 0.9),
-        ((1, 1, 9, 9), 1, 0.8),
-        ((2, 2, 8, 8), 1, 0.7),
+        ((0, 0, 10, 10), 0.9, 1),
+        ((1, 1, 9, 9), 0.8, 1),
+        ((2, 2, 8, 8), 0.7, 1),
     ]
     sboxes = cv2ext.bboxes.nms(boxes, 0.5)
-    assert len(sboxes) == 1
+    assert len(sboxes) == 2
     assert sboxes[0] == boxes[0]
+
+    mboxes = cv2ext.bboxes.nms(boxes, 0.25)
+    assert len(mboxes) == 1
+    assert mboxes[0] == boxes[0]
 
 
 @wrapper
@@ -50,8 +54,8 @@ def test_overlapping_boxes_2():
                 st.integers(min_value=1),
                 st.integers(min_value=1),
             ),
-            st.integers(min_value=0, max_value=100),
             st.floats(0.0, 1.0),
+            st.integers(min_value=0, max_value=100),
         ),
         min_size=1,
     ),
@@ -65,7 +69,7 @@ def test_size_constraints(bboxes):
 
 @wrapper_jit
 def test_one_box_jit():
-    boxes = [((0, 0, 10, 10), 1, 0.5)]
+    boxes = [((0, 0, 10, 10), 0.5, 1)]
     sboxes = cv2ext.bboxes.nms(boxes, 0.5)
     assert boxes == sboxes
 
@@ -73,8 +77,8 @@ def test_one_box_jit():
 @wrapper_jit
 def test_overlapping_boxes_1_jit():
     boxes = [
-        ((0, 0, 10, 10), 1, 0.9),
-        ((1, 1, 9, 9), 1, 0.8),
+        ((0, 0, 10, 10), 0.9, 1),
+        ((1, 1, 9, 9), 0.8, 1),
     ]
     sboxes = cv2ext.bboxes.nms(boxes, 0.5)
     assert len(sboxes) == 1
@@ -84,13 +88,17 @@ def test_overlapping_boxes_1_jit():
 @wrapper_jit
 def test_overlapping_boxes_2_jit():
     boxes = [
-        ((0, 0, 10, 10), 1, 0.9),
-        ((1, 1, 9, 9), 1, 0.8),
-        ((2, 2, 8, 8), 1, 0.7),
+        ((0, 0, 10, 10), 0.9, 1),
+        ((1, 1, 9, 9), 0.8, 1),
+        ((2, 2, 8, 8), 0.7, 1),
     ]
     sboxes = cv2ext.bboxes.nms(boxes, 0.5)
-    assert len(sboxes) == 1
+    assert len(sboxes) == 2
     assert sboxes[0] == boxes[0]
+
+    mboxes = cv2ext.bboxes.nms(boxes, 0.25)
+    assert len(mboxes) == 1
+    assert mboxes[0] == boxes[0]
 
 
 @wrapper_jit
@@ -103,8 +111,8 @@ def test_overlapping_boxes_2_jit():
                 st.integers(min_value=1),
                 st.integers(min_value=1),
             ),
-            st.integers(min_value=0, max_value=100),
             st.floats(0.0, 1.0),
+            st.integers(min_value=0, max_value=100),
         ),
         min_size=1,
     ),

@@ -14,6 +14,8 @@ draw_bboxes
     Draw bounding boxes on an image.
 euclidean
     Compute the euclidean distance between two bounding boxes.
+filter_bboxes_by_region
+    Filter a sequence of bounding boxes by a region to contain them in.
 iou
     Calculate the intersection over union of two bounding boxes.
 ious
@@ -83,6 +85,7 @@ yolo_to_nxywh
 
 from __future__ import annotations
 
+from ._algorithms import filter_bboxes_by_region
 from ._bounding import bounding
 from ._constrain import constrain
 from ._convert import (
@@ -122,6 +125,7 @@ __all__ = [
     "constrain",
     "draw_bboxes",
     "euclidean",
+    "filter_bboxes_by_region",
     "iou",
     "ious",
     "manhattan",

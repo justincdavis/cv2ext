@@ -16,5 +16,6 @@ Examples
     examples/io/video_writer_fourcc.rst
     examples/metrics/ncc.rst
     examples/image/tiling.rst
+    examples/image/draw.rst
     examples/tracking/tracker.rst
     examples/tracking/multi_tracker.rst

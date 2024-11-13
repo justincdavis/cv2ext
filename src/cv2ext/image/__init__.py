@@ -27,6 +27,8 @@ create_tiled_image
     Tile an image across another image, or create a new image of the tile.
 letterbox
     Resize an image using the letterbox method.
+resize_linear
+    Resize an image using linear scaling.
 patch
     Divide an image into equal size patches.
 rescale
@@ -37,7 +39,7 @@ rescale
 from __future__ import annotations
 
 from . import color, draw
-from ._augment import letterbox
+from ._augment import letterbox, resize_linear
 from ._color import color_euclidean_dist, dominant_color, mean_color
 from ._divide import divide, patch
 from ._scale import rescale
@@ -55,4 +57,5 @@ __all__ = [
     "mean_color",
     "patch",
     "rescale",
+    "resize_linear",
 ]

@@ -17,22 +17,50 @@ def main() -> None:
     image = cv2.imread(str(data_path / "horse.jpg"))
 
     print("Drawing rectangle")
-    canvas = draw.rectangle(image, (50, 50, 300, 200), color=Color.AQUA, thickness=5, copy=True)
+    canvas = draw.rectangle(
+        image,
+        (50, 50, 300, 200),
+        color=Color.AQUA,
+        thickness=5,
+        copy=True,
+    )
     cv2.imshow("Draw", canvas)
     cv2.waitKey(0)
 
     print("Drawing rectangle with opacity")
-    canvas = draw.rectangle(image, (50, 50, 300, 200), color=Color.AQUA, thickness=5, opacity=0.5, copy=True)
+    canvas = draw.rectangle(
+        image,
+        (50, 50, 300, 200),
+        color=Color.AQUA,
+        thickness=5,
+        opacity=0.5,
+        copy=True,
+    )
     cv2.imshow("Draw", canvas)
     cv2.waitKey(0)
 
     print("Drawing circle")
-    canvas = draw.circle(image, (100, 100), 50, color=Color.AQUA, thickness=5, copy=True)
+    canvas = draw.circle(
+        image,
+        (100, 100),
+        50,
+        color=Color.AQUA,
+        thickness=5,
+        copy=True,
+    )
     cv2.imshow("Draw", canvas)
     cv2.waitKey(0)
 
     print("Drawing circle with opacity")
-    canvas = draw.circle(image, (100, 100), 50, color=Color.AQUA, thickness=5, opacity=0.5, copy=True)
+    canvas = draw.circle(
+        image,
+        (100, 100),
+        50,
+        color=Color.AQUA,
+        thickness=5,
+        opacity=0.5,
+        copy=True,
+    )
     cv2.imshow("Draw", canvas)
     cv2.waitKey(0)
 

@@ -99,7 +99,7 @@ def draw_bboxes(
 
     # blend if opacity and shapes
     if opacity and shapes is not None:
-        mask = shapes.astype(bool)
+        mask: np.ndarray = shapes.astype(bool)
         drawing[mask] = cv2.addWeighted(drawing, 1 - opacity, shapes, opacity, 0)[mask]
 
     # draw the tags
