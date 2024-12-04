@@ -6,12 +6,12 @@ Resize videos using opencv.
 
 Functions
 ---------
-resize_video
+:func:`resize_video_cli`
     Resize a video file.
 """
 
 from __future__ import annotations
 
-from ._resize_video import resize_video
+from ._resize_video import resize_video_cli
 
-__all__ = ["resize_video"]
+__all__ = ["resize_video_cli"]

@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from ._annotate import annotate
+from ._annotate import annotate_cli
 
 if __name__ == "__main__":
-    annotate()
+    annotate_cli()

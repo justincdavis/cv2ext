@@ -6,12 +6,12 @@ Submodule for performing simple types of detection.
 
 Classes
 -------
-BlobDetector
+:class:`BlobDetector`
     A simple blob detector class.
 
 Functions
 ---------
-detect_blobs
+:func:`detect_blobs`
     Detect blobs in an image.
 
 """

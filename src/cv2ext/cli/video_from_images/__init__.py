@@ -6,7 +6,7 @@ Create a video from a directory of images.
 
 Functions
 ---------
-video_from_images_cli
+:func:`video_from_images_cli`
     Create a video from a directory of images.
 
 """

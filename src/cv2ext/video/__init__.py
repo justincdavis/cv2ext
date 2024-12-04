@@ -6,9 +6,9 @@ Utilities for working with videos.
 
 Functions
 ---------
-create_timeline
+:func:`create_timeline`
     Create a timeline image of a video.
-video_from_images
+:func:`video_from_images`
     Create a video from a directory of images.
 
 """

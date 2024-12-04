@@ -6,7 +6,7 @@ Submodule containing color utility functions for images.
 
 Classes
 -------
-Color
+:class:`Color`
     A class for color representation.
 
 """

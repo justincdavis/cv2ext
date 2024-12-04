@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from ._convert import convertannotations
+from ._convert import convert_annotations_cli
 
 if __name__ == "__main__":
-    convertannotations()
+    convert_annotations_cli()

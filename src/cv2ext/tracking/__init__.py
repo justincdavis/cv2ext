@@ -6,22 +6,22 @@ Submodule containing tools for tracking objects in videos.
 
 Submodules
 ----------
-cv_trackers
+:mod:`cv_trackers`
     Contains the wrapped OpenCV trackers.
 
 Classes
 -------
-AbstractTracker
+:class:`AbstractTracker`
     An abstract class for tracking objects in videos.
-AbstractMultiTracker
+:class:`AbstractMultiTracker`
     An abstract class for tracking multiple objects in videos.
-CVTrackerInterface
+:class:`CVTrackerInterface`
     A class for making OpenCV trackers compatible with the AbstractTracker interface.
-MultiTracker
+:class:`MultiTracker`
     A class for tracking multiple objects in videos.
-TrackerType
+:class:`TrackerType`
     An enumeration of the available tracker types.
-Tracker
+:class:`Tracker`
     A generic class, which allows many tracking algorithm backends.
 
 """

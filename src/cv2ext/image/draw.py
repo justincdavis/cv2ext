@@ -6,9 +6,11 @@ Submodule containing wrapper/utility functions for drawing on images.
 
 Functions
 ---------
-rectangle
+:func:`circle`
+    Wrapper around cv2.circle with autofilled args.
+:func:`rectangle`
     Wrapper around cv2.rectangle with autofilled args and flexible types.
-text
+:func:`text`
     Wrapper around cv2.putText with autofilled args.
 
 """

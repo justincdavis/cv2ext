@@ -142,7 +142,7 @@ def _write_yolo(
         f.write(f"names: ['{classname}']\n")
 
 
-def convertannotations() -> None:
+def convert_annotations_cli() -> None:
     parser = argparse.ArgumentParser(
         description="Convert annotations to other formats.",
     )

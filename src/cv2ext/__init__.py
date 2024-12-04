@@ -7,41 +7,41 @@ Package containing helpful tools for working with opencv.
 
 Submodules
 ----------
-bboxes
+:mod:`bboxes`
     Submodule containing tools for working with bounding boxes in images.
-cli
+:mod:`cli`
     Submodule containing command line interface tools.
-detection
+:mod:`detection`
     Submodule containing tools for performing simple types of detection.
-image
+:mod:`image`
     Submodule containing tools for working with images.
-io
+:mod:`io`
     Submodule containing tools for working with video and image io.
-template
+:mod:`template`
     Submodule containing tools for working with templates in images.
-tracking
+:mod:`tracking`
     Submodule containing tools for tracking objects in videos.
-metrics
+:mod:`metrics`
     Submodule containing tools for working with image metrics.
-video
+:mod:`video`
     Submodule containing tools for working with videos.
 
 Classes
 -------
-Display
+:class:`Display`
     A class for displaying images using a separate thread.
-Fourcc
+:class:`Fourcc`
     A class for handling the codecs for video writing.
-IterableVideo
+:class:`IterableVideo`
     A class for iterating over frames in a video, optionally with threading.
-VideoWriter
+:class:`VideoWriter`
     A class for writing videos.
 
 Functions
 ---------
-set_log_level
+:func:`set_log_level`
     Set the log level for the cv2ext package.
-enable_jit
+:func:`enable_jit`
     Enable just-in-time compilation using Numba for some functions.
 """
 
