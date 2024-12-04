@@ -6,9 +6,9 @@ Subpackage containing tools for working with templates in images.
 
 Functions
 ---------
-match_single
+:func:`match_single`
     Find the best match of a template in an image.
-match_multiple
+:func:`match_multiple`
     Find all matches of a template in an image above a certain threshold.
 
 """

@@ -6,7 +6,7 @@ Resize an image from the command line.
 
 Functions
 ---------
-resize_image_cli
+:func:`resize_image_cli`
     Resize an image from the command line
 
 """

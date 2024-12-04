@@ -6,19 +6,19 @@ Contains the wrapped OpenCV trackers.
 
 Classes
 -------
-BoostingTracker
+:class:`BoostingTracker`
     A class for tracking objects in videos using the Boosting tracker.
-CSRTTracker
+:class:`CSRTTracker`
     A class for tracking objects in videos using the CSRT tracker.
-KCFTracker
+:class:`KCFTracker`
     A class for tracking objects in videos using the KCF tracker.
-MedianFlowTracker
+:class:`MedianFlowTracker`
     A class for tracking objects in videos using the MedianFlow tracker.
-MILTracker
+:class:`MILTracker`
     A class for tracking objects in videos using the MIL tracker.
-MOSSETracker
+:class:`MOSSETracker`
     A class for tracking objects in videos using the MOSSE tracker.
-TLDTracker
+:class:`TLDTracker`
     A class for tracking objects in videos using the TLD tracker.
 
 """

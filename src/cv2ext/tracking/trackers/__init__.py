@@ -6,7 +6,7 @@ Contains trackers implemented outside of OpenCV.
 
 Classes
 -------
-KLTTracker
+:class:`KLTTracker`
     A class for tracking objects in videos using the KLT algorithm.
 
 """

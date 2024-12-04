@@ -64,7 +64,7 @@ def _write_json(
         json.dump(dictdata, f, indent=4)
 
 
-def annotate() -> None:
+def annotate_cli() -> None:
     parser = argparse.ArgumentParser(description="Annotate a video with a template.")
     parser.add_argument(
         "--video",

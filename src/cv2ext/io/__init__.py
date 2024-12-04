@@ -6,13 +6,13 @@ Subpackage containing abstractions for making IO easier through cv2.
 
 Classes
 -------
-Display
+:class:`Display`
     A display object for showing images.
-Fourcc
+:class:`Fourcc`
     A fourcc codec enum. Used for video writing.
-IterableVideo
+:class:`IterableVideo`
     An iterable video object.
-VideoWriter
+:class:`VideoWriter`
     A video writer object.
 
 """

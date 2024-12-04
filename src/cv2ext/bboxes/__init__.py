@@ -6,79 +6,79 @@ Subpackage containing tools for working with simple bounding boxes.
 
 Functions
 ---------
-bounding
+:func:`bounding`
     Get a bounding box which encloses all the given bounding boxes.
-constrain
+:func:`constrain`
     Constrain a bounding box to be within the bounds of an image.
-draw_bboxes
+:func:`draw_bboxes`
     Draw bounding boxes on an image.
-euclidean
+:func:`euclidean`
     Compute the euclidean distance between two bounding boxes.
-filter_bboxes_by_region
+:func:`filter_bboxes_by_region`
     Filter a sequence of bounding boxes by a region to contain them in.
-iou
+:func:`iou`
     Calculate the intersection over union of two bounding boxes.
-ious
+:func:`ious`
     Calculate the intersection over union of a set of bounding boxes.
-manhattan
+:func:`manhattan`
     Compute the manhattan distance between two bounding boxes.
-mean_ap
+:func:`mean_ap`
     Calculate the mean average precision of a set of bounding boxes.
-nms
+:func:`nms`
     Perform non-maximum suppression on a set of bounding boxes.
-resize
+:func:`resize`
     Resize a bounding box based on one image size to another.
-scale
+:func:`scale`
     Scale a bounding box from one image size to another.
-scale_many
+:func:`scale_many`
     Scale a set of bounding boxes from one image size to another.
-score_bbox
+:func:`score_bbox`
     Score a bounding box relative to a target bbox.
-score_bboxes
+:func:`score_bboxes`
     Score a set of bounding boxes relative to a target bbox.
-valid
+:func:`valid`
     Check if a bounding box is valid.
-within
+:func:`within`
     Check if a bounding box is within the bounds of an image.
-xyxy_to_nxyxy
+:func:`xyxy_to_nxyxy`
     Convert bounding boxes from `(x1, y1, x2, y2)` to normalized `(x1, y1, x2, y2)`.
-xyxy_to_xywh
+:func:`xyxy_to_xywh`
     Convert bounding boxes from `(x1, y1, x2, y2)` to `(x, y, w, h)`.
-xyxy_to_nxywh
+:func:`xyxy_to_nxywh`
     Convert bounding boxes from ;'x1, y1, x2, y2' to normalized '(x, y, w, h)'.
-xyxy_to_yolo
+:func:`xyxy_to_yolo`
     Convert bounding boxes from `(x1, y1, x2, y2)` to `(cx, cy, w, h)` in YOLO format.
-xywh_to_xyxy
+:func:`xywh_to_xyxy`
     Convert bounding boxes from `(x, y, w, h)` to `(x1, y1, x2, y2)`.
-xywh_to_nxyxy
+:func:`xywh_to_nxyxy`
     Convert bounding boxes from `(x, y, w, h)` to normalized `(x1, y1, x2, y2)`.
-xywh_to_nxywh
+:func:`xywh_to_nxywh`
     Convert bounding boxes from `(x, y, w, h)` to normalized `(x, y, w, h)`.
-xywh_to_yolo
+:func:`xywh_to_yolo`
     Convert bounding boxes from `(x, y, w, h)` to `(cx, cy, w, h)` in YOLO format.
-nxyxy_to_xyxy
+:func:`nxyxy_to_xyxy`
     Convert bounding boxes from normalized `(x1, y1, x2, y2)` to `(x1, y1, x2, y2)`.
-nxywh_to_xywh
+:func:`nxywh_to_xywh`
     Convert bounding boxes from normalized `(x, y, w, h)` to `(x, y, w, h)`.
-nxywh_to_nxywh
+:func:`nxywh_to_nxywh`
     Convert bounding boxes from normalized `(x, y, w, h)` to normalized `(x, y, w, h)`.
-nxyxy_to_yolo
+:func:`nxyxy_to_yolo`
     Convert bounding boxes from normalized `(x1, y1, x2, y2)` to `(cx, cy, w, h)` in YOLO format.
-nxywh_to_xyxy
+:func:`nxywh_to_xyxy`
     Convert bounding boxes from normalized `(x, y, w, h)` to `(x1, y1, x2, y2)`.
-nxywh_to_nxyxy
+:func:`nxywh_to_nxyxy`
     Convert bounding boxes from normalized `(x, y, w, h)` to normalized `(x1, y1, x2, y2)`.
-nxywh_to_xywh
+:func:`nxywh_to_xywh`
     Convert bounding boxes from normalized `(x, y, w, h)` to `(x, y, w, h)`.
-nxywh_to_yolo
+:func:`nxywh_to_yolo`
     Convert bounding boxes from normalized `(x, y, w, h)` to `(cx, cy, w, h)` in YOLO format.
-yolo_to_xyxy
+:func:`yolo_to_xyxy`
     Convert bounding boxes from YOLO format `(cx, cy, w, h)` to `(x1, y1, x2, y2)`.
-yolo_to_nxyxy
+:func:`yolo_to_nxyxy`
     Convert bounding boxes from YOLO format `(cx, cy, w, h)` to normalized `(x1, y1, x2, y2)`.
-yolo_to_xywh
+:func:`yolo_to_xywh`
     Convert bounding boxes from YOLO format `(cx, cy, w, h)` to `(x, y, w, h)`.
-yolo_to_nxywh
+:func:`yolo_to_nxywh`
     Convert bounding boxes from YOLO format `(cx, cy, w, h)` to normalized `(x, y, w, h)`.
 
 """

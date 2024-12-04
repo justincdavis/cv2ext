@@ -6,7 +6,7 @@ Convert the color of a video from the command line.
 
 Functions
 ---------
-convert_video_color_cli
+:func:`convert_video_color_cli`
     Convert the color of a video from the command line
 
 """

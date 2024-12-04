@@ -6,12 +6,12 @@ Convert annotations to other formats.
 
 Functions
 ---------
-convertannotations
+:func:`convert_annotations_cli`
     Convert bounding box annotations to other formats
 """
 
 from __future__ import annotations
 
-from ._convert import convertannotations
+from ._convert import convert_annotations_cli
 
-__all__ = ["convertannotations"]
+__all__ = ["convert_annotations_cli"]

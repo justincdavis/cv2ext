@@ -6,7 +6,7 @@ Create a timeline image of a video using OpenCV.
 
 Functions
 ---------
-timeline
+:func:`timeline_cli`
     Create a timeline image of a video.
 """
 

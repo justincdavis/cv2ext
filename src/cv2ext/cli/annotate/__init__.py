@@ -6,12 +6,12 @@ Annotate videos with bounding boxes.
 
 Functions
 ---------
-annotate
+:func:`annotate_cli`
     Annotate a video with bounding boxes
 """
 
 from __future__ import annotations
 
-from ._annotate import annotate
+from ._annotate import annotate_cli
 
-__all__ = ["annotate"]
+__all__ = ["annotate_cli"]

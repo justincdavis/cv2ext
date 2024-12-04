@@ -6,32 +6,32 @@ Submodule containing utilities for working with images.
 
 Submodules
 ----------
-color
+:mod:`color`
     Color utilities for images.
-draw
+:mod:`draw`
     Drawing utilities for images.
 
 Functions
 ---------
-color_euclidean_dist
+:func:`color_euclidean_dist`
     Compute the euclidean distance between two colors.
-divide
+:func:`divide`
     Divide an image into multiple sub-images.
-dominant_color
+:func:`dominant_color`
     Compute the dominant color in an image.
-mean_color
+:func:`mean_color`
     Compute the mean color in an image.
-image_tiler
+:func:`image_tiler`
     Tile an image across another image.
-create_tiled_image
+:func:`create_tiled_image`
     Tile an image across another image, or create a new image of the tile.
-letterbox
+:func:`letterbox`
     Resize an image using the letterbox method.
-resize_linear
+:func:`resize_linear`
     Resize an image using linear scaling.
-patch
+:func:`patch`
     Divide an image into equal size patches.
-rescale
+:func:`rescale`
     Rescale an image from [0:255] to another range.
 
 """

@@ -1,10 +1,9 @@
-.. cv2ext documentation master file, created by
-   sphinx-quickstart on Sat Nov 18 23:52:20 2023.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Welcome to cv2ext's documentation!
 ===================================
+
+**cv2ext** is an easy-to-use library covering high-level computer vision functions.
+
+Check out the :doc:`examples` section for further general examples on using the library.
 
 Contents
 ========
@@ -16,7 +15,7 @@ Contents
    Usage <usage>
    Installation <installation>
    Examples <examples>
-   API <api>
+   API <source/modules>
    Changelog <changelog>
 
 Indices and Tables

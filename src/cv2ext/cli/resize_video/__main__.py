@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from ._resize_video import resize_video
+from ._resize_video import resize_video_cli
 
 if __name__ == "__main__":
-    resize_video()
+    resize_video_cli()

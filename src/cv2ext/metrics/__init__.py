@@ -6,7 +6,7 @@ Submodule containing tools for working with image metrics.
 
 Functions
 ---------
-ncc
+:func:`ncc`
     Compute the normalized cross-correlation between two images.
 """
 

@@ -11,7 +11,7 @@ from tqdm import tqdm
 from cv2ext import Fourcc, IterableVideo, VideoWriter
 
 
-def resize_video() -> None:
+def resize_video_cli() -> None:
     parser = argparse.ArgumentParser(description="Resize a video file.")
     parser.add_argument(
         "--video",
