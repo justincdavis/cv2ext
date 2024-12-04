@@ -1,3 +1,6 @@
 sphinx
-sphinx-rtd-theme
+sphinx_design
+furo
 myst_parser
+numpy
+cv2ext
