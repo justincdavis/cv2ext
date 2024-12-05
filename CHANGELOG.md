@@ -1,3 +1,10 @@
+## 0.1.0 (12-05-2024)
+
+### Fixed
+
+- image.letterbox
+    new_shape was incorrectly using (height, width) format
+
 ## 0.0.25 (11-07-2024)
 
 ### Added

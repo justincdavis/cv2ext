@@ -30,7 +30,8 @@ def letterbox(
     image : np.ndarray
         The image to resize
     new_shape : tuple[int, int]
-        The new shape to resize the image to
+        The new shape to resize the image to.
+        In form (width, height)
     stride : int
         The stride to use for padding
     color : tuple[int, int, int]
@@ -61,22 +62,22 @@ def letterbox(
     shape = image.shape[:2]
 
     # Scale ratio (new / old)
-    r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
+    r = min(new_shape[1] / shape[0], new_shape[0] / shape[1])
     if not scaleup:
         r = min(r, 1.0)
 
     ratio = (r, r)
     new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
-    dw: float = new_shape[1] - new_unpad[0]
-    dh: float = new_shape[0] - new_unpad[1]
+    dw: float = new_shape[0] - new_unpad[0]
+    dh: float = new_shape[1] - new_unpad[1]
     if auto:
         dw, dh = np.mod(dw, stride), np.mod(dh, stride)
     elif scale_fill:
         dw, dh = 0.0, 0.0
-        new_unpad = (new_shape[1], new_shape[0])
+        new_unpad = (new_shape[0], new_shape[1])
         ratio = (
-            new_shape[1] / shape[1],
-            new_shape[0] / shape[0],
+            new_shape[0] / shape[1],
+            new_shape[1] / shape[0],
         )
 
     dw /= 2
