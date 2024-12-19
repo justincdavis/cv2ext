@@ -187,11 +187,25 @@ class _ThreadedMultiTracker(AbstractMultiTracker):
             The updated success values and bounding boxes of the targets.
             Each bbox is represented as (x1, y1, x2, y2).
 
+        Raises
+        ------
+        RuntimeError
+            If a thread has been closed before an update call.
+        RuntimeError
+            If a queue times out fetching an update.
+
         """
-        for in_queue in self._in_queues:
+        for in_queue, thread in zip(self._in_queues, self._threads):
+            if not thread.is_alive():
+                err_msg = "Thread closed, cannot update tracking."
+                raise RuntimeError(err_msg)
             in_queue.put(image)
 
-        return [out_queue.get() for out_queue in self._out_queues]
+        try:
+            return [out_queue.get(timeout=1.0) for out_queue in self._out_queues]
+        except Empty as e:
+            err_msg = "Could not get results from a thread, most likely crashed."
+            raise RuntimeError(err_msg) from e
 
 
 class _SerialMultiTracker(AbstractMultiTracker):
