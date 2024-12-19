@@ -95,7 +95,7 @@ def _meanap_kernel(
                 )
                 recall[c].append(true_postives[c] / npos)
 
-    ap = {
+    ap: dict[int, float] = {
         c: np.sum(
             [
                 (recall[c][i] - recall[c][i - 1]) * precision[c][i]

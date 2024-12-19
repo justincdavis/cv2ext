@@ -21,13 +21,26 @@ class MedianFlowTracker(CVTrackerInterface):
     """A class for tracking objects in videos using the MedianFlow tracker."""
 
     def __init__(self: Self) -> None:
-        """Create a new MedianFlowTracker object."""
+        """
+        Create a new MedianFlowTracker object.
+
+        Raises
+        ------
+        ImportError
+            If MedianFlow tracker creation function/class cannot be found.
+
+        """
         _log.debug("Creating a legacy tracker (MedianFlow).")
         try:
-            tracker = cv2.legacy_TrackerMedianFlow.create()  # type: ignore[attr-defined]
-        except AttributeError:
-            tracker = cv2.TrackerMedianFlow_create()  # type: ignore[attr-defined]
-        super().__init__(tracker)
+            try:
+                tracker = cv2.legacy_TrackerMedianFlow.create()  # type: ignore[attr-defined]
+            except AttributeError:
+                tracker = cv2.TrackerMedianFlow_create()  # type: ignore[attr-defined]
+            super().__init__(tracker)
+        except AttributeError as e:
+            err_msg = "Cannot get MedianFlow tracker from cv2. You may need to install opencv-contrib-python"
+            _log.error(err_msg)
+            raise ImportError from e
 
     def init(self: Self, image: np.ndarray, bbox: tuple[int, int, int, int]) -> None:
         """

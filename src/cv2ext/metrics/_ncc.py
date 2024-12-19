@@ -47,8 +47,8 @@ def _core_ncc(
     if img1std == 0.0 or img2std == 0.0:
         return 0.0
 
-    image1_numerator = image1 - np.mean(image1) / img1std
-    image2_numerator = image2 - np.mean(image2) / img2std
+    image1_numerator: np.ndarray = image1 - np.mean(image1) / img1std
+    image2_numerator: np.ndarray = image2 - np.mean(image2) / img2std
 
     val = float(
         np.sum(image1_numerator * image2_numerator)

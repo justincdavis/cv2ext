@@ -21,13 +21,26 @@ class TLDTracker(CVTrackerInterface):
     """A class for tracking objects in videos using the TLD tracker."""
 
     def __init__(self: Self) -> None:
-        """Create a new TLDTracker object."""
+        """
+        Create a new TLDTracker object.
+
+        Raises
+        ------
+        ImportError
+            If TLD tracker creation function/class cannot be found.
+
+        """
         _log.debug("Creating a legacy tracker (TLD).")
         try:
-            tracker = cv2.legacy_TrackerTLD.create()  # type: ignore[attr-defined]
-        except AttributeError:
-            tracker = cv2.TrackerTLD_create()  # type: ignore[attr-defined]
-        super().__init__(tracker)
+            try:
+                tracker = cv2.legacy_TrackerTLD.create()  # type: ignore[attr-defined]
+            except AttributeError:
+                tracker = cv2.TrackerTLD_create()  # type: ignore[attr-defined]
+            super().__init__(tracker)
+        except AttributeError as e:
+            err_msg = "Cannot get TLD tracker from cv2. You may need to install opencv-contrib-python"
+            _log.error(err_msg)
+            raise ImportError from e
 
     def init(self: Self, image: np.ndarray, bbox: tuple[int, int, int, int]) -> None:
         """

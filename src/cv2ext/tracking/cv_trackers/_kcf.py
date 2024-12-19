@@ -3,6 +3,7 @@
 # MIT License
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 import cv2
@@ -13,13 +14,28 @@ if TYPE_CHECKING:
     import numpy as np
     from typing_extensions import Self
 
+_log = logging.getLogger(__name__)
+
 
 class KCFTracker(CVTrackerInterface):
     """A class for tracking objects in videos using the KCF tracker."""
 
     def __init__(self: Self) -> None:
-        """Create a new KCFTracker object."""
-        super().__init__(cv2.TrackerKCF.create())  # type: ignore[attr-defined]
+        """
+        Create a new KCFTracker object.
+
+        Raises
+        ------
+        ImportError
+            If KCF tracker creation function/class cannot be found.
+
+        """
+        try:
+            super().__init__(cv2.TrackerKCF.create())  # type: ignore[attr-defined]
+        except AttributeError as e:
+            err_msg = "Cannot get KCF tracker from cv2. You may need to install opencv-contrib-python"
+            _log.error(err_msg)
+            raise ImportError from e
 
     def init(self: Self, image: np.ndarray, bbox: tuple[int, int, int, int]) -> None:
         """

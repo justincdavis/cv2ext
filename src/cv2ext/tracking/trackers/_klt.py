@@ -66,7 +66,11 @@ class KLTTracker(AbstractTracker):
 
     def _detect_keypoints(self: Self, image: np.ndarray) -> np.ndarray:
         keypoints = self._orb.detect(image, None)
-        return np.asarray([kp.pt for kp in keypoints], dtype=np.float32)
+        np_keypoints: np.ndarray = np.asarray(
+            [kp.pt for kp in keypoints],
+            dtype=np.float32,
+        )
+        return np_keypoints
 
     def init(self: Self, image: np.ndarray, bbox: tuple[int, int, int, int]) -> None:
         """

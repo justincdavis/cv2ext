@@ -38,6 +38,7 @@ def rescale(image: np.ndarray, value_range: tuple[float, float]) -> np.ndarray:
 
     img_float: np.ndarray = image.astype(float)
 
+    scaled_img: np.ndarray
     if low == 0.0:
         scaling_factor = high / 255.0
         scaled_img = img_float * scaling_factor

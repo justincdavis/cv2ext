@@ -21,13 +21,26 @@ class MOSSETracker(CVTrackerInterface):
     """A class for tracking objects in videos using the MOSSE tracker."""
 
     def __init__(self: Self) -> None:
-        """Create a new MOSSETracker object."""
+        """
+        Create a new MOSSETracker object.
+
+        Raises
+        ------
+        ImportError
+            If MOSSE tracker creation function/class cannot be found.
+
+        """
         _log.debug("Creating a legacy tracker (MOSSE).")
         try:
-            tracker = cv2.legacy_TrackerMOSSE.create()  # type: ignore[attr-defined]
-        except AttributeError:
-            tracker = cv2.TrackerMOSSE_create()  # type: ignore[attr-defined]
-        super().__init__(tracker)
+            try:
+                tracker = cv2.legacy_TrackerMOSSE.create()  # type: ignore[attr-defined]
+            except AttributeError:
+                tracker = cv2.TrackerMOSSE_create()  # type: ignore[attr-defined]
+            super().__init__(tracker)
+        except AttributeError as e:
+            err_msg = "Cannot get MOSSE tracker from cv2. You may need to install opencv-contrib-python"
+            _log.error(err_msg)
+            raise ImportError from e
 
     def init(self: Self, image: np.ndarray, bbox: tuple[int, int, int, int]) -> None:
         """
