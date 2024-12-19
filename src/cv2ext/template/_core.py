@@ -3,43 +3,14 @@
 # MIT License
 from __future__ import annotations
 
-import logging
-from typing import Callable
-
 import cv2
 import numpy as np
 
-from cv2ext import _FLAGSOBJ
-
-_log = logging.getLogger(__name__)
-
-try:
-    from numba import jit  # type: ignore[import-untyped]
-except ImportError:
-    jit = None
-    if _FLAGSOBJ.USEJIT:
-        _log.warning(
-            "Numba not installed, but JIT has been enabled. Not using JIT for template matching.",
-        )
+from cv2ext._jit import jit
 
 
-def _multiplejit(
-    matchfunc: Callable[
-        [np.ndarray, tuple[int, int] | tuple[int, int, int], int, float],
-        list[tuple[int, int, int, int]],
-    ],
-) -> Callable[
-    [np.ndarray, tuple[int, int] | tuple[int, int, int], int, float],
-    list[tuple[int, int, int, int]],
-]:
-    if _FLAGSOBJ.USEJIT and jit is not None:
-        _log.info("JIT Compiling: template matching")
-        matchfunc = jit(matchfunc, nopython=True)
-    return matchfunc
-
-
-@_multiplejit
-def _core_match_multiple(
+@jit
+def _match_multiple_kernel(
     result: np.ndarray,
     template_shape: tuple[int, int] | tuple[int, int, int],
     method: int,
@@ -115,4 +86,4 @@ def match_multiple(
 
     """
     result = cv2.matchTemplate(image, template, method)
-    return _core_match_multiple(result, template.shape, method, threshold)  # type: ignore[arg-type]
+    return _match_multiple_kernel(result, template.shape, method, threshold)  # type: ignore[arg-type]

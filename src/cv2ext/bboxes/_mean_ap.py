@@ -3,54 +3,16 @@
 # MIT License
 from __future__ import annotations
 
-import logging
 import operator
-from typing import Callable
 
 import numpy as np
 
-from cv2ext import _FLAGSOBJ
+from cv2ext._jit import jit
 
 from ._iou import _iou_kernel
 
-_log = logging.getLogger(__name__)
 
-try:
-    from numba import jit  # type: ignore[import-untyped]
-except ImportError:
-    jit = None
-    if _FLAGSOBJ.USEJIT:
-        _log.warning(
-            "Numba not installed, but JIT has been enabled. Not using JIT for meanAP.",
-        )
-
-
-def _meanapjit(
-    meanapfunc: Callable[
-        [
-            list[list[tuple[tuple[int, int, int, int], int, float]]],
-            list[list[tuple[tuple[int, int, int, int], int]]],
-            int,
-            float,
-        ],
-        float,
-    ],
-) -> Callable[
-    [
-        list[list[tuple[tuple[int, int, int, int], int, float]]],
-        list[list[tuple[tuple[int, int, int, int], int]]],
-        int,
-        float,
-    ],
-    float,
-]:
-    if _FLAGSOBJ.USEJIT and jit is not None:
-        _log.info("JIT Compiling: meanAP")
-        meanapfunc = jit(meanapfunc, nopython=True)
-    return meanapfunc
-
-
-@_meanapjit
+@jit
 def _meanap_kernel(
     bboxes: list[list[tuple[tuple[int, int, int, int], int, float]]],
     gt_bboxes: list[list[tuple[tuple[int, int, int, int], int]]],

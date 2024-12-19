@@ -3,32 +3,10 @@
 # MIT License
 from __future__ import annotations
 
-import logging
-from typing import Callable
-
-from cv2ext import _FLAGSOBJ
-
-try:
-    from numba import jit  # type: ignore[import-untyped]
-except ImportError:
-    jit = None
-
-_log = logging.getLogger(__name__)
+from cv2ext._jit import jit
 
 
-def _constrain_kernel_jit(
-    constraink_func: Callable[
-        [tuple[int, int, int, int], tuple[int, int]],
-        tuple[int, int, int, int],
-    ],
-) -> Callable[[tuple[int, int, int, int], tuple[int, int]], tuple[int, int, int, int]]:
-    if _FLAGSOBJ.USEJIT and jit is not None:
-        _log.info("JIT Compiling: iou")
-        constraink_func = jit(constraink_func, nopython=True)
-    return constraink_func
-
-
-@_constrain_kernel_jit
+@jit
 def _constrain_kernel(
     bbox: tuple[int, int, int, int],
     image_size: tuple[int, int],

@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 import cv2
 import numpy as np
 
-from cv2ext import _DELOBJ
+from cv2ext import _WINDOW_MANAGER
 
 if TYPE_CHECKING:
     from types import TracebackType
@@ -78,7 +78,7 @@ class Display:
         self._queue: Queue[np.ndarray] = Queue(maxsize=self._buffersize)
 
         # thread allocation
-        _DELOBJ.logwindow(self._windowname)
+        _WINDOW_MANAGER.logwindow(self._windowname)
         self._thread = Thread(target=self._display, daemon=True)
         self._thread.start()
 
