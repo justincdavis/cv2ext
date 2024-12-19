@@ -5,7 +5,6 @@
 from __future__ import annotations
 
 import logging
-from functools import wraps
 from typing import TYPE_CHECKING
 
 from typing_extensions import ParamSpec, TypeVar
@@ -34,6 +33,7 @@ except ImportError:
         parallel: bool,
     ) -> Callable[_P, _R]:
         return func
+
 
 _JIT_FUNCS: list[Callable] = []
 

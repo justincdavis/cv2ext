@@ -39,10 +39,7 @@ def _iou_kernel_list(
     bboxes1: list[tuple[int, int, int, int]],
     bboxes2: list[tuple[int, int, int, int]],
 ) -> list[float]:
-    ious: list[float] = []
-    for idx in range(len(bboxes1)):
-        ious.append(_iou_kernel(bboxes1[idx], bboxes2[idx]))
-    return ious
+    return list(starmap(_iou_kernel, zip(bboxes1, bboxes2)))
 
 
 def iou(
