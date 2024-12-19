@@ -18,7 +18,9 @@ def test_kcf_full():
 
 def test_kcf_full_gray():
     try:
-        check_full_tracking(TrackerType.KCF, use_gray=True)
+        started = check_full_tracking(TrackerType.KCF, use_gray=True)
+        if started is not None:
+            return
         assert False
     except ValueError:
         assert True

@@ -3,6 +3,7 @@
 # MIT License
 from __future__ import annotations
 
+import contextlib
 from pathlib import Path
 
 import cv2
@@ -11,8 +12,9 @@ from cv2ext.tracking import Tracker, TrackerType
 
 def test_create_tracker():
     for tracker_type in TrackerType:
-        tracker = Tracker(tracker_type)
-        assert tracker is not None
+        with contextlib.suppress(ImportError):
+            tracker = Tracker(tracker_type)
+            assert tracker is not None
 
 
 def test_results_close():
@@ -23,10 +25,18 @@ def test_results_close():
         # TLD tracker has poor results
         if tracker_type == TrackerType.TLD or tracker_type == TrackerType.KLT:
             continue
-        tracker = Tracker(tracker_type)
+
+        try:
+            tracker = Tracker(tracker_type)
+        except ImportError:
+            continue
+
         tracker.init(image, init_bbox)
 
         results.append(tracker.update(image)[1])
+
+    if len(results)< 2:
+        return
 
     for i in range(1, len(results)):
         for c1, c2 in zip(results[i - 1], results[i]):

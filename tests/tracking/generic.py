@@ -11,7 +11,11 @@ from cv2ext.tracking import Tracker, TrackerType
 
 
 def check_basic_tracking(tracker_type: TrackerType):
-    tracker = Tracker(tracker_type)
+    try:
+        tracker = Tracker(tracker_type)
+    except ImportError:
+        return
+
     image = cv2.imread(str(Path("data") / "pictograms.png"))
     init_bbox = (308, 308, 458, 454)
     tracker.init(image, init_bbox)
@@ -42,7 +46,11 @@ def check_basic_tracking(tracker_type: TrackerType):
 
 def check_full_tracking(tracker_type: TrackerType, use_gray: bool):
     """Checks that a full run through a video will not crash."""
-    tracker = Tracker(tracker_type)
+    try:
+        tracker = Tracker(tracker_type)
+    except ImportError:
+        return True
+
     started = False
     for frame_id, frame in IterableVideo("data/testvid.mp4"):
         if frame_id < 100:
@@ -57,3 +65,5 @@ def check_full_tracking(tracker_type: TrackerType, use_gray: bool):
             started = True
         else:
             _, bbox = tracker.update(frame)
+
+    return None

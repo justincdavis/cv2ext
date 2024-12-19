@@ -16,14 +16,14 @@ if TYPE_CHECKING:
 class Tracker(AbstractTracker):
     """Handles tracking an object in a video."""
 
-    def __init__(self: Self, tracker: TrackerType = TrackerType.KCF) -> None:
+    def __init__(self: Self, tracker: TrackerType = TrackerType.MIL) -> None:
         """
         Create a new Tracker object.
 
         Parameters
         ----------
         tracker : TrackerType, optional
-            The type of tracker to use for tracking objects, by default TrackerType.KCF.
+            The type of tracker to use for tracking objects, by default TrackerType.MIL.
 
         """
         self._tracker = tracker.value()

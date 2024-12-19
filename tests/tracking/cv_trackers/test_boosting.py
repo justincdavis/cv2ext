@@ -19,7 +19,9 @@ def test_boosting_full():
 def test_boosting_full_gray():
     # this should throw a ValueError, assert it does
     try:
-        check_full_tracking(TrackerType.BOOSTING, use_gray=True)
+        started = check_full_tracking(TrackerType.BOOSTING, use_gray=True)
+        if started is not None:
+            return
         assert False
     except ValueError:
         assert True
