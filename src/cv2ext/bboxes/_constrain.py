@@ -3,10 +3,10 @@
 # MIT License
 from __future__ import annotations
 
-from cv2ext._jit import jit
+from cv2ext._jit import register_jit
 
 
-@jit
+@register_jit
 def _constrain_kernel(
     bbox: tuple[int, int, int, int],
     image_size: tuple[int, int],

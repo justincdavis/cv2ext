@@ -7,12 +7,12 @@ import operator
 
 import numpy as np
 
-from cv2ext._jit import jit
+from cv2ext._jit import register_jit
 
 from ._iou import _iou_kernel
 
 
-@jit
+@register_jit
 def _meanap_kernel(
     bboxes: list[list[tuple[tuple[int, int, int, int], int, float]]],
     gt_bboxes: list[list[tuple[tuple[int, int, int, int], int]]],
