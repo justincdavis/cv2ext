@@ -20,6 +20,10 @@ jobs:
           pip install types-setuptools
           pip install types-requests
 
+      - name: Generate Stubs
+        run:
+          stubgen -o typings -p numba
+
       - name: Run MyPy check
         run: 
           python3 -m mypy src/cv2ext --config-file=pyproject.toml
