@@ -38,6 +38,7 @@ def naive(video: str, show: bool) -> float:
         cv2.waitKey(1)
     return t1 - t0
 
+
 def threadread_naivedisplay(video: str, show: bool) -> float:
     video = IterableVideo(video, buffersize=128, use_thread=True)
 
@@ -58,6 +59,7 @@ def threadread_naivedisplay(video: str, show: bool) -> float:
         cv2.waitKey(1)
     return t1 - t0
 
+
 def naiveread_threaddisplay(video: str, show: bool) -> float:
     cap = cv2.VideoCapture(video)
     display = Display("example", show=show)
@@ -75,6 +77,7 @@ def naiveread_threaddisplay(video: str, show: bool) -> float:
     cap.release()
     return t1 - t0
 
+
 def threaded(video: str, show: bool) -> float:
     video = IterableVideo(video, buffersize=128, use_thread=True)
     if show:
@@ -88,14 +91,23 @@ def threaded(video: str, show: bool) -> float:
 
     return t1 - t0
 
+
 def main():
     parser = argparse.ArgumentParser(description="Display a video.")
     parser.add_argument("--video", required=True, help="The video to process.")
     parser.add_argument("--show", action="store_true", help="Show the video.")
-    parser.add_argument("--iterations", type=int, default=10, help="The number of iterations to run.")
-    parser.add_argument("--threaded", action="store_true", help="Use the threaded backend.")
-    parser.add_argument("--mix1", action="store_true", help="Use threaded reading and naive display.")
-    parser.add_argument("--mix2", action="store_true", help="Use naive reading and threaded display.")
+    parser.add_argument(
+        "--iterations", type=int, default=10, help="The number of iterations to run."
+    )
+    parser.add_argument(
+        "--threaded", action="store_true", help="Use the threaded backend."
+    )
+    parser.add_argument(
+        "--mix1", action="store_true", help="Use threaded reading and naive display."
+    )
+    parser.add_argument(
+        "--mix2", action="store_true", help="Use naive reading and threaded display."
+    )
     args = parser.parse_args()
 
     if not os.path.exists(args.video):
@@ -123,6 +135,7 @@ def main():
     print(f"Time: {avgtime:.3f}s")
 
     return avgtime
+
 
 if __name__ == "__main__":
     elapsed = main()

@@ -4,37 +4,15 @@
 from __future__ import annotations
 
 import contextlib
-import logging
-from typing import Callable
 
 import cv2
 import numpy as np
 
-from cv2ext import _FLAGSOBJ
-
-_log = logging.getLogger(__name__)
-
-try:
-    from numba import jit  # type: ignore[import-untyped]
-except ImportError:
-    jit = None
-    if _FLAGSOBJ.USEJIT:
-        _log.warning(
-            "Numba not installed, but JIT has been enabled. Not using JIT for NCC.",
-        )
+from cv2ext._jit import register_jit
 
 
-def _nccjit(
-    nccfunc: Callable[[np.ndarray, np.ndarray], float],
-) -> Callable[[np.ndarray, np.ndarray], float]:
-    if _FLAGSOBJ.USEJIT and jit is not None:
-        _log.info("JIT Compiling: NCC")
-        nccfunc = jit(nccfunc, nopython=True, parallel=_FLAGSOBJ.PARALLEL)
-    return nccfunc
-
-
-@_nccjit
-def _core_ncc(
+@register_jit
+def _ncc_kernel(
     image1: np.ndarray,
     image2: np.ndarray,
 ) -> float:
@@ -114,4 +92,4 @@ def ncc(
         image1 = cv2.resize(image1, size, interpolation=cv2.INTER_LINEAR)
         image2 = cv2.resize(image2, size, interpolation=cv2.INTER_LINEAR)
 
-    return _core_ncc(image1, image2)
+    return _ncc_kernel(image1, image2)

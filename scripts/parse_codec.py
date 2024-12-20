@@ -10,20 +10,8 @@ from io import TextIOWrapper
 
 def write_copyright(f: TextIOWrapper):
     f.write("# Copyright (c) 2024 Justin Davis (davisjustin302@gmail.com)\n")
-    f.write("# This program is free software: you can redistribute it and/or modify\n")
-    f.write("# it under the terms of the GNU General Public License as published by\n")
-    f.write("# the Free Software Foundation, either version 3 of the License, or\n")
-    f.write("# (at your option) any later version.\n")
     f.write("#\n")
-    f.write("# This program is distributed in the hope that it will be useful,\n")
-    f.write("# but WITHOUT ANY WARRANTY; without even the implied warranty of\n")
-    f.write("# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n")
-    f.write("# GNU General Public License for more details.\n")
-    f.write("#\n")
-    f.write("# You should have received a copy of the GNU General Public License\n")
-    f.write(
-        "# along with this program. If not, see <https://www.gnu.org/licenses/>.\n\n"
-    )
+    f.write("# MIT License\n\n")
 
 def get_codecs() -> list[str]:
     filepath = str(Path(args.file).resolve())
@@ -79,7 +67,7 @@ def get_codecs() -> list[str]:
                 pass
             else:
                 raise ValueError(f"Unexpected codec: {codec}")
-            
+
     # add lowercase versions
     codecs.extend([codec.lower() for codec in codecs])
 
@@ -92,7 +80,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     codecs = get_codecs()
-    
+
     with open(args.output, "w") as f:
         write_copyright(f)
         # add big comment saying this is an auto-generated file
@@ -108,4 +96,4 @@ if __name__ == "__main__":
         f.write("import cv2\n\n\n")
         f.write("class Fourcc(Enum):\n")
         for codec in codecs:
-            f.write(f'    {codec}: int = cv2.VideoWriter_fourcc(*"{codec}")  # type: ignore[attr-defined]\n')
+            f.write(f'    {codec} = cv2.VideoWriter_fourcc(*"{codec}")  # type: ignore[attr-defined]\n')

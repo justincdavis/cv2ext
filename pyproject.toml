@@ -152,6 +152,11 @@ per-file-ignores = {}
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.mypy]
+# add typings directory for stubs
+mypy_path = ["typings"]
+exclude = "typings/.*"
+
+# remainder of mypy config
 python_version = "3.8"
 warn_unused_configs = true
 warn_redundant_casts = true
@@ -170,8 +175,7 @@ plugins = "numpy.typing.mypy_plugin"
 
 [[tool.mypy.overrides]]
 module = [
-    'cv2',
-    'numba',
+    "numba.*",
 ]
 ignore_errors = true
 

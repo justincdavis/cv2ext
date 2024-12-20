@@ -164,61 +164,18 @@ class _DEL:
         self._windows.append(windowname)
 
 
-_DELOBJ = _DEL(_log)
-
-
-from dataclasses import dataclass
-
-
-@dataclass
-class _FLAGS:
-    """
-    Class for storing flags for cv2ext.
-
-    Attributes
-    ----------
-    USEJIT : bool
-        Whether or not to use jit.
-    PARALLEL : bool
-        Whether or not to use parallel compilation in the jit.
-
-    """
-
-    USEJIT: bool = False
-    PARALLEL: bool = False
-
-
-_FLAGSOBJ = _FLAGS()
-
-
-def enable_jit(*, on: bool | None = None, parallel: bool | None = None) -> None:
-    """
-    Enable just-in-time compilation using Numba for some functions.
-
-    Parameters
-    ----------
-    on : bool | None
-        If True, enable jit. If False, disable jit. If None, enable jit.
-    parallel : bool | None
-        If True, enable parallel jit. If False, disable parallel jit. If None, disable parallel jit.
-
-
-    """
-    if on is None:
-        on = True
-    if parallel is None:
-        parallel = False
-    _FLAGSOBJ.USEJIT = on
-    _FLAGSOBJ.PARALLEL = parallel
-    _log.info(f"JIT is {'enabled' if on else 'disabled'}; parallel: {parallel}.")
+_WINDOW_MANAGER = _DEL(_log)
 
 
 from . import bboxes, detection, image, io, metrics, template, tracking, video
 from .io import Display, Fourcc, IterableVideo, VideoWriter
+from ._flags import FLAGS
+from ._jit import JIT, enable_jit, disable_jit
 
 __all__ = [
-    "_DELOBJ",
-    "_FLAGSOBJ",
+    "FLAGS",
+    "JIT",
+    "_WINDOW_MANAGER",
     "Display",
     "Fourcc",
     "IterableVideo",
@@ -226,6 +183,7 @@ __all__ = [
     "bboxes",
     "cli",
     "detection",
+    "disable_jit",
     "enable_jit",
     "image",
     "io",

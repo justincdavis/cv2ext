@@ -14,13 +14,22 @@ import matplotlib.pyplot as plt
 def main():
     parser = argparse.ArgumentParser(description="Display a video.")
     parser.add_argument("--video", required=True, help="The video to process.")
-    parser.add_argument("--iterations", type=int, default=10, help="The number of iterations to run.")
+    parser.add_argument(
+        "--iterations", type=int, default=10, help="The number of iterations to run."
+    )
     args = parser.parse_args()
 
     if not Path(args.video).exists():
         raise FileNotFoundError(f"Video {args.video} does not exist.")
 
-    naivecmd = ["python3", str(Path("benchmarks") / "visual" / "run.py"), "--video", args.video, "--iterations", str(args.iterations)]
+    naivecmd = [
+        "python3",
+        str(Path("benchmarks") / "visual" / "run.py"),
+        "--video",
+        args.video,
+        "--iterations",
+        str(args.iterations),
+    ]
     naiveshowcmd = naivecmd.copy() + ["--show"]
     threadedcmd = naivecmd.copy() + ["--threaded"]
     threadshowcmd = threadedcmd.copy() + ["--show"]
@@ -40,9 +49,7 @@ def main():
         mix2ret.returncode / 100,
         threadedret.returncode / 100,
     ]
-    retcodes = [
-        retcodes[0] / r for r in retcodes
-    ]
+    retcodes = [retcodes[0] / r for r in retcodes]
     baseplot = sns.barplot(
         x=["Naive", "Thread-reads", "Thread-displays", "Fully-threaded"],
         y=retcodes,
@@ -63,11 +70,9 @@ def main():
         naiveshowret.returncode / 100,
         mix1showret.returncode / 100,
         mix2showret.returncode / 100,
-        threadedshowret.returncode / 100
+        threadedshowret.returncode / 100,
     ]
-    showretcodes = [
-        showretcodes[0] / r for r in showretcodes
-    ]
+    showretcodes = [showretcodes[0] / r for r in showretcodes]
     showplot = sns.barplot(
         x=["Naive", "Thread-reads", "Thread-displays", "Fully-threaded"],
         y=showretcodes,
@@ -78,6 +83,7 @@ def main():
     showfig.tight_layout()
     showfig.savefig(Path("benchmarks") / "visual" / "showplot.png")
     plt.close(showfig)
+
 
 if __name__ == "__main__":
     main()

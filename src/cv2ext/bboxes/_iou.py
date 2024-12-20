@@ -3,49 +3,12 @@
 # MIT License
 from __future__ import annotations
 
-import logging
 from itertools import starmap
-from typing import Callable
 
-from cv2ext import _FLAGSOBJ
-
-_log = logging.getLogger(__name__)
-
-try:
-    from numba import jit  # type: ignore[import-untyped]
-except ImportError:
-    jit = None
-    if _FLAGSOBJ.USEJIT:
-        _log.warning(
-            "Numba not installed, but JIT has been enabled. Not using JIT for IOU.",
-        )
+from cv2ext._jit import register_jit
 
 
-def _iou_kernel_jit(
-    iouk_func: Callable[[tuple[int, int, int, int], tuple[int, int, int, int]], float],
-) -> Callable[[tuple[int, int, int, int], tuple[int, int, int, int]], float]:
-    if _FLAGSOBJ.USEJIT and jit is not None:
-        _log.info("JIT Compiling: iou")
-        iouk_func = jit(iouk_func, nopython=True)
-    return iouk_func
-
-
-def _iou_list_kernel_jit(
-    iouk_func: Callable[
-        [list[tuple[int, int, int, int]], list[tuple[int, int, int, int]]],
-        list[float],
-    ],
-) -> Callable[
-    [list[tuple[int, int, int, int]], list[tuple[int, int, int, int]]],
-    list[float],
-]:
-    if _FLAGSOBJ.USEJIT and jit is not None:
-        _log.info("JIT Compiling: iou_list")
-        iouk_func = jit(iouk_func, nopython=True)
-    return iouk_func
-
-
-@_iou_kernel_jit
+@register_jit
 def _iou_kernel(
     bbox1: tuple[int, int, int, int],
     bbox2: tuple[int, int, int, int],
@@ -71,7 +34,7 @@ def _iou_kernel(
     return inter / union if union != 0.0 else 0.0
 
 
-@_iou_list_kernel_jit
+@register_jit
 def _iou_kernel_list(
     bboxes1: list[tuple[int, int, int, int]],
     bboxes2: list[tuple[int, int, int, int]],

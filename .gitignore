@@ -1,3 +1,6 @@
+# typings
+typings/numba/*
+
 # video files from testing
 *.mp4
 *.mov
