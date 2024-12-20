@@ -23,6 +23,8 @@ class _FLAGS:
     JIT: bool = False
     PARALLEL: bool = False
     FASTMATH: bool = True
+    NOGIL: bool = False
+    CACHE: bool = False
 
 
 FLAGS = _FLAGS()
