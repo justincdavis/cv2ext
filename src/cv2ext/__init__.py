@@ -9,6 +9,8 @@ Submodules
 ----------
 :mod:`bboxes`
     Submodule containing tools for working with bounding boxes in images.
+:mod:`camera`
+    Submodule containing tools for working with cameras.
 :mod:`cli`
     Submodule containing command line interface tools.
 :mod:`detection`
