@@ -200,24 +200,17 @@ def _unpack_grid_bboxes(
     return unpacked_dets
 
 
-class AnnealingFramePacker(AbstractFramePacker):
-    """
-    Pack regions of a frame together based on detection activity.
-
-    Detections are represented as a list of bounding boxes with
-    scores and class id labels optional.
-    """
+class AbstractGridFramePacker(AbstractFramePacker):
+    """Pack regions of a frame together based on a grid."""
 
     def __init__(
         self: Self,
         image_shape: tuple[int, int],
         gridsize: int = 128,
-        alpha: float = 0.01,
-        min_prob: float = 0.1,
         detection_buffer: int = 30,
     ) -> None:
         """
-        Create a new AnnealingFramePacker.
+        Create a new GridFramePacker.
 
         Parameters
         ----------
@@ -225,21 +218,17 @@ class AnnealingFramePacker(AbstractFramePacker):
             The shape of the image in form (height, width).
         gridsize : int, optional
             The size of each cell in the overlaid grid.
-        alpha : float, optional
-            The learning rate for the annealing process.
-        min_prob : float, optional
-            The minimum probability for a region to be considered active.
+            Default is 128.
         detection_buffer : int, optional
             The number of frames to consider for detection activity.
             Used instead of current frame count once frame count exceeds buffer size.
             Allows more recent detections to have more influence.
+            Default is 30.
 
         """
         super().__init__()
         self._height, self._width = image_shape
         self._gridsize = gridsize
-        self._alpha = alpha
-        self._min_prob = min_prob
         self._detection_buffer = detection_buffer
 
         # assign type hints to variables used in initialize_cells
@@ -308,14 +297,22 @@ class AnnealingFramePacker(AbstractFramePacker):
                 self._cells[index, 4:] = (i, j)
                 index += 1
 
+    @abstractmethod
     def _should_explore(self: Self, detections: int) -> bool:
-        time_factor = math.exp(-self._alpha * self._counter)
-        detection_factor = min(
-            1.0,
-            detections / (min(self._counter, self._detection_buffer - 1) + 1),
-        )
-        explore_probability = max(self._min_prob, time_factor + detection_factor)
-        return random.random() < explore_probability
+        """
+        Whether to explore a grid cell based on detection activity.
+
+        Parameters
+        ----------
+        detections : int
+            The number of detections in the cell.
+
+        Returns
+        -------
+        bool
+            Whether to explore the cell.
+
+        """
 
     def pack(
         self,
@@ -505,3 +502,104 @@ class AnnealingFramePacker(AbstractFramePacker):
 
         # decrement all counters by 1
         self._num_dets = np.maximum(0, self._num_dets - 1)
+
+
+class AnnealingFramePacker(AbstractGridFramePacker):
+    """
+    Pack regions of a frame together based on detection activity.
+
+    Detections are represented as a list of bounding boxes with
+    scores and class id labels optional.
+    """
+
+    def __init__(
+        self: Self,
+        image_shape: tuple[int, int],
+        gridsize: int = 128,
+        alpha: float = 0.01,
+        min_prob: float = 0.1,
+        detection_buffer: int = 30,
+    ) -> None:
+        """
+        Create a new AnnealingFramePacker.
+
+        Parameters
+        ----------
+        image_shape : tuple[int, int]
+            The shape of the image in form (height, width).
+        gridsize : int, optional
+            The size of each cell in the overlaid grid.
+            Default is 128.
+        alpha : float, optional
+            The learning rate for the annealing process.
+            Default is 0.01.
+        min_prob : float, optional
+            The minimum probability for a region to be considered active.
+            Default is 0.1.
+        detection_buffer : int, optional
+            The number of frames to consider for detection activity.
+            Used instead of current frame count once frame count exceeds buffer size.
+            Allows more recent detections to have more influence.
+            Default is 30.
+
+        """
+        super().__init__(image_shape, gridsize, detection_buffer)
+
+        # specific annealing parameters
+        self._alpha = alpha
+        self._min_prob = min_prob
+
+    def _should_explore(self: Self, detections: int) -> bool:
+        time_factor = math.exp(-self._alpha * self._counter)
+        detection_factor = min(
+            1.0,
+            detections / (min(self._counter, self._detection_buffer - 1) + 1),
+        )
+        explore_probability = max(self._min_prob, time_factor + detection_factor)
+        return random.random() < explore_probability
+
+
+class RandomFramePacker(AbstractGridFramePacker):
+    """
+    Pack regions of a frame together based on detection activity.
+
+    Detections are represented as a list of bounding boxes with
+    scores and class id labels optional.
+    """
+
+    def __init__(
+        self: Self,
+        image_shape: tuple[int, int],
+        gridsize: int = 128,
+        threshold: float = 0.1,
+        detection_buffer: int = 30,
+    ) -> None:
+        """
+        Create a new RandomFramePacker.
+
+        Parameters
+        ----------
+        image_shape : tuple[int, int]
+            The shape of the image in form (height, width).
+        gridsize : int, optional
+            The size of each cell in the overlaid grid.
+            Default is 128.
+        threshold : float, optional
+            The threshold for which to randomly explore a grid cell.
+            If the random value is less than the threshold, the cell is explored.
+            Threshold of 0.1 means 10% of the time a cell is explored.
+            Default is 0.1.
+        detection_buffer : int, optional
+            The number of frames to consider for detection activity.
+            Used instead of current frame count once frame count exceeds buffer size.
+            Allows more recent detections to have more influence.
+            Default is 30.
+
+        """
+        super().__init__(image_shape, gridsize, detection_buffer)
+
+        # specific parameters
+        self._threshold = threshold
+
+    def _should_explore(self: Self, detections: int) -> bool:
+        return random.random() < self._threshold
