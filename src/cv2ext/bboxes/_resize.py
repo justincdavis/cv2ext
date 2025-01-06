@@ -41,3 +41,33 @@ def resize(
     nx2 = int(x2 * width_ratio)
     ny2 = int(y2 * height_ratio)
     return nx1, ny1, nx2, ny2
+
+
+def resize_many(
+    bboxes: list[tuple[int, int, int, int]],
+    s1: tuple[int, int],
+    s2: tuple[int, int],
+) -> list[tuple[int, int, int, int]]:
+    """
+    Resizes a list of bounding boxes based on one image size to another.
+
+    Parameters
+    ----------
+    bboxes : list[tuple[int, int, int, int]]
+        The bounding boxes to resize.
+        Bounding boxes are in form xyxy.
+    s1 : tuple[int, int]
+        The size of the first image.
+        In form (width, height).
+    s2 : tuple[int, int]
+        The size of the second image.
+        In form (width, height).
+
+    Returns
+    -------
+    list[tuple[int, int, int, int]]
+        The resized bounding boxes.
+        Bounding boxes are in form xyxy.
+
+    """
+    return [resize(bbox, s1, s2) for bbox in bboxes]

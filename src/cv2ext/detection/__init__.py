@@ -6,6 +6,10 @@ Submodule for performing simple types of detection.
 
 Classes
 -------
+:class:`AbstractFramePacker`
+    Abstract class for frame packers.
+:class:`AnnealingFramePacker`
+    A frame packer that uses simulated annealing.
 :class:`BlobDetector`
     A simple blob detector class.
 
@@ -19,5 +23,11 @@ Functions
 from __future__ import annotations
 
 from ._blob import BlobDetector, detect_blobs
+from ._packer import AbstractFramePacker, AnnealingFramePacker
 
-__all__ = ["BlobDetector", "detect_blobs"]
+__all__ = [
+    "AbstractFramePacker",
+    "AnnealingFramePacker",
+    "BlobDetector",
+    "detect_blobs",
+]

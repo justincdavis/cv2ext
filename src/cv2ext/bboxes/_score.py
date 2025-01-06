@@ -8,7 +8,7 @@ import math
 from cv2ext._jit import register_jit
 
 
-@register_jit
+@register_jit()
 def _score_bbox_kernel(
     target_bbox: tuple[int, int, int, int],
     pred_bbox: tuple[int, int, int, int],
@@ -33,7 +33,7 @@ def _score_bbox_kernel(
     return 1.0 - min(1.0, dist + area_diff)
 
 
-@register_jit
+@register_jit()
 def _score_bboxes_kernel(
     target_bbox: tuple[int, int, int, int],
     pred_bboxs: list[tuple[int, int, int, int]],

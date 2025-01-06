@@ -11,7 +11,7 @@ import numpy as np
 from cv2ext._jit import register_jit
 
 
-@register_jit
+@register_jit()
 def _ncc_kernel(
     image1: np.ndarray,
     image2: np.ndarray,

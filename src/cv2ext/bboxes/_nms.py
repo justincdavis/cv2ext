@@ -10,7 +10,7 @@ from cv2ext._jit import register_jit
 from ._iou import _iou_kernel
 
 
-@register_jit
+@register_jit()
 def _nms_kernel(
     bboxes: list[tuple[tuple[int, int, int, int], float, int]],
     iou_threshold: float = 0.5,

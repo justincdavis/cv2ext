@@ -15,16 +15,10 @@ class _FLAGS:
     ----------
     JIT : bool
         Whether or not to use jit.
-    PARALLEL : bool
-        Whether or not to use parallel compilation in the jit.
 
     """
 
     JIT: bool = False
-    PARALLEL: bool = False
-    FASTMATH: bool = True
-    NOGIL: bool = False
-    CACHE: bool = False
 
 
 FLAGS = _FLAGS()
