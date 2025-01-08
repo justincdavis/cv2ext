@@ -298,12 +298,27 @@ class AbstractGridFramePacker(AbstractFramePacker):
                 index += 1
 
     @abstractmethod
-    def _should_explore(self: Self, detections: int) -> bool:
+    def _should_explore(
+        self: Self,
+        image: np.ndarray,
+        bbox: tuple[int, int, int, int],
+        row: int,
+        col: int,
+        detections: int,
+    ) -> bool:
         """
         Whether to explore a grid cell based on detection activity.
 
         Parameters
         ----------
+        image : np.ndarray
+            The image to be packed.
+        bbox : tuple[int, int, int, int]
+            The bounding box of the cell.
+        row : int
+            The row of the cell.
+        col : int
+            The column of the cell.
         detections : int
             The number of detections in the cell.
 
@@ -382,6 +397,10 @@ class AbstractGridFramePacker(AbstractFramePacker):
         for x1, y1, x2, y2, row, col in included_cells:
             bbox = (x1, y1, x2, y2)
             if self._should_explore(
+                image,
+                bbox,
+                row,
+                col,
                 self._num_dets[row][col],
             ):
                 filtered_cells.append((bbox, (row, col)))
@@ -549,7 +568,14 @@ class AnnealingFramePacker(AbstractGridFramePacker):
         self._alpha = alpha
         self._min_prob = min_prob
 
-    def _should_explore(self: Self, detections: int) -> bool:
+    def _should_explore(
+        self: Self,
+        image: np.ndarray,
+        bbox: tuple[int, int, int, int],
+        row: int,
+        col: int,
+        detections: int,
+    ) -> bool:
         time_factor = math.exp(-self._alpha * self._counter)
         detection_factor = min(
             1.0,
@@ -601,5 +627,12 @@ class RandomFramePacker(AbstractGridFramePacker):
         # specific parameters
         self._threshold = threshold
 
-    def _should_explore(self: Self, detections: int) -> bool:
+    def _should_explore(
+        self: Self,
+        image: np.ndarray,
+        bbox: tuple[int, int, int, int],
+        row: int,
+        col: int,
+        detections: int,
+    ) -> bool:
         return random.random() < self._threshold
