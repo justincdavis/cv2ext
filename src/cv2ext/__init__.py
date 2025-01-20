@@ -208,3 +208,5 @@ from . import cli
 _log.info("cv2ext.cli initialized.")
 
 __all__ += ["cli"]
+
+# automatically enable the JIT if numba is present

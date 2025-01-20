@@ -23,6 +23,8 @@ _log = logging.getLogger(__name__)
 
 try:
     from numba import jit as _jit  # type: ignore[import-untyped]
+
+    FLAGS.FOUND_NUMBA = True
 except ImportError:
 
     def _jit(  # type: ignore[misc]
@@ -150,7 +152,10 @@ def _reset_funcs() -> None:
 def enable_jit() -> None:
     """Enable just-in-time compilation using Numba for some functions."""
     FLAGS.JIT = True
-    _log.info(f"JIT is enabled: {FLAGS}")
+    _log.info(f"ENABLED JIT: {FLAGS}")
+
+    if not FLAGS.FOUND_NUMBA:
+        _log.warning("JIT has been enabled, but Numba could not be found.")
 
     _reset_funcs()
 
@@ -158,6 +163,7 @@ def enable_jit() -> None:
 def disable_jit() -> None:
     """Disable JIT compilation."""
     FLAGS.JIT = False
+    _log.info("DISABLED JIT")
 
     _reset_funcs()
 

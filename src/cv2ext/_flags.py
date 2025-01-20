@@ -19,6 +19,7 @@ class _FLAGS:
     """
 
     JIT: bool = False
+    FOUND_NUMBA: bool = False
 
 
 FLAGS = _FLAGS()
