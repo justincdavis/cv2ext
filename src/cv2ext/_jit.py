@@ -1,7 +1,6 @@
 # Copyright (c) 2024 Justin Davis (davisjustin302@gmail.com)
 #
 # MIT License
-# ruff: noqa: ARG001
 from __future__ import annotations
 
 import logging
@@ -23,17 +22,17 @@ if TYPE_CHECKING:
 _log = logging.getLogger(__name__)
 
 try:
-    from numba import jit as _jit
+    from numba import jit as _jit  # type: ignore[import-untyped]
 except ImportError:
 
     def _jit(  # type: ignore[misc]
         func: Callable[_P, _R],
         *,
-        nopython: bool,
-        fastmath: bool,
-        parallel: bool,
-        nogil: bool,
-        cache: bool,
+        nopython: bool,  # noqa: ARG001
+        fastmath: bool,  # noqa: ARG001
+        parallel: bool,  # noqa: ARG001
+        nogil: bool,  # noqa: ARG001
+        cache: bool,  # noqa: ARG001
     ) -> Callable[_P, _R]:
         return func
 

@@ -570,10 +570,10 @@ class AnnealingFramePacker(AbstractGridFramePacker):
 
     def _should_explore(
         self: Self,
-        image: np.ndarray,
-        bbox: tuple[int, int, int, int],
-        row: int,
-        col: int,
+        image: np.ndarray,  # noqa: ARG002
+        bbox: tuple[int, int, int, int],  # noqa: ARG002
+        row: int,  # noqa: ARG002
+        col: int,  # noqa: ARG002
         detections: int,
     ) -> bool:
         time_factor = math.exp(-self._alpha * self._counter)
@@ -586,12 +586,7 @@ class AnnealingFramePacker(AbstractGridFramePacker):
 
 
 class RandomFramePacker(AbstractGridFramePacker):
-    """
-    Pack regions of a frame together based on detection activity.
-
-    Detections are represented as a list of bounding boxes with
-    scores and class id labels optional.
-    """
+    """Pack regions of a frame together randomly."""
 
     def __init__(
         self: Self,
@@ -629,10 +624,10 @@ class RandomFramePacker(AbstractGridFramePacker):
 
     def _should_explore(
         self: Self,
-        image: np.ndarray,
-        bbox: tuple[int, int, int, int],
-        row: int,
-        col: int,
-        detections: int,
+        image: np.ndarray,  # noqa: ARG002
+        bbox: tuple[int, int, int, int],  # noqa: ARG002
+        row: int,  # noqa: ARG002
+        col: int,  # noqa: ARG002
+        detections: int,  # noqa: ARG002
     ) -> bool:
         return random.random() < self._threshold
