@@ -215,7 +215,7 @@ class AbstractGridFramePacker(AbstractFramePacker):
         Parameters
         ----------
         image_shape : tuple[int, int]
-            The shape of the image in form (height, width).
+            The shape of the image in form (width, height).
         gridsize : int, optional
             The size of each cell in the overlaid grid.
             Default is 128.
@@ -227,7 +227,7 @@ class AbstractGridFramePacker(AbstractFramePacker):
 
         """
         super().__init__()
-        self._height, self._width = image_shape
+        self._width, self._height = image_shape
         self._gridsize = gridsize
         self._detection_buffer = detection_buffer
 
@@ -545,7 +545,7 @@ class AnnealingFramePacker(AbstractGridFramePacker):
         Parameters
         ----------
         image_shape : tuple[int, int]
-            The shape of the image in form (height, width).
+            The shape of the image in form (width, height).
         gridsize : int, optional
             The size of each cell in the overlaid grid.
             Default is 128.
@@ -601,7 +601,7 @@ class RandomFramePacker(AbstractGridFramePacker):
         Parameters
         ----------
         image_shape : tuple[int, int]
-            The shape of the image in form (height, width).
+            The shape of the image in form (width, height).
         gridsize : int, optional
             The size of each cell in the overlaid grid.
             Default is 128.
