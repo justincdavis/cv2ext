@@ -1,8 +1,12 @@
-## 0.1.0 (12-05-2024)
+## 0.1.1 (01-24-2025)
 
 ### Added
 
-- 
+- Frame packing objects
+    Under the detection submodule there are new objects
+    for packing and unpacking frames for detection.
+
+## 0.1.0 (12-05-2024)
 
 ### Fixed
 
