@@ -262,8 +262,8 @@ class AbstractGridFramePacker(AbstractFramePacker):
     def _initialize_cells(self: Self) -> None:
         """Initialize the grid cells and related parameters."""
         # num rows/cols
-        self._n_cols = int(math.ceil(self._width / self._gridsize))
-        self._n_rows = int(math.ceil(self._height / self._gridsize))
+        self._n_cols = math.ceil(self._width / self._gridsize)
+        self._n_rows = math.ceil(self._height / self._gridsize)
 
         # step size between grid cells
         self._col_step = (
