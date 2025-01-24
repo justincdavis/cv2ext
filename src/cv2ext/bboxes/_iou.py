@@ -3,12 +3,10 @@
 # MIT License
 from __future__ import annotations
 
-from itertools import starmap
-
 from cv2ext._jit import register_jit
 
 
-@register_jit
+@register_jit()
 def _iou_kernel(
     bbox1: tuple[int, int, int, int],
     bbox2: tuple[int, int, int, int],
@@ -34,12 +32,12 @@ def _iou_kernel(
     return inter / union if union != 0.0 else 0.0
 
 
-@register_jit
+@register_jit()
 def _iou_kernel_list(
     bboxes1: list[tuple[int, int, int, int]],
     bboxes2: list[tuple[int, int, int, int]],
 ) -> list[float]:
-    return list(starmap(_iou_kernel, zip(bboxes1, bboxes2)))
+    return list(map(_iou_kernel, bboxes1, bboxes2))
 
 
 def iou(

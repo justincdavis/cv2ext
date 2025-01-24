@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cv2ext"
-version = "0.1.0"
+version = "0.1.1"
 authors = [
   {name="Justin Davis", email="davisjustin302@gmail.com"},
 ]
@@ -57,14 +57,15 @@ jit = [
     "rocket-fft>=0.2.5",
 ]
 ci = [
-    "ruff>=0.8.0",
-    "mypy>=1.13.0",
+    "ruff>=0.9.3,<0.10.0",
+    "mypy>=1.14.1,<1.15.0",
     "types-tqdm>=4.66.0",
 ]
 test = [
     "pytest>=6.2.0",
     "hypothesis[numpy]>=6.98.0",
     "pybboxes>=0.1.0",
+    "opencv-contrib-python>=4.8.0",  # add for tracking module
 ]
 docs = [
     "sphinx>=7.0.0",
@@ -86,7 +87,7 @@ dev = [
 ]
 
 [tool.bumpver]
-current_version = "0.1.0"
+current_version = "0.1.1"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message  = "Bump version {old_version} -> {new_version}"
 commit          = true

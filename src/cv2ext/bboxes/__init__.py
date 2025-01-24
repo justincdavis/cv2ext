@@ -28,10 +28,8 @@ Functions
     Perform non-maximum suppression on a set of bounding boxes.
 :func:`resize`
     Resize a bounding box based on one image size to another.
-:func:`scale`
-    Scale a bounding box from one image size to another.
-:func:`scale_many`
-    Scale a set of bounding boxes from one image size to another.
+:func:`resize_many`
+    Resize a set of bounding boxes based on one image size to another.
 :func:`score_bbox`
     Score a bounding box relative to a target bbox.
 :func:`score_bboxes`
@@ -115,8 +113,7 @@ from ._draw import draw_bboxes
 from ._iou import iou, ious
 from ._mean_ap import mean_ap
 from ._nms import nms
-from ._resize import resize
-from ._scale import scale, scale_many
+from ._resize import resize, resize_many
 from ._score import score_bbox, score_bboxes
 from ._valid import valid, within
 
@@ -140,8 +137,7 @@ __all__ = [
     "nxyxy_to_xyxy",
     "nxyxy_to_yolo",
     "resize",
-    "scale",
-    "scale_many",
+    "resize_many",
     "score_bbox",
     "score_bboxes",
     "valid",

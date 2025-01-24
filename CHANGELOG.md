@@ -1,3 +1,18 @@
+## 0.1.1 (01-24-2025)
+
+### Added
+
+- Frame packing objects
+    Under the detection submodule there are new objects
+    for packing and unpacking frames for detection.
+
+### Changed
+
+- Now uses a single universal jit entrypoint behind the scenes.
+    Interface is exposed to users via the register_jit function
+    Calling enable_jit or disable_jit will reset the registered
+    function accordingly.
+
 ## 0.1.0 (12-05-2024)
 
 ### Fixed

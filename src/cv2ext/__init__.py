@@ -43,6 +43,11 @@ Functions
     Set the log level for the cv2ext package.
 :func:`enable_jit`
     Enable just-in-time compilation using Numba for some functions.
+:func:`disable_jit`
+    Disable just-in-time compilation using Numba for some functions.
+:func:`register_jit`
+    Register a function to be just-in-time compiled.
+
 """
 
 from __future__ import annotations
@@ -170,7 +175,7 @@ _WINDOW_MANAGER = _DEL(_log)
 from . import bboxes, detection, image, io, metrics, template, tracking, video
 from .io import Display, Fourcc, IterableVideo, VideoWriter
 from ._flags import FLAGS
-from ._jit import JIT, enable_jit, disable_jit
+from ._jit import JIT, enable_jit, disable_jit, register_jit
 
 __all__ = [
     "FLAGS",
@@ -188,12 +193,13 @@ __all__ = [
     "image",
     "io",
     "metrics",
+    "register_jit",
     "set_log_level",
     "template",
     "tracking",
     "video",
 ]
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 _log.info(f"Initialized cv2ext with version {__version__}")
 
@@ -202,3 +208,5 @@ from . import cli
 _log.info("cv2ext.cli initialized.")
 
 __all__ += ["cli"]
+
+# automatically enable the JIT if numba is present

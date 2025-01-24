@@ -15,16 +15,17 @@ class _FLAGS:
     ----------
     JIT : bool
         Whether or not to use jit.
-    PARALLEL : bool
-        Whether or not to use parallel compilation in the jit.
+    FOUND_NUMBA : bool
+        Whether or not a Numba installation was found.
+    WARNED_NUMBA_NOT_FOUND : bool
+        Whether or not the user has been warned that Numba was
+        not found when calling enable_jit.
 
     """
 
     JIT: bool = False
-    PARALLEL: bool = False
-    FASTMATH: bool = True
-    NOGIL: bool = False
-    CACHE: bool = False
+    FOUND_NUMBA: bool = False
+    WARNED_NUMBA_NOT_FOUND: bool = False
 
 
 FLAGS = _FLAGS()

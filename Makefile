@@ -1,10 +1,11 @@
-.PHONY: help install clean docs test ci mypy pyright pyupgrade stubs codecs ruff release example-ci
+.PHONY: help install clean docs benchmark test ci mypy pyright pyupgrade stubs codecs ruff release example-ci
 
 help: 
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  install    to install the package"
 	@echo "  clean      to clean the directory tree"
 	@echo "  docs       to generate the documentation"
+	@echo "  benchmark  to run the benchmarks"
 	@echo "  ci 	    to run the CI workflows"
 	@echo "  mypy       to run the mypy static type checker"
 	@echo "  pyright    to run the pyright static type checker"
@@ -34,6 +35,9 @@ docs:
 	rm -rf docs/source/*
 	sphinx-apidoc -o docs/source/ src/cv2ext/
 	cd docs && make html
+
+benchmark:
+	./benchmarks/run.sh
 
 stubs:
 	python3 ci/make_stubs.py

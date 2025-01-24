@@ -6,10 +6,10 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-from cv2ext._jit import jit
+from cv2ext._jit import register_jit
 
 
-@jit
+@register_jit()
 def _match_multiple_kernel(
     result: np.ndarray,
     template_shape: tuple[int, int] | tuple[int, int, int],

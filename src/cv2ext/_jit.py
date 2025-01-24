@@ -1,7 +1,6 @@
 # Copyright (c) 2024 Justin Davis (davisjustin302@gmail.com)
 #
 # MIT License
-# ruff: noqa: ARG001
 from __future__ import annotations
 
 import logging
@@ -23,17 +22,19 @@ if TYPE_CHECKING:
 _log = logging.getLogger(__name__)
 
 try:
-    from numba import jit as _jit
+    from numba import jit as _jit  # type: ignore[import-untyped]
+
+    FLAGS.FOUND_NUMBA = True
 except ImportError:
 
     def _jit(  # type: ignore[misc]
         func: Callable[_P, _R],
         *,
-        nopython: bool,
-        fastmath: bool,
-        parallel: bool,
-        nogil: bool,
-        cache: bool,
+        nopython: bool,  # noqa: ARG001
+        fastmath: bool,  # noqa: ARG001
+        parallel: bool,  # noqa: ARG001
+        nogil: bool,  # noqa: ARG001
+        cache: bool,  # noqa: ARG001
     ) -> Callable[_P, _R]:
         return func
 
@@ -43,6 +44,11 @@ _JIT_FUNCS: list[Callable] = []
 
 def jit(
     func: Callable[_P, _R],
+    *,
+    fastmath: bool = False,
+    parallel: bool = False,
+    nogil: bool = False,
+    cache: bool = False,
 ) -> Callable[_P, _R]:
     """
     Optionally JIT compile a function based on the flags for cv2ext.
@@ -51,6 +57,18 @@ def jit(
     ----------
     func : Callable[_P, _R]
         The function to jit compile
+    fastmath : bool, optional
+        If True, enable fastmath during jit.
+        Default is False.
+    parallel : bool, optional
+        If True, enable parallel jit.
+        Default is False.
+    nogil : bool, optional
+        If True, disable the GIL when running jit compiled functions.
+        Default is False.
+    cache : bool, optional
+        If True, cache jit compiled functions to disk.
+        Default is False.
 
     Returns
     -------
@@ -63,31 +81,66 @@ def jit(
         return _jit(  # type: ignore[no-any-return]
             func,
             nopython=True,
-            fastmath=FLAGS.FASTMATH,
-            parallel=FLAGS.PARALLEL,
-            nogil=FLAGS.NOGIL,
-            cache=FLAGS.CACHE,
+            fastmath=fastmath,
+            parallel=parallel,
+            nogil=nogil,
+            cache=cache,
         )
     return func
 
 
-def register_jit(func: Callable[_P, _R]) -> Callable[_P, _R]:
+def register_jit(
+    *,
+    fastmath: bool = False,
+    parallel: bool = False,
+    nogil: bool = False,
+    cache: bool = False,
+) -> Callable[[Callable[_P, _R]], Callable[_P, _R]]:
     """
     Register a function to be re-imported whenever JIT status changes.
 
     Parameters
     ----------
-    func : Callable[_P, _R]
-        The function to optionally JIT compile.
+    func : Callable[_P, _R], optional
+        The function to optionally JIT compile. If None, the decorator
+        returns a partially applied function.
+    fastmath : bool, optional
+        If True, enable fastmath during jit.
+        Default is False.
+    parallel : bool, optional
+        If True, enable parallel jit.
+        Default is False.
+    nogil : bool, optional
+        If True, disable the GIL when running jit compiled functions.
+        Default is False.
+    cache : bool, optional
+        If True, cache jit compiled functions to disk.
+        Default is False.
 
     Returns
     -------
-    Callable[_P, _R]
-        The function passed in
+    Callable[[Callable[_P, _R]], Callable[_P, _R]]
+        The registered and optionally JIT-compiled function.
+
+    Examples
+    --------
+    >>> @register_jit(fastmath=True, parallel=True)
+    ... def my_func(x):
+    ...     return x * x
 
     """
-    _JIT_FUNCS.append(func)
-    return jit(func)
+
+    def decorator(func: Callable[_P, _R]) -> Callable[_P, _R]:
+        _JIT_FUNCS.append(func)
+        return jit(
+            func,
+            fastmath=fastmath,
+            parallel=parallel,
+            nogil=nogil,
+            cache=cache,
+        )
+
+    return decorator
 
 
 def _reset_funcs() -> None:
@@ -96,46 +149,14 @@ def _reset_funcs() -> None:
         globals()[func.__name__] = jit(func)
 
 
-def enable_jit(
-    *,
-    parallel: bool | None = None,
-    fastmath: bool | None = None,
-    nogil: bool | None = None,
-    cache: bool | None = None,
-) -> None:
-    """
-    Enable just-in-time compilation using Numba for some functions.
-
-    Parameters
-    ----------
-    parallel : bool, optional
-        If True, enable parallel jit.
-        Default is False.
-    fastmath : bool, optional
-        If True, enable fastmath during jit.
-        Default is True.
-    nogil : bool, optional
-        If True, disable the GIL when running jit compiled functions.
-        Default is False.
-    cache : bool, optional
-        IF True, cache jit compiled functions to disk.
-        Default is False.
-
-    """
-    if parallel is None:
-        parallel = False
-    if fastmath is None:
-        fastmath = True
-    if nogil is None:
-        nogil = False
-    if cache is None:
-        cache = False
+def enable_jit() -> None:
+    """Enable just-in-time compilation using Numba for some functions."""
     FLAGS.JIT = True
-    FLAGS.PARALLEL = parallel
-    FLAGS.FASTMATH = fastmath
-    FLAGS.NOGIL = nogil
-    FLAGS.CACHE = cache
-    _log.info(f"JIT is enabled: {FLAGS}")
+    _log.info(f"ENABLED JIT: {FLAGS}")
+
+    if not FLAGS.FOUND_NUMBA and not FLAGS.WARNED_NUMBA_NOT_FOUND:
+        _log.warning("JIT has been enabled, but Numba could not be found.")
+        FLAGS.WARNED_NUMBA_NOT_FOUND = True
 
     _reset_funcs()
 
@@ -143,6 +164,7 @@ def enable_jit(
 def disable_jit() -> None:
     """Disable JIT compilation."""
     FLAGS.JIT = False
+    _log.info("DISABLED JIT")
 
     _reset_funcs()
 
