@@ -6,19 +6,19 @@
     Under the detection submodule there are new objects
     for packing and unpacking frames for detection.
 
-## 0.1.0 (12-05-2024)
-
-### Fixed
-
-- image.letterbox
-    new_shape was incorrectly using (height, width) format
-
 ### Changed
 
 - Now uses a single universal jit entrypoint behind the scenes.
     Interface is exposed to users via the register_jit function
     Calling enable_jit or disable_jit will reset the registered
     function accordingly.
+
+## 0.1.0 (12-05-2024)
+
+### Fixed
+
+- image.letterbox
+    new_shape was incorrectly using (height, width) format
 
 ## 0.0.25 (11-07-2024)
 
