@@ -13,7 +13,7 @@ def test_annealing_packer():
     video = IterableVideo(Path("data/testvid.mp4"))
 
     packer = AnnealingFramePacker(
-        (video.height, video.width),
+        (video.width, video.height),
     )
 
     frame_sizes = []
@@ -33,7 +33,7 @@ def test_random_packer():
     video = IterableVideo(Path("data/testvid.mp4"))
 
     packer = RandomFramePacker(
-        (video.height, video.width),
+        (video.width, video.height),
     )
 
     frame_sizes = []
