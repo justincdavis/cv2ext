@@ -15,11 +15,17 @@ class _FLAGS:
     ----------
     JIT : bool
         Whether or not to use jit.
+    FOUND_NUMBA : bool
+        Whether or not a Numba installation was found.
+    WARNED_NUMBA_NOT_FOUND : bool
+        Whether or not the user has been warned that Numba was
+        not found when calling enable_jit.
 
     """
 
     JIT: bool = False
     FOUND_NUMBA: bool = False
+    WARNED_NUMBA_NOT_FOUND: bool = False
 
 
 FLAGS = _FLAGS()

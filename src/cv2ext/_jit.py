@@ -154,8 +154,9 @@ def enable_jit() -> None:
     FLAGS.JIT = True
     _log.info(f"ENABLED JIT: {FLAGS}")
 
-    if not FLAGS.FOUND_NUMBA:
+    if not FLAGS.FOUND_NUMBA and not FLAGS.WARNED_NUMBA_NOT_FOUND:
         _log.warning("JIT has been enabled, but Numba could not be found.")
+        FLAGS.WARNED_NUMBA_NOT_FOUND = True
 
     _reset_funcs()
 
