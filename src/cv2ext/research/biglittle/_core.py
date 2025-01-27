@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 class BigLittle:
     """
     Implementation of the BigLittle methodology.
-    
+
     Paper: https://ieeexplore.ieee.org/document/7331375
     """
 
