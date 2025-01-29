@@ -8,13 +8,16 @@ Classes
 -------
 :class:`KLTTracker`
     A class for tracking objects in videos using the KLT algorithm.
+:class:`KLTMultiTracker`
+    A class for tracking multi objects in videos using the KLT algorithm.
 
 """
 
 from __future__ import annotations
 
-from ._klt import KLTTracker
+from ._klt import KLTMultiTracker, KLTTracker
 
 __all__ = [
+    "KLTMultiTracker",
     "KLTTracker",
 ]
