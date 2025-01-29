@@ -259,7 +259,7 @@ class KLTMultiTracker(AbstractMultiTracker):
                 continue
 
             # compute new box using optical flow
-            new_kp, status, _ = cv2.calcOpticalFlowPyrLK(
+            new_kp, status, _ = cv2.calcOpticalFlowPyrLK(  # type: ignore[call-overload]
                 self._prev_frame,
                 image,
                 prev_kp,

@@ -3,6 +3,7 @@
 # MIT License
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -13,6 +14,8 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from typing_extensions import Self
+
+_log = logging.getLogger(__name__)
 
 
 class BigLittle:
@@ -47,6 +50,9 @@ class BigLittle:
             The starting confidence threshold cutoff
 
         """
+        # warning for using research method
+        _log.warning("BigLittle research implementation is not a tested module.")
+
         # store the detection functions
         self._det1 = detector1
         self._det2 = detector2

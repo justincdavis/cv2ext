@@ -7,9 +7,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import cv2
-import joblib
+import joblib  # type: ignore[import-untyped, import-not-found]
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import (  # type: ignore[import-untyped, import-not-found]
+    RandomForestClassifier,
+)
 
 from cv2ext.bboxes._convert import yolo_to_xyxy
 
@@ -215,4 +217,6 @@ class ChangeDetector:
         detections: list[tuple[tuple[int, int, int, int], float, int]]
         | list[tuple[int, int, int, int]],
     ) -> bool:
-        return self._forest.predict([ChangeDetector.preprocess(image, detections)])[0]
+        return bool(
+            self._forest.predict([ChangeDetector.preprocess(image, detections)])[0],
+        )

@@ -3,6 +3,7 @@
 # MIT License
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 import cv2
@@ -17,6 +18,8 @@ if TYPE_CHECKING:
 
     import numpy as np
     from typing_extensions import Self
+
+_log = logging.getLogger(__name__)
 
 
 class Marlin:
@@ -68,6 +71,9 @@ class Marlin:
             By default, 0.9
 
         """
+        # warning for using research method
+        _log.warning("MARLIN research implementation is not a tested module.")
+
         self._detector = detector
         self._tracker = KLTMultiTracker(
             num_features=num_features,
