@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 import cv2
 
+from cv2ext.metrics._ncc import ncc
 from cv2ext.tracking.trackers._klt import KLTMultiTracker
 
 from ._change import ChangeDetector
@@ -133,9 +134,25 @@ class Marlin:
                 for bbox, (_, conf, cid) in zip(new_raw_bboxes, self._bboxes)
             ]
 
+            # compare the NCC of bboxes
+            # do not care about tracker returned success values
+            successes = 0
+            for i in range(len(new_bboxes)):
+                x11, y11, x21, y21 = self._bboxes[i][0]
+                x12, y12, x22, y22 = new_bboxes[i][0]
+
+                roi1 = frame[y11:y21, x11:x21]
+                roi2 = frame[y12:y22, x12:x22]
+
+                sim = ncc(roi1, roi2, size=(x21 - x11, y21 - y11), resize=True)
+
+                if sim < self._ncc_threshold:
+                    continue
+
+                successes += 1
+
             # we have a success if we meet the ratio
-            bbox_success = [s[0] for s in new_tracks]
-            success = (sum(bbox_success) / len(new_tracks)) >= self._success_ratio
+            success = (successes / len(new_tracks)) >= self._success_ratio
             if not success:
                 # if fail mark detector for use next frame
                 self._use_detector = True
