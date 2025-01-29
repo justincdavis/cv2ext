@@ -38,6 +38,4 @@ __all__ = [
 with contextlib.suppress(ImportError):
     from . import marlin
 
-    __all__.extend(
-        ["marlin"],
-    )
+    __all__ += ["marlin"]

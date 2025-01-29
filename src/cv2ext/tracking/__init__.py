@@ -8,6 +8,8 @@ Submodules
 ----------
 :mod:`cv_trackers`
     Contains the wrapped OpenCV trackers.
+:mod:`trackers`
+    Contains trackers implemented in cv2ext.
 
 Classes
 -------
@@ -28,6 +30,7 @@ Classes
 
 from __future__ import annotations
 
+from . import cv_trackers, trackers
 from ._interface import AbstractMultiTracker, AbstractTracker, CVTrackerInterface
 from ._multi_tracker import MultiTracker
 from ._tracker import Tracker
@@ -40,4 +43,6 @@ __all__ = [
     "MultiTracker",
     "Tracker",
     "TrackerType",
+    "cv_trackers",
+    "trackers",
 ]

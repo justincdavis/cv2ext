@@ -31,14 +31,14 @@ class ChangeDetector:
 
         Raises
         ------
-        ValueError
+        TypeError
             If the loaded joblib file is not a RandomForestClassifier
 
         """
         self._forest: RandomForestClassifier = joblib.load(Path(path))
         if not isinstance(self._forest, RandomForestClassifier):
             err_msg = "ChangeDetector model must be RandomForestClassifier"
-            raise ValueError(err_msg)
+            raise TypeError(err_msg)
 
     @staticmethod
     def preprocess(
@@ -176,13 +176,12 @@ class ChangeDetector:
                 )
                 vectors = ChangeDetector.preprocess(resized_img, bboxes)
                 # unpack vectors for training
-                unpacked = [
+                return [
                     (vectors[0], False),
                     (vectors[1], True),
                     (vectors[2], True),
                     (vectors[3], True),
                 ]
-                return unpacked
             except IndexError:
                 return None
 

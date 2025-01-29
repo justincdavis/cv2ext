@@ -3,19 +3,19 @@
 # MIT License
 from __future__ import annotations
 
-import pathlib
 from typing import TYPE_CHECKING
 
 import cv2
-import numpy as np
 
-from cv2ext.tracking.trackers._klt import KLTTracker
+from cv2ext.tracking.trackers._klt import KLTMultiTracker
 
 from ._change import ChangeDetector
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from pathlib import Path
 
+    import numpy as np
     from typing_extensions import Self
 
 
@@ -26,9 +26,9 @@ class Marlin:
             [np.ndarray],
             list[tuple[tuple[int, int, int, int], float, int]],
         ],
-        forest: str | pathlib.Path,
+        forest: str | Path,
         ncc_threshold: float = 0.3,
-        num_features: int = 500,
+        num_features: int = 750,
         window_size: tuple[int, int] = (15, 15),
         max_level: int = 2,
         criteria: tuple[int, int, float] = (
@@ -36,8 +36,7 @@ class Marlin:
             10,
             0.03,
         ),
-        *,
-        verbose: bool | None = None,
+        success_ratio: float = 0.9,
     ) -> None:
         """
         Create a Marlin instance.
@@ -48,27 +47,29 @@ class Marlin:
             The call to get detections for an image.
         forest : str, Path
             The path to the saved RandomForestClassifier.
-        ncc_threshood : float
+        ncc_threshold : float, optional
             The threshold for which the frame is determined to be changed.
             By default, 0.3
-        num_features : int
+        num_features : int, optional
             The number of features to track.
-            By default, this is set to 500.
-        window_size : tuple[int, int]
+            By default, this is set to 750.
+        window_size : tuple[int, int], optional
             The size of the window used for tracking.
             By default, this is set to (15, 15).
-        max_level : int
+        max_level : int, optional
             The maximum pyramid level for tracking.
             By default, this is set to 2.
-        criteria : tuple[int, int, float]
+        criteria : tuple[int, int, float], optional
             The criteria used for tracking.
             By default, this is set to (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03).
-        verbose : bool, optional
-            Whether or not to log additional information.
+        success_ratio : float, optional
+            The ratio of successes from the KLT tracker to number of boxes
+            to determine if tracking for the entire frame was a success.
+            By default, 0.9
 
         """
-        self._dnn = detector
-        self._tracker = KLTTracker(
+        self._detector = detector
+        self._tracker = KLTMultiTracker(
             num_features=num_features,
             window_size=window_size,
             max_level=max_level,
@@ -76,72 +77,77 @@ class Marlin:
         )
         self._change = ChangeDetector(forest)
         self._ncc_threshold = ncc_threshold
+        self._success_ratio = success_ratio
 
-        self._last_frame = None
-        self._use_dnn = True
-        self._last_bboxs: list[tuple[int, tuple[int, int, int, int], float]] | None = (
-            None
-        )
-        self._last_ncc: float | None = None
-        self._verbose = verbose if verbose is not None else False
+        # state storage
+        self._bboxes: list[tuple[tuple[int, int, int, int], float, int]] = []
+        self._use_detector = True
 
-    def _get_cv_frame(self) -> np.ndarray:
-        frame = self._cv_frame
-        self._cv_frame = None
-        return frame
-
-    def add_cv_frame(self, frame: np.ndarray) -> None:
-        """Use when the preprocessing of the dnn means errors."""
-        self._cv_frame = frame
-
-    def __call__(
+    def run(
         self,
         frame: np.ndarray,
-    ) -> list[tuple[int, tuple[int, int, int, int], float]]:
-        """Run the Marlin algorithm on the (next) frame"""
-        orig_frame = frame.copy()
-        if len(frame.shape) == 4:
-            frame = np.transpose(frame.squeeze(), (1, 2, 0))
-        if self._cv_frame is not None:
-            frame = self._get_cv_frame()
-        cv_frame = frame.copy()
-        cd_frame = frame.copy()
-        # if self._verbose:
-        # print("Processing new frame:")
-        # print(f"    Use DNN: {self._use_dnn}")
-        if self._use_dnn or self._last_bboxs is None:
-            self._use_dnn = False
-            self._last_bboxs = self._dnn(orig_frame)
-            self._last_frame = cv_frame
-            self._tracker.init(self._last_frame, self._last_bboxs)
-            # if self._verbose:
-            # print(f"    DNN detected {len(self._last_bboxs)} objects")
-            # print(f"    Confidence: {self._last_bboxs[0][2]}")
-        else:
-            prev_bboxs = self._last_bboxs
-            self._last_bboxs = self._tracker.run(cv_frame)
-            self._last_frame = cv_frame
-            # if self._verbose:
-            # print(f"    Tracker detected {len(self._last_bboxs)} objects")
-            if len(self._last_bboxs) == 0 or (
-                len(self._last_bboxs) == 1 and self._last_bboxs[0][0] == None
-            ):
-                self._use_dnn = True
-                self._last_bboxs = (
-                    prev_bboxs  # get the previous ones to reduce the flashing effect
-                )
-            else:
-                self._last_ncc = min(self._last_bboxs, key=lambda x: x[2])[2]
-                self._use_dnn = self._last_ncc <= self._ncc_threshold
-            # if self._verbose:
-            # print(f"    NCC: {self._last_ncc}")
-            # print(f"    Use DNN: {self._use_dnn}")
+    ) -> list[tuple[tuple[int, int, int, int], float, int]]:
+        """
+        Run Marlin on the next frame in a sequence.
 
-        # RUN CHANGE DECT ALWAYS
-        result = self._change_dect(cd_frame, self._last_bboxs)
-        # if self._verbose:
-        # print(f"  Change dect: {result[0]}")
-        if result[0]:
-            self._use_dnn = True
+        Parameters
+        ----------
+        frame : np.ndarray
+            The next frame in a sequence.
 
-        return self._last_bboxs
+        Returns
+        -------
+        list[tuple[tuple[int, int, int, int], float, int]]
+            The detections
+
+        """
+
+        def _run_det() -> list[tuple[tuple[int, int, int, int], float, int]]:
+            bboxes = self._detector(frame)
+            raw_bboxes = [det[0] for det in bboxes]
+
+            # when we run the detector, setup the tracker
+            if len(bboxes) != 0:
+                self._tracker.init(frame, raw_bboxes)
+
+            # set use_detector to False since we just used it
+            self._use_detector = False
+
+            # update bboxes
+            self._bboxes = bboxes
+
+            return bboxes
+
+        def _run_tracker() -> list[tuple[tuple[int, int, int, int], float, int]]:
+            new_tracks = self._tracker.update(frame)
+            new_raw_bboxes = [track[1] for track in new_tracks]
+            # form the bboxes
+            new_bboxes = [
+                (bbox, conf, cid)
+                for bbox, (_, conf, cid) in zip(new_raw_bboxes, self._bboxes)
+            ]
+
+            # we have a success if we meet the ratio
+            bbox_success = [s[0] for s in new_tracks]
+            success = (sum(bbox_success) / len(new_tracks)) >= self._success_ratio
+            if not success:
+                # if fail mark detector for use next frame
+                self._use_detector = True
+
+            # update bboxes
+            self._bboxes = bboxes
+
+            return new_bboxes
+
+        # if state is None, then we run the detector and set it
+        # if the change detector said use detector, run it
+        # otherwise we simply run tracking
+        bboxes = _run_det() if self._use_detector else _run_tracker()
+
+        # run the change detector
+        result = self._change(frame, bboxes)
+        if result:
+            self._use_detector = True
+
+        # return bboxes
+        return bboxes
