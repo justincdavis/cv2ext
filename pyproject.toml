@@ -51,10 +51,18 @@ dependencies = [
 [project.optional-dependencies]
 all = [
     "cv2ext[jit]",
+    "cv2ext[research]",
 ]
 jit = [
     "numba>=0.55.0",
     "rocket-fft>=0.2.5",
+]
+research = [
+    "cv2ext[marlin]",
+]
+marlin = [
+    "joblib",
+    "scikit-learn",
 ]
 ci = [
     "ruff>=0.9.3,<0.10.0",
