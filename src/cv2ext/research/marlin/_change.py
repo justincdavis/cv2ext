@@ -23,12 +23,12 @@ class ChangeDetector:
     def __init__(self, path: str | Path) -> None:
         """
         Create a ChangeDetector instance.
-        
+
         Parameters
         ----------
         path : str, Path
             The path to the weights of the forest.
-    
+
         Raises
         ------
         ValueError
@@ -43,7 +43,8 @@ class ChangeDetector:
     @staticmethod
     def preprocess(
         image: np.ndarray,
-        detections: list[tuple[tuple[int, int, int, int], float, int]] | list[tuple[int, int, int, int]],
+        detections: list[tuple[tuple[int, int, int, int], float, int]]
+        | list[tuple[int, int, int, int]],
     ) -> np.ndarray:
         frame = image.copy()
         for data in detections:
@@ -97,7 +98,7 @@ class ChangeDetector:
     ) -> RandomForestClassifier:
         """
         Train the ChangeDetector on images and labels.
-        
+
         Parameters
         ----------
         data_dir : str, Path
@@ -140,14 +141,14 @@ class ChangeDetector:
 
         image_exts = [".jpg", ".jpeg", ".png"]
         image_names = [n.stem for n in image_dir.iterdir() if n.suffix in image_exts]
-        label_names = [n.stem for n in label_dir.iterdir() if n.suffix in [".txt"]]
+        label_names = [n.stem for n in label_dir.iterdir() if n.suffix == ".txt"]
         common_names: list[str] = list(set(image_names).intersection(set(label_names)))
 
         if len(common_names) < 1:
             err_msg = "Could not find any matching images and labels."
             raise FileNotFoundError(err_msg)
 
-        # helper function    
+        # helper function
         def _load_vectors(name: str) -> list[tuple[np.ndarray, bool]] | None:
             try:
                 label_path: Path = label_dir / f"{name}.txt"
@@ -168,11 +169,15 @@ class ChangeDetector:
                 yolo_labels = [(x, y, w, h) for _, x, y, w, h in raw_labels]
                 bboxes = [yolo_to_xyxy(bbox, width, height) for bbox in yolo_labels]
 
-                resized_img = cv2.resize(image, (128, 128), interpolation=cv2.INTER_LINEAR)
+                resized_img = cv2.resize(
+                    image,
+                    (128, 128),
+                    interpolation=cv2.INTER_LINEAR,
+                )
                 vectors = ChangeDetector.preprocess(resized_img, bboxes)
                 # unpack vectors for training
                 unpacked = [
-                    (vectors[0], False), 
+                    (vectors[0], False),
                     (vectors[1], True),
                     (vectors[2], True),
                     (vectors[3], True),
@@ -200,13 +205,15 @@ class ChangeDetector:
     def __call__(
         self: Self,
         image: np.ndarray,
-        detections: list[tuple[tuple[int, int, int, int], float, int]] | list[tuple[int, int, int, int]],
+        detections: list[tuple[tuple[int, int, int, int], float, int]]
+        | list[tuple[int, int, int, int]],
     ) -> bool:
         return self.run(image, detections)
 
     def run(
         self: Self,
         image: np.ndarray,
-        detections: list[tuple[tuple[int, int, int, int], float, int]] | list[tuple[int, int, int, int]],
+        detections: list[tuple[tuple[int, int, int, int], float, int]]
+        | list[tuple[int, int, int, int]],
     ) -> bool:
         return self._forest.predict([ChangeDetector.preprocess(image, detections)])[0]

@@ -28,6 +28,7 @@ from . import biglittle
 
 __all__ = [
     "biglittle",
+    "marlin",
 ]
 
 # additional modules have specific imports
