@@ -5,6 +5,16 @@
 - Frame packing objects
     Under the detection submodule there are new objects
     for packing and unpacking frames for detection.
+- tracking updates
+    - tracking.trackers.KLTMultiTracker
+    - tracking.MultiTrackerType
+- research submodule
+    - biglittle, implements BigLittle method
+      for swapping between an expensive/accurate detector
+      and a cheap/inaccurate detector
+    - marlin, implements the MARLIN scheduler
+      for choosing to run either a detector or cheap tracking
+      algorithm to save energy
 
 ### Changed
 
