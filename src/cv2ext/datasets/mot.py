@@ -4,10 +4,21 @@
 """
 Submodule for interacting with the MOT17(det)/20(det) datasets.
 
+Classes
+-------
+:class:`MOTSequence`
+
+:class:`MOTReader`
+
+:class:`MOTWriter`
+
+
 Functions
 ---------
-:func:`get_mot_file`
+:func:`get_mot_files`
     Gets the train and test file paths for MOT17(det)/20(det)
+:func:`read_gt_det_mot_label`
+    Read a det.txt or gt.txt file from a MOT sequence.
 
 """
 
@@ -22,6 +33,7 @@ from cv2ext.io._iterablevideo import IterableVideo
 from cv2ext.video._images import video_from_images
 
 if TYPE_CHECKING:
+    from types import TracebackType
     from typing import Generator
 
     import numpy as np
@@ -312,3 +324,83 @@ class MOTReader:
         """
         for _, _, video, gt, det in self._train:
             yield MOTSequence(video, dets=det, gt=gt)
+
+
+class MOTWriter:
+    """Write labels from tracker to file for evaluation."""
+
+    def __init__(
+        self: Self,
+        output_file: str | Path,
+        digits: int | None = None,
+    ) -> None:
+        """
+        Create an instance of MOTWriter.
+
+        Parameters
+        ----------
+        output_file : str, Path
+            The location of the output file to write.
+            If a str, will be converted to a Path.
+        digits : int, optional
+            The number of digits to round bounding box values to.
+            By default, None so no rounding will occur.
+
+        """
+        self._digits = digits
+        self._filepath = (
+            output_file if isinstance(output_file, Path) else Path(output_file)
+        )
+        self._file = self._filepath.open("w+")
+
+    def add(
+        self: Self,
+        labels: list[tuple[int, int, float, float, float, float]],
+    ) -> None:
+        """
+        Write a set of labels to the file.
+
+        Parameters
+        ----------
+        labels : list[tuple[int, int, float, float, float, float]]
+            The labels to write to the file
+            Each tuple: frame id, object id, left, top, width, height
+
+        """
+
+        def set_digits(value: float, digits: int = 5) -> float:
+            try:
+                whole, _ = str(value).split(".")
+            except ValueError:
+                return value
+            whole_len = len(whole)
+            decimal_len = max(digits - whole_len, 0)
+            return float(f"{value:.{decimal_len}f}")
+
+        for label in labels:
+            fid, cid, left, top, width, height = label
+
+            if self._digits is not None:
+                left = set_digits(left)
+                top = set_digits(top)
+                width = set_digits(width)
+                height = set_digits(height)
+
+            self._file.write(f"{fid},{cid},{left},{top},{width},{height},-1,-1,-1,-1\n")
+
+    def close(self: Self) -> None:
+        """Close the MOTWriter."""
+        self._file.close()
+
+    def __enter__(self: Self) -> Self:
+        """Enter the context manager."""
+        return self
+
+    def __exit__(
+        self: Self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        """Exit the context manager."""
+        self.close()
