@@ -7,11 +7,11 @@ Submodule for interacting with the MOT17(det)/20(det) datasets.
 Classes
 -------
 :class:`MOTSequence`
-
+    Iterate over a MOT sequence video.
 :class:`MOTReader`
-
+    Iterate over all MOT sequences.
 :class:`MOTWriter`
-
+    Write tracked objects in MOT format.
 
 Functions
 ---------
