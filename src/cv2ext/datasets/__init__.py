@@ -6,6 +6,10 @@ Submodule containing tools for reading and interacting with datasets.
 
 Submodules
 ----------
+:mod:`coco`
+    Tools for interacting with COCO datasets.
+:mod:`kitti`
+    Tools for interacting with KITTI datasets.
 :mod:`mot`
     Tools for interacting with MOT17(det)/MOT20(det) datasets.
 
@@ -13,6 +17,10 @@ Submodules
 
 from __future__ import annotations
 
-from . import mot
+from . import coco, kitti, mot
 
-__all__ = ["mot"]
+__all__ = [
+    "coco",
+    "kitti",
+    "mot",
+]

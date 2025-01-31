@@ -64,7 +64,7 @@ def get_mot_files(
     list[tuple[Path, Path, Path, Path | None]],
 ]:
     """
-    Get the list of MOT label files.
+    Get the list of MOT video/label files.
 
     Parameters
     ----------
