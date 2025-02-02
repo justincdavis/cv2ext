@@ -15,11 +15,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from cv2ext.video._images import video_from_images
 from cv2ext.io._fourcc import Fourcc
+from cv2ext.video._images import video_from_images
 
 from .coco import ID_MAP
-
 
 _TO_COCO = {
     "Car": "car",
@@ -166,7 +165,7 @@ def read_kitti_label(
                 f"Invalid number of entries in {label.name} found on line: {idx + 1}"
             )
             raise ValueError(err_msg)
-    
+
         fid, _, cid, _, _, _, x, y, w, h = values[:10]
 
         # if class is marked dont care then skip

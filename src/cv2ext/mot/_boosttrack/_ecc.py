@@ -69,10 +69,18 @@ def ecc(
         if isinstance(scale, float):
             if scale != 1:
                 src_r = cv2.resize(
-                    src, (0, 0), fx=scale, fy=scale, interpolation=cv2.INTER_LINEAR,
+                    src,
+                    (0, 0),
+                    fx=scale,
+                    fy=scale,
+                    interpolation=cv2.INTER_LINEAR,
                 )
                 dst_r = cv2.resize(
-                    dst, (0, 0), fx=scale, fy=scale, interpolation=cv2.INTER_LINEAR,
+                    dst,
+                    (0, 0),
+                    fx=scale,
+                    fy=scale,
+                    interpolation=cv2.INTER_LINEAR,
                 )
                 scale = [scale, scale]
             else:
@@ -81,19 +89,31 @@ def ecc(
         elif isinstance(scale, int):
             scale = scale / src.shape[1]
             src_r = cv2.resize(
-                src, (0, 0), fx=scale, fy=scale, interpolation=cv2.INTER_LINEAR,
+                src,
+                (0, 0),
+                fx=scale,
+                fy=scale,
+                interpolation=cv2.INTER_LINEAR,
             )
             dst_r = cv2.resize(
-                dst, (0, 0), fx=scale, fy=scale, interpolation=cv2.INTER_LINEAR,
+                dst,
+                (0, 0),
+                fx=scale,
+                fy=scale,
+                interpolation=cv2.INTER_LINEAR,
             )
             scale = [scale, scale]
         else:
             if scale[0] != src.shape[1] and scale[1] != src.shape[0]:
                 src_r = cv2.resize(
-                    src, (scale[0], scale[1]), interpolation=cv2.INTER_LINEAR,
+                    src,
+                    (scale[0], scale[1]),
+                    interpolation=cv2.INTER_LINEAR,
                 )
                 dst_r = cv2.resize(
-                    dst, (scale[0], scale[1]), interpolation=cv2.INTER_LINEAR,
+                    dst,
+                    (scale[0], scale[1]),
+                    interpolation=cv2.INTER_LINEAR,
                 )
                 scale = [scale[0] / src.shape[1], scale[1] / src.shape[0]]
             else:
@@ -113,7 +133,13 @@ def ecc(
 
     # Run the ECC algorithm. The results are stored in warp_matrix.
     (cc, warp_matrix) = cv2.findTransformECC(
-        src_r, dst_r, warp_matrix, warp_mode, criteria, None, 1,
+        src_r,
+        dst_r,
+        warp_matrix,
+        warp_mode,
+        criteria,
+        None,
+        1,
     )
 
     if scale is not None:
@@ -125,12 +151,18 @@ def ecc(
         if warp_mode == cv2.MOTION_HOMOGRAPHY:
             # Use warpPerspective for Homography
             src_aligned = cv2.warpPerspective(
-                src, warp_matrix, (sz[1], sz[0]), flags=cv2.INTER_LINEAR,
+                src,
+                warp_matrix,
+                (sz[1], sz[0]),
+                flags=cv2.INTER_LINEAR,
             )
         else:
             # Use warpAffine for Translation, Euclidean and Affine
             src_aligned = cv2.warpAffine(
-                src, warp_matrix, (sz[1], sz[0]), flags=cv2.INTER_LINEAR,
+                src,
+                warp_matrix,
+                (sz[1], sz[0]),
+                flags=cv2.INTER_LINEAR,
             )
         return warp_matrix, src_aligned
     return warp_matrix, None
@@ -169,7 +201,10 @@ class ECC:
                 pass
 
     def __call__(
-        self, np_image: np.ndarray, frame_id: int, video: Optional[str] = "",
+        self,
+        np_image: np.ndarray,
+        frame_id: int,
+        video: Optional[str] = "",
     ) -> np.ndarray:
         if frame_id == 1:
             self.prev_image = deepcopy(np_image)

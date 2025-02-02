@@ -2,7 +2,6 @@
 This script is adopted from the SORT script by Alex Bewley alex@bewley.ai
 """
 
-
 from copy import deepcopy
 from typing import List, Optional
 
@@ -20,6 +19,8 @@ from tracker.assoc import (
     soft_biou_batch,
 )
 from tracker.ecc import ECC
+
+from ._tracker import KalmanBoxTracker
 
 
 class BoostTrack:
@@ -45,7 +46,9 @@ class BoostTrack:
 
         if GeneralSettings["use_embedding"]:
             self.embedder = EmbeddingComputer(
-                GeneralSettings["dataset"], GeneralSettings["test_dataset"], True,
+                GeneralSettings["dataset"],
+                GeneralSettings["test_dataset"],
+                True,
             )
         else:
             self.embedder = None
@@ -94,7 +97,10 @@ class BoostTrack:
 
         if self.use_dlo_boost:
             dets = self.dlo_confidence_boost(
-                dets, self.use_rich_s, self.use_sb, self.use_vt,
+                dets,
+                self.use_rich_s,
+                self.use_sb,
+                self.use_vt,
             )
 
         if self.use_duo_boost:
@@ -155,7 +161,8 @@ class BoostTrack:
                 # +1 as MOT benchmark requires positive
                 ret.append(
                     np.concatenate((d, [trk.id + 1], [trk.get_confidence()])).reshape(
-                        1, -1,
+                        1,
+                        -1,
                     ),
                 )
             i -= 1
@@ -172,7 +179,9 @@ class BoostTrack:
             self.ecc.save_cache()
 
     def get_iou_matrix(
-        self, detections: np.ndarray, buffered: bool = False,
+        self,
+        detections: np.ndarray,
+        buffered: bool = False,
     ) -> np.ndarray:
         trackers = np.zeros((len(self.trackers), 5))
         for t, trk in enumerate(trackers):
@@ -232,7 +241,8 @@ class BoostTrack:
                     tmp = np.argwhere(bdiou[boxi] > iou_limit).reshape((-1,))
                     args_tmp = np.append(
                         np.intersect1d(
-                            boost_detections_args[args], boost_detections_args[tmp],
+                            boost_detections_args[args],
+                            boost_detections_args[tmp],
                         ),
                         boost_detections_args[boxi],
                     )
