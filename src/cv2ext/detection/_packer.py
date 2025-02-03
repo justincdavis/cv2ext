@@ -149,6 +149,10 @@ def _unpack_grid_single_bbox(
     # Determine grid coordinates for the packed bounding box
     n_col = int(((x1 + x2) / 2.0) // gridsize)
     n_row = int(((y1 + y2) / 2.0) // gridsize)
+    
+    # clamp indices
+    n_row = max(0, min(n_row, transform.shape[0] - 1))
+    n_col = max(0, min(n_col, transform.shape[1] - 1))
 
     # Retrieve original top-left offset for the grid cell
     o_x, o_y = transform[n_row][n_col]
@@ -418,7 +422,8 @@ class AbstractGridFramePacker(AbstractFramePacker):
 
         # copy the old data into new packed image
         # generate the transforms
-        new_grids: np.ndarray = np.zeros((self._n_rows, self._n_cols, 2), dtype=int)
+        # new_grids: np.ndarray = np.zeros((self._n_rows, self._n_cols, 2), dtype=int)
+        new_grids: np.ndarray = np.zeros((dim2, dim1, 2), dtype=int)
         for i, (bbox, _) in enumerate(filtered_cells):
             x1, y1, x2, y2 = bbox
 
