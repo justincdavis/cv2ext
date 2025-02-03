@@ -8,6 +8,8 @@ Functions
 ---------
 :func:`bounding`
     Get a bounding box which encloses all the given bounding boxes.
+:func:`calculate_metrics`
+    Compute accuracy metrics between two sets of bounding boxes.
 :func:`constrain`
     Constrain a bounding box to be within the bounds of an image.
 :func:`draw_bboxes`
@@ -22,6 +24,8 @@ Functions
     Calculate the intersection over union of a set of bounding boxes.
 :func:`manhattan`
     Compute the manhattan distance between two bounding boxes.
+:func:`match`
+    Greedily find matches between two lists of bounding boxes.
 :func:`mean_ap`
     Calculate the mean average precision of a set of bounding boxes.
 :func:`nms`
@@ -83,7 +87,7 @@ Functions
 
 from __future__ import annotations
 
-from ._algorithms import filter_bboxes_by_region
+from ._algorithms import calculate_metrics, filter_bboxes_by_region, match
 from ._bounding import bounding
 from ._constrain import constrain
 from ._convert import (
@@ -119,6 +123,7 @@ from ._valid import valid, within
 
 __all__ = [
     "bounding",
+    "calculate_metrics",
     "constrain",
     "draw_bboxes",
     "euclidean",
@@ -126,6 +131,7 @@ __all__ = [
     "iou",
     "ious",
     "manhattan",
+    "match",
     "mean_ap",
     "nms",
     "nxywh_to_nxyxy",
