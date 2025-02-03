@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 _log = logging.getLogger(__name__)
 
 try:
-    from numba import jit as _jit  # type: ignore[import-untyped]
+    from numba import jit as _jit  # type: ignore[attr-defined, import-untyped]
 
     FLAGS.FOUND_NUMBA = True
 except ImportError:
