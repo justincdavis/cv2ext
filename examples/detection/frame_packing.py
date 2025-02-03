@@ -7,17 +7,18 @@ from __future__ import annotations
 
 import time
 
-from cv2ext import Display, IterableVideo
+import cv2ext
 from cv2ext.detection import AnnealingFramePacker
 
 if __name__ == "__main__":
-    video = IterableVideo("data/testvid.mp4")
+    cv2ext.set_log_level("DEBUG")
+    video = cv2ext.IterableVideo("data/testvid.mp4")
 
     packer = AnnealingFramePacker(
-        (video.height, video.width),
+        (video.width, video.height),
     )
 
-    with Display("Frame Packing Example") as display:
+    with cv2ext.Display("Frame Packing Example", nextkey="n") as display:
         for _, frame in video:
             if display.stopped:
                 break
@@ -25,4 +26,4 @@ if __name__ == "__main__":
             packed, transform = packer.pack(frame, exclude=[])
             display(packed)
 
-            time.sleep(0.013)  # for viewing purposes
+            display.wait()

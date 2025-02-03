@@ -7,7 +7,7 @@ import contextlib
 import logging
 import time
 from queue import Empty, Full, Queue
-from threading import Thread
+from threading import Condition, Thread
 from typing import TYPE_CHECKING
 
 import cv2
@@ -31,6 +31,7 @@ class Display:
         self: Self,
         windowname: str,
         stopkey: str = "q",
+        nextkey: str | None = None,
         buffersize: int = 1,
         fps: int | None = None,
         *,
@@ -66,12 +67,15 @@ class Display:
             show = True
         self._windowname = windowname
         self._stopkey = stopkey
+        self._nextkey = nextkey
+        self._next = Condition()
         self._buffersize = buffersize
         self._fps = 1 / fps if fps is not None else None
         self._show = show
 
         # allocate runtime variables
         self._image: np.ndarray = np.zeros((100, 100, 3), dtype=np.uint8)
+        self._last_image = self._image.copy()
         self._frameid = -1  # no frame yet
         self._stopped = False
         self._running = True
@@ -178,18 +182,34 @@ class Display:
         while self._running:
             t0 = time.perf_counter()
             _log.debug(f"Display {self._windowname} thread starting new loop @ {t0}")
+
+            # get frame
+            image: np.ndarray | None = None
             with contextlib.suppress(Empty):
                 image = self._queue.get(timeout=0.1)
-                if self._show:
-                    cv2.imshow(self._windowname, image)
-                    if cv2.waitKey(1) & 0xFF == ord(self._stopkey):
-                        self._stopped = True
-                        continue
+                self._last_image = image.copy()
+
+            # display image if show
+            if self._show:
+                image = image if image is not None else self._last_image
+                cv2.imshow(self._windowname, image)
+                keypress = cv2.waitKey(1) & 0xFF
+                _log.debug(f"Display {self._windowname} received keypress: {keypress}")
+                if keypress == ord(self._stopkey):
+                    self._stopped = True
+                    continue
+                with contextlib.suppress(RuntimeError):
+                    if self._nextkey and keypress == ord(self._nextkey):
+                        self._next.notify_all()
+
+            # handle rough FPS sync
             if self._fps is not None:
                 t1 = time.perf_counter()
                 dt = t1 - t0
                 if dt < self._fps:
                     time.sleep(self._fps - dt)
+
+        # cleanup on thread stop
         _log.debug(f"Display {self._windowname} thread stopped")
         # if self._show:
         #     _log.debug(f"Destroying window {self._windowname}")
@@ -202,6 +222,8 @@ class Display:
         while self._thread.is_alive():
             _log.debug(f"Attempting join for display thread {self._windowname}")
             self._thread.join(timeout=0.01)
+        with contextlib.suppress(RuntimeError), self._next:
+            self._next.notify_all()
 
     def stop(self: Self) -> None:
         """Stop the display."""
@@ -221,3 +243,10 @@ class Display:
         self._frameid += 1
         with contextlib.suppress(Full):
             self._queue.put_nowait(frame)
+            _log.debug(f"Sent frame to dispaly: {self._windowname}")
+
+    def wait(self: Self) -> None:
+        """Wait for the next press of nextkey if specified."""
+        if self._nextkey:
+            with self._next:
+                self._next.wait()

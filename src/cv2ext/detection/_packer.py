@@ -149,7 +149,7 @@ def _unpack_grid_single_bbox(
     # Determine grid coordinates for the packed bounding box
     n_col = int(((x1 + x2) / 2.0) // gridsize)
     n_row = int(((y1 + y2) / 2.0) // gridsize)
-    
+
     # clamp indices
     n_row = max(0, min(n_row, transform.shape[0] - 1))
     n_col = max(0, min(n_col, transform.shape[1] - 1))
@@ -202,6 +202,197 @@ def _unpack_grid_bboxes(
         # Append the unpacked detection
         unpacked_dets.append((abs_x1, abs_y1, abs_x2, abs_y2))
     return unpacked_dets
+
+
+@register_jit()
+def _simple_grid_repack(
+    image: np.ndarray,
+    cells: list[tuple[tuple[int, int, int, int], tuple[int, int]]],
+    gridsize: int,
+) -> tuple[np.ndarray, np.ndarray]:
+    # need to repack the cells into a new image
+    num_cells = len(cells)
+    dim1 = max(1, math.ceil(math.sqrt(num_cells)))
+    dim2 = max(1, math.ceil(num_cells / dim1))
+
+    # allocate new data for the patches
+    new_image: np.ndarray = np.zeros(
+        (dim2 * gridsize, dim1 * gridsize, 3),
+        dtype=np.uint8,
+    )
+
+    # copy the old data into new packed image
+    # generate the transforms
+    # new_grids: np.ndarray = np.zeros((self._n_rows, self._n_cols, 2), dtype=int)
+    new_grids: np.ndarray = np.zeros((dim2, dim1, 2), dtype=int)
+    for i, (bbox, _) in enumerate(cells):
+        x1, y1, x2, y2 = bbox
+
+        # generate the new row/col
+        n_row = math.floor(i / dim1)  # Fixed dimension calculation
+        n_col = i % dim1
+
+        # generate the new bounding box
+        n_x1 = n_col * gridsize
+        n_x2 = n_x1 + gridsize
+        n_y1 = n_row * gridsize
+        n_y2 = n_y1 + gridsize
+
+        # generate the offset, same as old coords for x1, y1
+        offset = (x1, y1)
+
+        # perform the data copy
+        new_image[n_y1:n_y2, n_x1:n_x2] = image[y1:y2, x1:x2]
+
+        # save the new grid entry
+        new_grids[n_row, n_col] = offset
+
+    return new_image, new_grids
+
+
+@register_jit()
+def _connected_components_grid_repack(
+    image: np.ndarray,
+    cells: list[tuple[tuple[int, int, int, int], tuple[int, int]]],
+    gridsize: int,
+) -> tuple[np.ndarray, np.ndarray]:
+    # identify connected components
+    matched: set[tuple[int, int]] = set()
+    groups: list[
+        tuple[
+            list[tuple[int, int, int, int]],
+            list[tuple[int, int]],
+        ],
+    ] = []
+    for idx1, (cell1, loc1) in enumerate(cells):
+        if loc1 in matched:
+            continue
+
+        group_hash: set[tuple[int, int]] = set()
+        group_locs: list[tuple[int, int]] = [loc1]
+        group_boxes: list[tuple[int, int, int, int]] = [cell1]
+        matched.add(loc1)
+        group_hash.add(loc1)
+
+        for idx2, (cell2, loc2) in enumerate(cells):
+            if idx1 == idx2:
+                continue
+
+            if loc2 in matched:
+                continue
+
+            # if not same cell and not matched already see if we can find a match
+            # check if the cells are adjacent (non-diagonal)
+            potentials = [
+                (loc2[0] - 1, loc2[1]),
+                # (loc2[0] + 1, loc2[1]),
+                (loc2[0], loc2[1] - 1),
+                # (loc2[0], loc2[1] + 1),
+            ]
+            for ploc in potentials:
+                if ploc in group_hash:
+                    group_locs.append(loc2)
+                    group_boxes.append(cell2)
+                    matched.add(loc2)
+                    group_hash.add(loc2)
+                    break
+
+        groups.append((group_boxes, group_locs))
+
+    print(f"Groups: {len(groups)}, Boxes: {len(cells)}")
+    # need to debug view this
+    import cv2
+    from cv2ext.bboxes._bounding import bounding
+    from cv2ext.image.draw import rectangle
+    new_image = np.zeros(image.shape, dtype=np.uint8)
+    for group in groups:
+        for bbox in group[0]:
+            x1, y1, x2, y2 = bbox
+            new_image[y1:y2, x1:x2] = image[y1:y2, x1:x2]
+        o_bbox = bounding(group[0])
+        rectangle(new_image, o_bbox)
+
+    # First, for each group, compute its bounding rectangle in grid-cell coordinates.
+    # Assume that each cells loc is a tuple (col, row) (i.e. (x, y)).
+    groups_info = []  # each element: (group_boxes, group_locs, min_x, min_y, group_width, group_height)
+    total_cells = 0
+    for boxes, locs in groups:
+        cols = [loc[0] for loc in locs]
+        rows = [loc[1] for loc in locs]
+        min_x = min(cols)
+        max_x = max(cols)
+        min_y = min(rows)
+        max_y = max(rows)
+        group_width = max_x - min_x + 1  # in number of grid cells
+        group_height = max_y - min_y + 1
+        total_cells += group_width * group_height
+        groups_info.append((boxes, locs, min_x, min_y, group_width, group_height))
+
+    # Estimate a target width (in grid cells) roughly equal to the square root of total cells.
+    target_cols = max(1, math.ceil(math.sqrt(total_cells)))
+
+    # Pack groups in “shelves”
+    placements = []  # will hold for each group a tuple (offset_x, offset_y) in grid cells
+    current_x = 0
+    current_y = 0
+    shelf_height = 0
+    max_used_cols = 0
+    for info in groups_info:
+        _, _, _, _, group_width, group_height = info
+        # If this group doesn't fit in the current shelf, start a new shelf.
+        if current_x + group_width > target_cols:
+            current_y += shelf_height
+            current_x = 0
+            shelf_height = 0
+        placements.append((current_x, current_y))
+        current_x += group_width
+        shelf_height = max(shelf_height, group_height)
+        max_used_cols = max(max_used_cols, current_x)
+    total_grid_rows = current_y + shelf_height
+    total_grid_cols = max_used_cols
+
+    # Allocate new image and a new grid array to store original offsets.
+    img_h = max(gridsize, total_grid_rows * gridsize)
+    img_w = max(gridsize, total_grid_cols * gridsize)
+    # new_image = np.zeros(
+    #     (img_h, img_w, 3),
+    #     dtype=np.uint8,
+    # )
+    # new_grids: each cell in the new grid holds the original offset (top-left of the bounding box)
+    new_grids = np.zeros((total_grid_rows, total_grid_cols, 2), dtype=int)
+
+    # # Initialize new_grids with a sentinel value (-1,-1) to denote an empty cell.
+    # new_grids.fill(-1)
+
+    # # For each group, copy each cell from the original image into the new image.
+    # # We preserve the relative arrangement within the group.
+    # for (boxes, locs, min_x, min_y, _, _), (
+    #     placement_x,
+    #     placement_y,
+    # ) in zip(groups_info, placements):
+    #     # For each cell in this group, determine its new grid coordinates relative to the groups placement.
+    #     # Note: the original loc of the cell is in grid coordinates; subtract the min to get a 0-based index.
+    #     for bbox, loc in zip(boxes, locs):
+    #         # relative position inside the group:
+    #         rel_x = loc[0] - min_x
+    #         rel_y = loc[1] - min_y
+    #         new_col = placement_x + rel_x
+    #         new_row = placement_y + rel_y
+
+    #         # Compute new pixel coordinates
+    #         n_x1 = new_col * gridsize
+    #         n_y1 = new_row * gridsize
+    #         n_x2 = n_x1 + gridsize
+    #         n_y2 = n_y1 + gridsize
+
+    #         x1, y1, x2, y2 = bbox
+    #         # Copy the patch from the original image into the new location.
+    #         new_image[n_y1:n_y2, n_x1:n_x2] = image[y1:y2, x1:x2]
+
+    #         # Save the original offset (here, we use the top-left coordinate of the bbox)
+    #         new_grids[new_row, new_col] = (x1, y1)
+
+    return new_image, new_grids
 
 
 class AbstractGridFramePacker(AbstractFramePacker):
@@ -339,6 +530,7 @@ class AbstractGridFramePacker(AbstractFramePacker):
         exclude: tuple[int, int, int, int]
         | list[tuple[int, int, int, int]]
         | None = None,
+        method: str = "smart",
     ) -> tuple[np.ndarray, np.ndarray]:
         """
         Pack regions of a frame together.
@@ -350,6 +542,11 @@ class AbstractGridFramePacker(AbstractFramePacker):
         exclude : tuple[int, int, int, int] | list[tuple[int, int, int, int]], optional
             Regions of the image to exclude from the packing.
             By default None.
+        method : str, optional
+            The method to pack the bounding boxes with.
+            Options are: ['simple', 'smart']
+            Simple will place tiles of the grid FCFS basis in the new image,
+            while smart will attempt to place connected regions together.
 
         Returns
         -------
@@ -409,42 +606,19 @@ class AbstractGridFramePacker(AbstractFramePacker):
             ):
                 filtered_cells.append((bbox, (row, col)))
 
-        # need to repack the cells into a new image
-        num_cells = len(filtered_cells)
-        dim1 = max(1, math.ceil(math.sqrt(num_cells)))
-        dim2 = max(1, math.ceil(num_cells / dim1))
-
-        # allocate new data for the patches
-        new_image: np.ndarray = np.zeros(
-            (dim2 * self._gridsize, dim1 * self._gridsize, 3),
-            dtype=np.uint8,
-        )
-
-        # copy the old data into new packed image
-        # generate the transforms
-        # new_grids: np.ndarray = np.zeros((self._n_rows, self._n_cols, 2), dtype=int)
-        new_grids: np.ndarray = np.zeros((dim2, dim1, 2), dtype=int)
-        for i, (bbox, _) in enumerate(filtered_cells):
-            x1, y1, x2, y2 = bbox
-
-            # generate the new row/col
-            n_row = math.floor(i / dim1)  # Fixed dimension calculation
-            n_col = i % dim1
-
-            # generate the new bounding box
-            n_x1 = n_col * self._gridsize
-            n_x2 = n_x1 + self._gridsize
-            n_y1 = n_row * self._gridsize
-            n_y2 = n_y1 + self._gridsize
-
-            # generate the offset, same as old coords for x1, y1
-            offset = (x1, y1)
-
-            # perform the data copy
-            new_image[n_y1:n_y2, n_x1:n_x2] = image[y1:y2, x1:x2]
-
-            # save the new grid entry
-            new_grids[n_row, n_col] = offset
+        # use the simple grid repacking
+        if method == "simple":
+            new_image, new_grids = _simple_grid_repack(
+                image,
+                filtered_cells,
+                self._gridsize,
+            )
+        else:
+            new_image, new_grids = _connected_components_grid_repack(
+                image,
+                filtered_cells,
+                self._gridsize,
+            )
 
         # update the image
         self._prev_image = image
