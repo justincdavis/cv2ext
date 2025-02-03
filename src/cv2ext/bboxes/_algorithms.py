@@ -63,10 +63,10 @@ def filter_bboxes_by_region(
 
 @register_jit()
 def _match_kernel(
-    bboxes1: list[
+    bboxes1: Sequence[
         tuple[int, int, int, int] | tuple[tuple[int, int, int, int], float, int]
     ],
-    bboxes2: list[
+    bboxes2: Sequence[
         tuple[int, int, int, int] | tuple[tuple[int, int, int, int], float, int]
     ],
     iou_threshold: float = 0.5,
@@ -98,7 +98,7 @@ def _match_kernel(
                 bbox2, _, cid2 = entry2
             else:
                 bbox2 = entry2
-                cid2 = -2
+                cid2 = -1
 
             if not class_agnostic and cid1 != cid2:
                 continue
@@ -116,10 +116,10 @@ def _match_kernel(
 
 
 def match(
-    bboxes1: list[
+    bboxes1: Sequence[
         tuple[int, int, int, int] | tuple[tuple[int, int, int, int], float, int]
     ],
-    bboxes2: list[
+    bboxes2: Sequence[
         tuple[int, int, int, int] | tuple[tuple[int, int, int, int], float, int]
     ],
     iou_threshold: float = 0.5,
@@ -131,10 +131,10 @@ def match(
 
     Parameters
     ----------
-    bboxes1 : list[tuple[int, int, int, int] | tuple[tuple[int, int, int, int], float, int]]
-        The first list of bounding boxes
-    bboxes2 : list[tuple[int, int, int, int] | tuple[tuple[int, int, int, int], float, int]]
-        The second list of bounding boxes
+    bboxes1 : Sequence[tuple[int, int, int, int] | tuple[tuple[int, int, int, int], float, int]]
+        The first Sequence of bounding boxes
+    bboxes2 : Sequence[tuple[int, int, int, int] | tuple[tuple[int, int, int, int], float, int]]
+        The second Sequence of bounding boxes
     iou_threshold : float, optional
         The IOU threshold which determines whether two bounding boxes are a match.
         By default, 0.5
@@ -152,10 +152,10 @@ def match(
 
 
 def calculate_metrics(
-    bboxes1: list[
+    bboxes1: Sequence[
         tuple[int, int, int, int] | tuple[tuple[int, int, int, int], float, int]
     ],
-    bboxes2: list[
+    bboxes2: Sequence[
         tuple[int, int, int, int] | tuple[tuple[int, int, int, int], float, int]
     ],
     iou_threshold: float = 0.5,
@@ -164,16 +164,16 @@ def calculate_metrics(
     class_agnostic: bool = False,
 ) -> tuple[list[tuple[int, int]], dict[str, float]]:
     """
-    Compute accuracy metrics between two lists of bounding boxes/detections.
+    Compute accuracy metrics between two Sequences of bounding boxes/detections.
 
     Bounding boxes are matched using the greedy algolrithm from :func:`match`.
 
     Parameters
     ----------
-    bboxes1 : list[tuple[int, int, int, int] | tuple[tuple[int, int, int, int], float, int]]
-        The first list of bounding boxes
-    bboxes2 : list[tuple[int, int, int, int] | tuple[tuple[int, int, int, int], float, int]]
-        The second list of bounding boxes
+    bboxes1 : Sequence[tuple[int, int, int, int] | tuple[tuple[int, int, int, int], float, int]]
+        The first Sequence of bounding boxes
+    bboxes2 : Sequence[tuple[int, int, int, int] | tuple[tuple[int, int, int, int], float, int]]
+        The second Sequence of bounding boxes
     iou_threshold : float, optional
         The IOU threshold which determines whether two bounding boxes are a match.
         By default, 0.5
