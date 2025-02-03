@@ -5,6 +5,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from ._iou import _iou_kernel
+from cv2ext._jit import register_jit
+
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
@@ -55,3 +58,74 @@ def filter_bboxes_by_region(
             filtered.append(bbox)
 
     return filtered
+
+
+@register_jit()
+def _match_bboxes(
+    bboxes1: list[tuple[int, int, int, int]],
+    bboxes2: list[tuple[int, int, int, int]],
+    iou_threshold: float = 0.5,
+) -> list[tuple[int, int]]:
+    matches = []
+    used_idx = set()
+
+    for idx1, bbox1 in enumerate(bboxes1):
+        best_iou = 0
+        best_idx = -1
+
+        for idx2, bbox2 in enumerate(bboxes2):
+            if idx2 in used_idx:
+                continue
+
+            iou = _iou_kernel(bbox1, bbox2)
+            if iou > best_iou:
+                best_iou = iou
+                best_idx = idx2
+
+        if best_iou >= iou_threshold:
+            matches.append((idx1, best_idx))
+            used_idx.add(best_idx)
+
+    return matches
+
+
+@register_jit()
+def _match_detections(
+    bboxes1: list[tuple[tuple[int, int, int, int], float, int]],
+    bboxes2: list[tuple[tuple[int, int, int, int], float, int]],
+    iou_threshold: float = 0.5,
+    *,
+    class_agnostic: bool = False,
+) -> list[tuple[int, int]]:
+    matches = []
+    used_idx = set()
+
+    for idx1, (bbox1, _, cid1) in enumerate(bboxes1):
+        best_iou = 0
+        best_idx = -1
+
+        for idx2, (bbox2, _, cid2) in enumerate(bboxes2):
+            if idx2 in used_idx:
+                continue
+
+            if cid1 != cid2 and not class_agnostic:
+                continue
+
+            iou = _iou_kernel(bbox1, bbox2)
+            if iou > best_iou:
+                best_iou = iou
+                best_idx = idx2
+
+        if best_iou >= iou_threshold:
+            matches.append((idx1, best_idx))
+            used_idx.add(best_idx)
+
+    return matches
+
+
+def match(
+    bboxes1: list[tuple[int, int, int, int]],
+    bboxes2: list[tuple[int, int, int, int]],
+    iou_threshold: float = 0.5,
+) -> list[tuple[int, int]]:
+    return _match_bboxes(bboxes1, bboxes2, iou_threshold)
