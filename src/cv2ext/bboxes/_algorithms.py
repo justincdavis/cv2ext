@@ -108,7 +108,53 @@ def _match_detections(
             if idx2 in used_idx:
                 continue
 
-            if cid1 != cid2 and not class_agnostic:
+            if not class_agnostic and cid1 != cid2:
+                continue
+
+            iou = _iou_kernel(bbox1, bbox2)
+            if iou > best_iou:
+                best_iou = iou
+                best_idx = idx2
+
+        if best_iou >= iou_threshold:
+            matches.append((idx1, best_idx))
+            used_idx.add(best_idx)
+
+    return matches
+
+
+@register_jit()
+def _match_kernel(
+    bboxes1: list[tuple[int, int, int, int] | tuple[tuple[int, int, int, int], float, int]],
+    bboxes2: list[tuple[int, int, int, int] | tuple[tuple[int, int, int, int], float, int]],
+    iou_threshold: float = 0.5,
+    *,
+    class_agnostic: bool = False,
+) -> list[tuple[int, int]]:
+    if len(bboxes1) == 0 or len(bboxes2) == 0:
+        err_msg = "Each list of bboxes must have at least length of 1."
+        raise ValueError(err_msg)
+    
+    matches = []
+    used_idx = set()
+
+    for idx1, entry1 in enumerate(bboxes1):
+        best_iou = 0
+        best_idx = -1
+
+        bbox1, cid1 = entry1, -1
+        if len(bbox1) == 3:
+            bbox1, _, cid1 = entry1
+
+        for idx2, entry2 in enumerate(bboxes2):
+            if idx2 in used_idx:
+                continue
+
+            bbox2, cid2 = entry2, -2
+            if len(bbox2) == 3:
+                bbox2, _, cid2 = entry2
+
+            if not class_agnostic and cid1 != cid2:
                 continue
 
             iou = _iou_kernel(bbox1, bbox2)
@@ -124,8 +170,32 @@ def _match_detections(
 
 
 def match(
-    bboxes1: list[tuple[int, int, int, int]],
-    bboxes2: list[tuple[int, int, int, int]],
+    bboxes1: list[tuple[int, int, int, int] | tuple[tuple[int, int, int, int], float, int]],
+    bboxes2: list[tuple[int, int, int, int] | tuple[tuple[int, int, int, int], float, int]],
     iou_threshold: float = 0.5,
+    *,
+    class_agnostic: bool = False,
 ) -> list[tuple[int, int]]:
-    return _match_bboxes(bboxes1, bboxes2, iou_threshold)
+    """
+    Match bounding boxes using a greedy algorithm.
+
+    Parameters
+    ----------
+    bboxes1 : list[tuple[int, int, int, int] | tuple[tuple[int, int, int, int], float, int]]
+        The first list of bounding boxes
+    bboxes2 : list[tuple[int, int, int, int] | tuple[tuple[int, int, int, int], float, int]]
+        The second list of bounding boxes
+    iou_threshold : float, optional
+        The IOU threshold which determines whether two bounding boxes are a match.
+        By default, 0.5
+    class_agnostic : bool, optional
+        Whether or not to compare class ID (if present)
+        By default, False
+
+    Returns
+    -------
+    list[tuple[int, int]]
+        A list of the matching indices
+
+    """
+    return _match_kernel(bboxes1, bboxes2, iou_threshold, class_agnostic=class_agnostic)
