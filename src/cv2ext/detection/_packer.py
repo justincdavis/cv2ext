@@ -626,6 +626,7 @@ class AbstractGridFramePacker(AbstractFramePacker):
         image_shape: tuple[int, int],
         gridsize: int = 128,
         detection_buffer: int = 30,
+        method: str = "simple",
     ) -> None:
         """
         Create a new GridFramePacker.
@@ -642,12 +643,19 @@ class AbstractGridFramePacker(AbstractFramePacker):
             Used instead of current frame count once frame count exceeds buffer size.
             Allows more recent detections to have more influence.
             Default is 30.
+        method : str, optional
+            The method to use for repacking grid cells into new images.
+            By default, 'simple'
+            Options are: ['simple', 'smart']
+            Simple will place tiles of the grid FCFS basis in the new image,
+            while smart will attempt to place connected regions together.
 
         """
         super().__init__()
         self._width, self._height = image_shape
         self._gridsize = gridsize
         self._detection_buffer = detection_buffer
+        self._method = method
 
         # assign type hints to variables used in initialize_cells
         self._n_cols: int
@@ -753,7 +761,7 @@ class AbstractGridFramePacker(AbstractFramePacker):
         exclude: tuple[int, int, int, int]
         | list[tuple[int, int, int, int]]
         | None = None,
-        method: str = "smart",
+        method: str | None = None,
     ) -> tuple[np.ndarray, np.ndarray]:
         """
         Pack regions of a frame together.
@@ -767,9 +775,8 @@ class AbstractGridFramePacker(AbstractFramePacker):
             By default None.
         method : str, optional
             The method to pack the bounding boxes with.
+            By default, None
             Options are: ['simple', 'smart']
-            Simple will place tiles of the grid FCFS basis in the new image,
-            while smart will attempt to place connected regions together.
 
         Returns
         -------
@@ -830,6 +837,7 @@ class AbstractGridFramePacker(AbstractFramePacker):
                 filtered_cells.append((bbox, (row, col)))
 
         # use the simple grid repacking
+        method = method if method else self._method
         if method == "simple":
             new_image, new_grids = _simple_grid_repack(
                 image,
