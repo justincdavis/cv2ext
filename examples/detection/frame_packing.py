@@ -5,13 +5,10 @@
 
 from __future__ import annotations
 
-import time
-
 import cv2ext
 from cv2ext.detection import AnnealingFramePacker
 
 if __name__ == "__main__":
-    cv2ext.set_log_level("DEBUG")
     video = cv2ext.IterableVideo("data/testvid.mp4")
 
     packer = AnnealingFramePacker(
@@ -23,7 +20,7 @@ if __name__ == "__main__":
             if display.stopped:
                 break
 
-            packed, transform = packer.pack(frame, exclude=[])
+            packed, transform = packer.pack(frame, exclude=[], method="smart")
             display(packed)
 
-            display.wait()
+            display.wait(timeout=1)

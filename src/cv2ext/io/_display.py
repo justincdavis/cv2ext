@@ -198,8 +198,8 @@ class Display:
                 if keypress == ord(self._stopkey):
                     self._stopped = True
                     continue
-                with contextlib.suppress(RuntimeError):
-                    if self._nextkey and keypress == ord(self._nextkey):
+                if self._nextkey and keypress == ord(self._nextkey):
+                    with self._next:
                         self._next.notify_all()
 
             # handle rough FPS sync
@@ -245,8 +245,22 @@ class Display:
             self._queue.put_nowait(frame)
             _log.debug(f"Sent frame to dispaly: {self._windowname}")
 
-    def wait(self: Self) -> None:
-        """Wait for the next press of nextkey if specified."""
+    def wait(self: Self, timeout: float | None = None) -> None:
+        """
+        Wait for the next press of nextkey if specified.
+
+        If nextkey has not been specified, will instead wait for the timeout
+        amount. This will mimic a set framerate (although the underlying thread may
+        still not update as fast.)
+
+        Parameters
+        ----------
+        timeout : float, optional
+            The maximum amount of time to wait.
+
+        """
         if self._nextkey:
             with self._next:
-                self._next.wait()
+                self._next.wait(timeout=timeout)
+        elif timeout:
+            time.sleep(timeout)
