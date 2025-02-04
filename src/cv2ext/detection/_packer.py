@@ -450,6 +450,8 @@ def _connected_components_grid_repack(
 
 
 # CHATGPT PROVIDED FUNCTION
+# TODO: remap new_grids does not work
+# TODO: crashes when no groups created
 def _intelligent_grid_repack(
     image: np.ndarray,
     cells: list[tuple[tuple[int, int, int, int], tuple[int, int]]],
