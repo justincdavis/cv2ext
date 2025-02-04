@@ -948,6 +948,7 @@ class AnnealingFramePacker(AbstractGridFramePacker):
         alpha: float = 0.01,
         min_prob: float = 0.1,
         detection_buffer: int = 30,
+        method: str = "simple",
     ) -> None:
         """
         Create a new AnnealingFramePacker.
@@ -970,9 +971,15 @@ class AnnealingFramePacker(AbstractGridFramePacker):
             Used instead of current frame count once frame count exceeds buffer size.
             Allows more recent detections to have more influence.
             Default is 30.
+        method : str, optional
+            The method to use for repacking grid cells into new images.
+            By default, 'simple'
+            Options are: ['simple', 'smart']
+            Simple will place tiles of the grid FCFS basis in the new image,
+            while smart will attempt to place connected regions together.
 
         """
-        super().__init__(image_shape, gridsize, detection_buffer)
+        super().__init__(image_shape, gridsize, detection_buffer, method)
 
         # specific annealing parameters
         self._alpha = alpha
@@ -1004,6 +1011,7 @@ class RandomFramePacker(AbstractGridFramePacker):
         gridsize: int = 128,
         threshold: float = 0.1,
         detection_buffer: int = 30,
+        method: str = "simple",
     ) -> None:
         """
         Create a new RandomFramePacker.
@@ -1025,9 +1033,15 @@ class RandomFramePacker(AbstractGridFramePacker):
             Used instead of current frame count once frame count exceeds buffer size.
             Allows more recent detections to have more influence.
             Default is 30.
+        method : str, optional
+            The method to use for repacking grid cells into new images.
+            By default, 'simple'
+            Options are: ['simple', 'smart']
+            Simple will place tiles of the grid FCFS basis in the new image,
+            while smart will attempt to place connected regions together.
 
         """
-        super().__init__(image_shape, gridsize, detection_buffer)
+        super().__init__(image_shape, gridsize, detection_buffer, method)
 
         # specific parameters
         self._threshold = threshold
