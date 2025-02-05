@@ -419,11 +419,13 @@ def _smart_grid_repack(
         new_width += s_width
 
     # create new image and new grid based on the new dimensions
+    dim1 = max(new_height, 1)
+    dim2 = max(new_width, 1)
     new_image: np.ndarray = np.zeros(
-        (max(new_height, 1) * gridsize, max(new_width, 1) * gridsize, 3),
+        (dim1 * gridsize, dim2 * gridsize, 3),
         dtype=np.uint8,
     )
-    new_grid: np.ndarray = np.zeros((new_height, new_width, 2), dtype=int)
+    new_grid: np.ndarray = np.zeros((dim1, dim2, 2), dtype=int)
 
     # for each shelf, iterate over the cells and add them into grid and image
     # need to keep a rolling start width, to denote the offset of each shelf
