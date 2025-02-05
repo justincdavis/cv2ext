@@ -18,6 +18,8 @@
 - bboxes.match, bboxes.calculate_metrics
     Added functions for matching and computing
     accuracy between two lists of bounding boxes.
+- io.Display.wait and nextkey init parameters.
+    Allows more syncronization on the Display class.
 
 ### Changed
 

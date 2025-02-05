@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import math
+import operator
 import random
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
@@ -149,7 +150,7 @@ def _unpack_grid_single_bbox(
     # Determine grid coordinates for the packed bounding box
     n_col = int(((x1 + x2) / 2.0) // gridsize)
     n_row = int(((y1 + y2) / 2.0) // gridsize)
-    
+
     # clamp indices
     n_row = max(0, min(n_row, transform.shape[0] - 1))
     n_col = max(0, min(n_col, transform.shape[1] - 1))
@@ -204,6 +205,260 @@ def _unpack_grid_bboxes(
     return unpacked_dets
 
 
+@register_jit()
+def _simple_grid_repack(
+    image: np.ndarray,
+    cells: list[tuple[tuple[int, int, int, int], tuple[int, int]]],
+    gridsize: int,
+) -> tuple[np.ndarray, np.ndarray]:
+    # need to repack the cells into a new image
+    num_cells = len(cells)
+    dim1 = max(1, math.ceil(math.sqrt(num_cells)))
+    dim2 = max(1, math.ceil(num_cells / dim1))
+
+    # allocate new data for the patches
+    new_image: np.ndarray = np.zeros(
+        (dim2 * gridsize, dim1 * gridsize, 3),
+        dtype=np.uint8,
+    )
+
+    # copy the old data into new packed image
+    # generate the transforms
+    # new_grids: np.ndarray = np.zeros((self._n_rows, self._n_cols, 2), dtype=int)
+    new_grids: np.ndarray = np.zeros((dim2, dim1, 2), dtype=int)
+    for i, (bbox, _) in enumerate(cells):
+        x1, y1, x2, y2 = bbox
+
+        # generate the new row/col
+        n_row = math.floor(i / dim1)  # Fixed dimension calculation
+        n_col = i % dim1
+
+        # generate the new bounding box
+        n_x1 = n_col * gridsize
+        n_x2 = n_x1 + gridsize
+        n_y1 = n_row * gridsize
+        n_y2 = n_y1 + gridsize
+
+        # generate the offset, same as old coords for x1, y1
+        offset = (x1, y1)
+
+        # perform the data copy
+        new_image[n_y1:n_y2, n_x1:n_x2] = image[y1:y2, x1:x2]
+
+        # save the new grid entry
+        new_grids[n_row, n_col] = offset
+
+    return new_image, new_grids
+
+
+@register_jit()
+def _smart_grid_repack(
+    image: np.ndarray,
+    cells: list[tuple[tuple[int, int, int, int], tuple[int, int]]],
+    gridsize: int,
+) -> tuple[np.ndarray, np.ndarray]:
+    # two steps to the smart placement algorithm
+    # STEP 1: identify dense groupings of cells
+    # STEP 2: using shelf based 2d bin packing to repack
+
+    # ======================
+    # STEP 1: Grouping cells
+    # ======================
+    # for each cell, identify it it belongs to a 2x2 square
+    # if 2x2 square all needs to be matched, keep it as a group
+    to_match: set[tuple[int, int]] = {loc for _, loc in cells}
+    matched: set[tuple[int, int]] = set()
+    groups: list[list[tuple[int, int]]] = []
+
+    # if we can match this cell, check combos of surrounding cells
+    offset_groups: list[list[tuple[int, int]]] = [
+        # 2x2 square sampling sets
+        [(0, -1), (-1, 0), (-1, -1)],  # down/left
+        [(0, 1), (-1, 0), (-1, 1)],  # down/right
+        [(0, 1), (1, 0), (1, 1)],  # up/right
+        [(0, -1), (1, 0), (1, -1)],  # up/left
+        # 1x2 sampling sets
+        [(0, -1)],
+        [(0, 1)],
+        # 2x1 sampling sets
+        [(-1, 0)],
+        [(1, 0)],
+    ]
+
+    # construct lookup for bboxes from loc
+    height, width = image.shape[:2]
+    rows = math.ceil(height / gridsize)
+    cols = math.ceil(width / gridsize)
+    lookup: list[list[tuple[int, int, int, int]]] = [
+        [(0, 0, 0, 0) for _ in range(cols)] for _ in range(rows)
+    ]
+
+    # iterate over all cells in cells
+    for bbox1, loc1 in cells:
+        # fill out the lookup
+        lookup[loc1[0]][loc1[1]] = bbox1
+
+        if loc1 in matched:
+            continue
+
+        # for each set of offsets making a 2x2 square
+        for offsets in offset_groups:
+            found = 0
+            # compute the new locations
+            new_locs = [
+                (loc1[0] + offset[0], loc1[1] + offset[1]) for offset in offsets
+            ]
+
+            # check if they are valid
+            for new_loc in new_locs:
+                # if new location is not matched and needs to be matched
+                if new_loc not in matched and new_loc in to_match:
+                    found += 1
+
+            # if we found that all 3 adjacent cells are valid
+            # we have a valid match setup
+            # skip if did not match all 3
+            if found != len(offsets):
+                continue
+
+            # make new group from 3 matches
+            new_group = [loc1, *new_locs]
+            groups.append(new_group)
+            for new_loc in new_group:
+                matched.add(new_loc)
+                to_match.remove(new_loc)
+
+            # do not check anymore groups
+            break
+
+        # execute the else block if the for loop finished
+        # meaning no group found and no break occured
+        else:
+            groups.append([loc1])
+            matched.add(loc1)
+            to_match.remove(loc1)
+
+    # ===============================
+    # STEP 2: Repacking using shelves
+    # ===============================
+    # sort each sub group to maintain right then down (in image coords)
+    # ordering such that simple iteratation will place
+    # cells in correct spots later
+    groups = [sorted(group, key=operator.itemgetter(0, 1)) for group in groups]
+
+    # post process the groups to sort by overall size
+    # sort in descending order so we greedily allocate
+    # largest first
+    groups.sort(key=len, reverse=True)
+
+    # assign heuristic value to attempt to hold max dimensions to
+    target_size = math.ceil(math.sqrt(len(cells)))
+
+    # use shelf packing stragegies
+    # should get fairly good fit
+    # since we have 2 discrete shelf widths, focus on group to shelf fit gap
+    # each entry is [group, height, width]
+    shelves: list[tuple[list[tuple[int, int]], int, int]] = []
+
+    # for each group, get first shelf where width fits
+    for group in groups:
+        # compute height/width of group based on corner cell
+        corner = group[0]
+        g_height = 1
+        g_width = 1
+        for cell in group:
+            g_height = max(g_height, cell[0] - corner[0] + 1)
+            g_width = max(g_width, cell[1] - corner[1] + 1)
+
+        # special case where no shelves are allocated yet
+        if len(shelves) == 0:
+            shelves.append(
+                (group, g_height, g_width),
+            )
+            continue
+
+        # in this case there is at least one shelf
+        # iterate over the shelves
+        # case 1:
+        # if we find a shelf with equal width to group
+        # and the group fits below target_size in height
+        # add the group to that shelf
+        shelf_id = -1
+        for s_idx, (_, s_height, s_width) in enumerate(shelves):
+            if g_width != s_width:
+                continue
+            if g_height + s_height > target_size:
+                continue
+
+            # as soon as we find one, break
+            shelf_id = s_idx
+            break
+
+        if shelf_id != -1:
+            s_boxes, s_height, s_width = shelves[shelf_id]
+            s_boxes.extend(group)
+            s_height += g_height
+            shelves[shelf_id] = (
+                s_boxes,
+                s_height,
+                s_width,
+            )
+            continue
+
+        # case 2:
+        # could not find a shelf, need to make a new one
+        shelves.append(
+            (group, g_height, g_width),
+        )
+
+    # compute the overall dimensions of the new image and grid
+    new_height = 0  # maximum height of any shelf
+    new_width = 0  # sum of all shelf widths
+    for _, s_height, s_width in shelves:
+        new_height = max(new_height, s_height)
+        new_width += s_width
+
+    # create new image and new grid based on the new dimensions
+    new_image: np.ndarray = np.zeros(
+        (max(new_height, 1) * gridsize, max(new_width, 1) * gridsize, 3),
+        dtype=np.uint8,
+    )
+    new_grid: np.ndarray = np.zeros((new_height, new_width, 2), dtype=int)
+
+    # for each shelf, iterate over the cells and add them into grid and image
+    # need to keep a rolling start width, to denote the offset of each shelf
+    frontier = 0
+    for s_boxes, s_height, s_width in shelves:
+        # iterate over each (height, width) block in
+        # the shelf. Place each cell in that spot and copy
+        for i in range(s_height):
+            for j in range(s_width):
+                # compute box id based on s_width
+                b_idx = i * s_width + j
+
+                # compute the original coords from loc
+                o_r, o_c = s_boxes[b_idx]
+                x1, y1, x2, y2 = lookup[o_r][o_c]
+
+                # based on the original image offset update new_Grid
+                n_c = j + frontier
+                new_grid[i][n_c] = (x1, y1)
+
+                # update the region of new_image with the region of the original image
+                n_y = i * gridsize
+                n_x = n_c * gridsize
+                new_image[n_y : n_y + gridsize, n_x : n_x + gridsize] = image[
+                    y1:y2,
+                    x1:x2,
+                ]
+
+        # once shelf is added, update the frontier (x coord tracker)
+        frontier += s_width
+
+    # finally return the completed new_image and transform info
+    return new_image, new_grid
+
+
 class AbstractGridFramePacker(AbstractFramePacker):
     """Pack regions of a frame together based on a grid."""
 
@@ -212,6 +467,7 @@ class AbstractGridFramePacker(AbstractFramePacker):
         image_shape: tuple[int, int],
         gridsize: int = 128,
         detection_buffer: int = 30,
+        method: str = "simple",
     ) -> None:
         """
         Create a new GridFramePacker.
@@ -228,12 +484,19 @@ class AbstractGridFramePacker(AbstractFramePacker):
             Used instead of current frame count once frame count exceeds buffer size.
             Allows more recent detections to have more influence.
             Default is 30.
+        method : str, optional
+            The method to use for repacking grid cells into new images.
+            By default, 'simple'
+            Options are: ['simple', 'smart']
+            Simple will place tiles of the grid FCFS basis in the new image,
+            while smart will attempt to place connected regions together.
 
         """
         super().__init__()
         self._width, self._height = image_shape
         self._gridsize = gridsize
         self._detection_buffer = detection_buffer
+        self._method = method
 
         # assign type hints to variables used in initialize_cells
         self._n_cols: int
@@ -339,6 +602,7 @@ class AbstractGridFramePacker(AbstractFramePacker):
         exclude: tuple[int, int, int, int]
         | list[tuple[int, int, int, int]]
         | None = None,
+        method: str | None = None,
     ) -> tuple[np.ndarray, np.ndarray]:
         """
         Pack regions of a frame together.
@@ -350,6 +614,10 @@ class AbstractGridFramePacker(AbstractFramePacker):
         exclude : tuple[int, int, int, int] | list[tuple[int, int, int, int]], optional
             Regions of the image to exclude from the packing.
             By default None.
+        method : str, optional
+            The method to pack the bounding boxes with.
+            By default, None
+            Options are: ['simple', 'smart']
 
         Returns
         -------
@@ -409,42 +677,20 @@ class AbstractGridFramePacker(AbstractFramePacker):
             ):
                 filtered_cells.append((bbox, (row, col)))
 
-        # need to repack the cells into a new image
-        num_cells = len(filtered_cells)
-        dim1 = max(1, math.ceil(math.sqrt(num_cells)))
-        dim2 = max(1, math.ceil(num_cells / dim1))
-
-        # allocate new data for the patches
-        new_image: np.ndarray = np.zeros(
-            (dim2 * self._gridsize, dim1 * self._gridsize, 3),
-            dtype=np.uint8,
-        )
-
-        # copy the old data into new packed image
-        # generate the transforms
-        # new_grids: np.ndarray = np.zeros((self._n_rows, self._n_cols, 2), dtype=int)
-        new_grids: np.ndarray = np.zeros((dim2, dim1, 2), dtype=int)
-        for i, (bbox, _) in enumerate(filtered_cells):
-            x1, y1, x2, y2 = bbox
-
-            # generate the new row/col
-            n_row = math.floor(i / dim1)  # Fixed dimension calculation
-            n_col = i % dim1
-
-            # generate the new bounding box
-            n_x1 = n_col * self._gridsize
-            n_x2 = n_x1 + self._gridsize
-            n_y1 = n_row * self._gridsize
-            n_y2 = n_y1 + self._gridsize
-
-            # generate the offset, same as old coords for x1, y1
-            offset = (x1, y1)
-
-            # perform the data copy
-            new_image[n_y1:n_y2, n_x1:n_x2] = image[y1:y2, x1:x2]
-
-            # save the new grid entry
-            new_grids[n_row, n_col] = offset
+        # use the simple grid repacking
+        method = method or self._method
+        if method == "simple":
+            new_image, new_grids = _simple_grid_repack(
+                image,
+                filtered_cells,
+                self._gridsize,
+            )
+        else:
+            new_image, new_grids = _smart_grid_repack(
+                image,
+                filtered_cells,
+                self._gridsize,
+            )
 
         # update the image
         self._prev_image = image
@@ -543,6 +789,7 @@ class AnnealingFramePacker(AbstractGridFramePacker):
         alpha: float = 0.01,
         min_prob: float = 0.1,
         detection_buffer: int = 30,
+        method: str = "simple",
     ) -> None:
         """
         Create a new AnnealingFramePacker.
@@ -565,9 +812,15 @@ class AnnealingFramePacker(AbstractGridFramePacker):
             Used instead of current frame count once frame count exceeds buffer size.
             Allows more recent detections to have more influence.
             Default is 30.
+        method : str, optional
+            The method to use for repacking grid cells into new images.
+            By default, 'simple'
+            Options are: ['simple', 'smart']
+            Simple will place tiles of the grid FCFS basis in the new image,
+            while smart will attempt to place connected regions together.
 
         """
-        super().__init__(image_shape, gridsize, detection_buffer)
+        super().__init__(image_shape, gridsize, detection_buffer, method)
 
         # specific annealing parameters
         self._alpha = alpha
@@ -599,6 +852,7 @@ class RandomFramePacker(AbstractGridFramePacker):
         gridsize: int = 128,
         threshold: float = 0.1,
         detection_buffer: int = 30,
+        method: str = "simple",
     ) -> None:
         """
         Create a new RandomFramePacker.
@@ -620,9 +874,15 @@ class RandomFramePacker(AbstractGridFramePacker):
             Used instead of current frame count once frame count exceeds buffer size.
             Allows more recent detections to have more influence.
             Default is 30.
+        method : str, optional
+            The method to use for repacking grid cells into new images.
+            By default, 'simple'
+            Options are: ['simple', 'smart']
+            Simple will place tiles of the grid FCFS basis in the new image,
+            while smart will attempt to place connected regions together.
 
         """
-        super().__init__(image_shape, gridsize, detection_buffer)
+        super().__init__(image_shape, gridsize, detection_buffer, method)
 
         # specific parameters
         self._threshold = threshold
