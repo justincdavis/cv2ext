@@ -36,6 +36,7 @@ except ImportError:
         nogil: bool,  # noqa: ARG001
         cache: bool,  # noqa: ARG001
     ) -> Callable[_P, _R]:
+        _log.debug(f"Using mock JIT on {func.__name__}")
         return func
 
 
@@ -76,9 +77,10 @@ def jit(
         The JIT compiled or untouched function.
 
     """
+    funcname = func.__name__
     if FLAGS.JIT:
-        _log.debug(f"Marking: {func.__name__} for JIT compilation")
-        return _jit(  # type: ignore[no-any-return]
+        _log.debug(f"Marking: {funcname} for JIT compilation")
+        func = _jit(  # type: ignore[no-any-return]
             func,
             nopython=True,
             fastmath=fastmath,
@@ -86,6 +88,7 @@ def jit(
             nogil=nogil,
             cache=cache,
         )
+    _log.debug(f"Resolved: {funcname} -> {type(func)}")
     return func
 
 
