@@ -272,10 +272,17 @@ def _smart_grid_repack(
 
     # if we can match this cell, check combos of surrounding cells
     offset_groups: list[list[tuple[int, int]]] = [
+        # 2x2 square sampling sets
         [(0, -1), (-1, 0), (-1, -1)],  # down/left
         [(0, 1), (-1, 0), (-1, 1)],  # down/right
         [(0, 1), (1, 0), (1, 1)],  # up/right
         [(0, -1), (1, 0), (1, -1)],  # up/left
+        # 1x2 sampling sets
+        [(0, -1)],
+        [(0, 1)],
+        # 2x1 sampling sets
+        [(-1, 0)],
+        [(1, 0)],
     ]
 
     # construct lookup for bboxes from loc
@@ -311,7 +318,7 @@ def _smart_grid_repack(
             # if we found that all 3 adjacent cells are valid
             # we have a valid match setup
             # skip if did not match all 3
-            if found != 3:
+            if found != len(offsets):
                 continue
 
             # make new group from 3 matches
