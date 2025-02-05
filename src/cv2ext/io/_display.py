@@ -44,9 +44,12 @@ class Display:
         ----------
         windowname : str
             The name of the window to display the images in.
-        stopkey : str
+        stopkey : str, optional
             The key to press to stop the display.
             By default, this is "q".
+        nextkey : str, optional
+            The key to press to move to the next frame or stop waiting threads.
+            By default None, so no key will trigger such behavior.
         buffersize : int
             The size of the buffer for the display.
             By default, this is 1.

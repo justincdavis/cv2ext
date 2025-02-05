@@ -23,4 +23,4 @@ if __name__ == "__main__":
             packed, transform = packer.pack(frame, exclude=[], method="smart")
             display(packed)
 
-            display.wait(timeout=1)
+            display.wait(timeout=0.01)

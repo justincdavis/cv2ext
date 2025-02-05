@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import math
+import operator
 import random
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
@@ -12,7 +13,6 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from cv2ext._jit import register_jit
-from cv2ext.bboxes._bounding import _bounding_kernel
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -252,372 +252,204 @@ def _simple_grid_repack(
 
 
 @register_jit()
-def _connected_components_grid_repack(
+def _smart_grid_repack(
     image: np.ndarray,
     cells: list[tuple[tuple[int, int, int, int], tuple[int, int]]],
     gridsize: int,
 ) -> tuple[np.ndarray, np.ndarray]:
-    # identify connected components
+    # two steps to the smart placement algorithm
+    # STEP 1: identify dense groupings of cells
+    # STEP 2: using shelf based 2d bin packing to repack
+
+    # ======================
+    # STEP 1: Grouping cells
+    # ======================
+    # for each cell, identify it it belongs to a 2x2 square
+    # if 2x2 square all needs to be matched, keep it as a group
+    to_match: set[tuple[int, int]] = {loc for _, loc in cells}
     matched: set[tuple[int, int]] = set()
-    to_match: set[tuple[int, int]] = set()
-    for cell in cells:
-        to_match.add(cell[1])
-    groups: list[
-        tuple[
-            list[tuple[int, int, int, int]],
-            list[tuple[int, int]],
-        ],
-    ] = []
-    for idx1, (cell1, loc1) in enumerate(cells):
+    groups: list[list[tuple[int, int]]] = []
+
+    # if we can match this cell, check combos of surrounding cells
+    offset_groups: list[list[tuple[int, int]]] = [
+        [(0, -1), (-1, 0), (-1, -1)],  # down/left
+        [(0, 1), (-1, 0), (-1, 1)],  # down/right
+        [(0, 1), (1, 0), (1, 1)],  # up/right
+        [(0, -1), (1, 0), (1, -1)],  # up/left
+    ]
+
+    # construct lookup for bboxes from loc
+    height, width = image.shape[:2]
+    rows = math.ceil(height / gridsize)
+    cols = math.ceil(width / gridsize)
+    lookup: list[list[tuple[int, int, int, int]]] = [
+        [(0, 0, 0, 0) for _ in range(cols)] for _ in range(rows)
+    ]
+
+    # iterate over all cells in cells
+    for bbox1, loc1 in cells:
+        # fill out the lookup
+        lookup[loc1[0]][loc1[1]] = bbox1
+
         if loc1 in matched:
             continue
 
-        group_hash: set[tuple[int, int]] = set()
-        group_locs: list[tuple[int, int]] = [loc1]
-        group_boxes: list[tuple[int, int, int, int]] = [cell1]
-        matched.add(loc1)
-        group_hash.add(loc1)
-
-        for idx2, (cell2, loc2) in enumerate(cells):
-            if idx1 == idx2:
-                continue
-
-            if loc2 in matched:
-                continue
-
-            # if not same cell and not matched already see if we can find a match
-            # check if the cells are adjacent (non-diagonal)
-            potentials = [
-                (loc2[0] - 1, loc2[1]),
-                # (loc2[0] + 1, loc2[1]),
-                (loc2[0], loc2[1] - 1),
-                # (loc2[0], loc2[1] + 1),
+        # for each set of offsets making a 2x2 square
+        for offsets in offset_groups:
+            found = 0
+            # compute the new locations
+            new_locs = [
+                (loc1[0] + offset[0], loc1[1] + offset[1]) for offset in offsets
             ]
-            # trim the potential cells
-            potentials = [p for p in potentials if p[0] >= 0 and p[1] >= 0]
-            valid_potentials = 0
-            for ploc in potentials:
-                if ploc in group_hash:
-                    valid_potentials += 1
 
-            # if the two previous cells we check are in the matched set
-            # then we add this one as well
-            if valid_potentials >= 1:
-                group_locs.append(loc2)
-                group_boxes.append(cell2)
-                matched.add(loc2)
-                group_hash.add(loc2)
+            # check if they are valid
+            for new_loc in new_locs:
+                # if new location is not matched and needs to be matched
+                if new_loc not in matched and new_loc in to_match:
+                    found += 1
 
-        groups.append((group_boxes, group_locs))
+            # if we found that all 3 adjacent cells are valid
+            # we have a valid match setup
+            # skip if did not match all 3
+            if found != 3:
+                continue
 
-    print(len(cells), "->", len(groups))
+            # make new group from 3 matches
+            new_group = [loc1, *new_locs]
+            groups.append(new_group)
+            for new_loc in new_group:
+                matched.add(new_loc)
+                to_match.remove(new_loc)
 
-    if len(groups) != 1:
-        print("Could not perfectly reduce")
+            # do not check anymore groups
+            break
 
-    # compute info for each grouping of bounding boxes
-    all_tiles: int = 0
-    group_info: list[tuple[tuple[int, int, int, int], list[tuple[int, int, int, int]], list[tuple[int, int]], int, int, int]] = []
-    for boxes, locs in groups:
-        # compute overall information about the group, since we do not maintain a "frontier" for cells
-        rows = [loc[0] for loc in locs]
-        cols = [loc[1] for loc in locs]
-        min_col = min(cols)
-        max_col = max(cols)
-        min_row = min(rows)
-        max_row = max(rows)
-        group_width = max_col - min_col + 1
-        group_height = max_row - min_row + 1
-        group_size = group_width * group_height
-        all_tiles += group_size
-        overall_bounding = _bounding_kernel(boxes)
-        group_info.append((
-            overall_bounding,
-            boxes,
-            locs,
-            group_height,
-            group_width,
-            group_size,
-        ))
-    group_info.sort(key=lambda e: e[-1], reverse=True)
+        # execute the else block if the for loop finished
+        # meaning no group found and no break occured
+        else:
+            groups.append([loc1])
+            matched.add(loc1)
+            to_match.remove(loc1)
 
-    # compute the ideal size in loc coords
-    target_dim = math.ceil(math.sqrt(all_tiles))
+    # ===============================
+    # STEP 2: Repacking using shelves
+    # ===============================
+    # sort each sub group to maintain right then down (in image coords)
+    # ordering such that simple iteratation will place
+    # cells in correct spots later
+    groups = [sorted(group, key=operator.itemgetter(0, 1)) for group in groups]
 
-    # each shelf is [left, right, bottom, list of groups]
-    shelves: list[tuple[int, int, int, list[tuple[list[tuple[int, int, int, int]], list[tuple[int, int]]]]]] = []
-    for group in group_info:
-        _, boxes, locs, height, width, _ = group
-        # simple case where no shelves created yet
+    # post process the groups to sort by overall size
+    # sort in descending order so we greedily allocate
+    # largest first
+    groups.sort(key=len, reverse=True)
+
+    # assign heuristic value to attempt to hold max dimensions to
+    target_size = math.ceil(math.sqrt(len(cells)))
+
+    # use shelf packing stragegies
+    # should get fairly good fit
+    # since we have 2 discrete shelf widths, focus on group to shelf fit gap
+    # each entry is [group, height, width]
+    shelves: list[tuple[list[tuple[int, int]], int, int]] = []
+
+    # for each group, get first shelf where width fits
+    for group in groups:
+        # compute height/width of group based on corner cell
+        corner = group[0]
+        g_height = 1
+        g_width = 1
+        for cell in group:
+            g_height = max(g_height, cell[0] - corner[0] + 1)
+            g_width = max(g_width, cell[1] - corner[1] + 1)
+
+        # special case where no shelves are allocated yet
         if len(shelves) == 0:
             shelves.append(
-                (0, width, height, [(boxes, locs)]),
+                (group, g_height, g_width),
             )
             continue
 
-        # otherwise we have to find the best fit
-        best_idx = -1
-        max_w = 0
-        for idx, (s_left, s_right, s_height, _) in enumerate(shelves):
-            s_width = s_right - s_left
+        # in this case there is at least one shelf
+        # iterate over the shelves
+        # case 1:
+        # if we find a shelf with equal width to group
+        # and the group fits below target_size in height
+        # add the group to that shelf
+        shelf_id = -1
+        for s_idx, (_, s_height, s_width) in enumerate(shelves):
+            if g_width != s_width:
+                continue
+            if g_height + s_height > target_size:
+                continue
 
-            # update our frontier
-            max_w = s_right
+            # as soon as we find one, break
+            shelf_id = s_idx
+            break
 
-            # if room in the shelf in the height, keep adding
-            if width <= s_width and height + s_height < target_dim:
-                best_idx = idx
-                break
-
-        if best_idx == -1:
-            shelves.append((max_w, max_w + width, height, [(boxes, locs)]))
-        else:
-            s_left, s_right, s_height, s_boxes = shelves[best_idx]
-
-            s_height += height
-            s_boxes.append((boxes, locs))
-
-            shelves[best_idx] = (s_left, s_right, s_height, s_boxes)
-
-    # get max dimensions
-    grid_width = shelves[-1][1]
-    grid_height = max(shelves, key=lambda s: s[2])[2]
-
-    # allocate a new image
-    img_h = max(gridsize, grid_height * gridsize)
-    img_w = max(gridsize, grid_width * gridsize)
-    new_image = np.zeros((img_h, img_w, 3), dtype=np.uint8)
-
-    # allocate the transform array
-    new_grids = np.zeros((grid_height, grid_width, 2), dtype=int)
-
-    print((grid_height, grid_width, 2))
-
-    current_shelf_y = 0
-    # iterate over each shelf
-    for shelf_idx, shelf in enumerate(shelves):
-        print(f"Shelf: {shelf_idx}")
-        shelf_x_start, shelf_x_end, shelf_height, groups_in_shelf = shelf
-        # within the shelf, we will pack groups from left to right.
-        current_group_y = 0  # starting x offset for this shelf
-
-        for group_idx, group in enumerate(groups_in_shelf):
-            print(f"Group: {group_idx}")
-            boxes, locs = group
-
-            # determine the minimal grid coordinates for this group;
-            # this will serve as the group “origin” so that we pack the group tightly.
-            group_min_x = min(loc[1] for loc in locs)
-            group_min_y = min(loc[0] for loc in locs)
-            group_max_x = max(loc[1] for loc in locs)
-            group_max_y = max(loc[0] for loc in locs)
-            group_width = group_max_x - group_min_x + 1
-            group_height = group_max_y - group_min_y + 1
-
-            # now iterate over each cell (its bounding box and original grid location)
-            # and compute its new location.
-            # boxes are ordered so get the base box
-            for box, loc in zip(boxes, locs):
-                # determine new grid coordinates: the cell's offset inside the group
-                # is (loc - (group_min_x, group_min_y)) then add the shelf offsets.
-                new_grid_x = shelf_x_start + (loc[1] - group_min_x)
-                new_grid_y = current_group_y + (loc[0] - group_min_y)
-
-                print((new_grid_y, new_grid_x), loc)
-
-                # update the transform grid; here we simply store the original grid location.
-                new_grids[new_grid_y][new_grid_x] = loc
-
-                # now copy the image data.
-                # Here we assume that each cell's image is exactly of size `gridsize` by `gridsize`.
-                # The source cell region is defined by its bounding box (assumed to be (x1, y1, x2, y2)).
-                # The destination region is computed from the new grid cell coordinates.
-                dst_y1 = new_grid_y * gridsize
-                dst_y2 = dst_y1 + gridsize
-                dst_x1 = new_grid_x * gridsize
-                dst_x2 = dst_x1 + gridsize
-
-                src_x1, src_y1, src_x2, src_y2 = box
-                new_image[dst_y1:dst_y2, dst_x1:dst_x2, :] = image[src_y1:src_y2, src_x1:src_x2, :]
-
-            # # after processing one group, update the x offset in the shelf.
-            shelf_x_start += group_height
-
-        # # after finishing all groups in the shelf, update the y offset.
-        # current_shelf_y += shelf[2]  # shelf[2] is 
-
-    return new_image, new_grids
-
-
-# CHATGPT PROVIDED FUNCTION
-# TODO: remap new_grids does not work
-# TODO: crashes when no groups created
-def _intelligent_grid_repack(
-    image: np.ndarray,
-    cells: list[tuple[tuple[int, int, int, int], tuple[int, int]]],
-    gridsize: int,
-) -> tuple[np.ndarray, np.ndarray]:
-    """
-    Repack image cells into a new image.
-
-    Try to keep together
-    groups of adjacent cells. We assume that cells that are adjacent in the
-    original image always form a perfect square block (i.e. an NxN region).
-
-    Parameters
-    ----------
-    image: the source image.
-    cells: a list of tuples (bbox, offset) where bbox is (x1, y1, x2, y2).
-            We assume each bbox corresponds to a cell that is exactly `gridsize`
-            pixels on a side.
-    gridsize: the size (in pixels) of one cell.
-
-    Returns
-    -------
-    new_image: a repacked image containing the same cells.
-    new_grids: a 2D array (of shape (new_rows, new_cols, 2)) where each entry
-                records the original (x1, y1) offset of the cell that ended up
-                at that grid location.
-
-    """
-    ###########################################################################
-    # Step 1. Identify groups of adjacent cells.
-    #
-    # We assume that each cell’s bounding box is aligned to a grid so that we
-    # can compute an “original cell coordinate” by (row, col) = (y1//gridsize, x1//gridsize).
-    #
-    # Then we “group” cells into squares: starting from a cell (r, c), we try to
-    # see how big a square block can be formed by checking that all cells at
-    # (r+i, c+j) exist.
-    ###########################################################################
-    # Build a mapping from grid coordinate to cell information.
-    cell_dict = {}
-    for cell in cells:
-        bbox, offset = cell
-        x1, y1, x2, y2 = bbox
-        # Compute grid coordinate of the cell’s top‐left
-        grid_row = y1 // gridsize
-        grid_col = x1 // gridsize
-        cell_dict[(grid_row, grid_col)] = (bbox, offset)
-
-    visited = set()
-    groups = []  # Each group: ((r, c), group_size, group_cells)
-    # (group_cells will be a list-of-lists (rows) preserving the cell order)
-
-    # Iterate over all possible grid locations (in sorted order)
-    for (r, c) in sorted(cell_dict.keys()):
-        if (r, c) in visited:
+        if shelf_id != -1:
+            s_boxes, s_height, s_width = shelves[shelf_id]
+            s_boxes.extend(group)
+            s_height += g_height
+            shelves[shelf_id] = (
+                s_boxes,
+                s_height,
+                s_width,
+            )
             continue
 
-        # Starting at (r, c) determine the largest square block that exists.
-        n = 1  # try 1×1, 2×2, etc.
-        while True:
-            valid = True
-            # Check that all cells (r+i, c+j) for i,j in 0..n-1 exist and are not already used.
-            for i in range(n):
-                for j in range(n):
-                    if (r + i, c + j) not in cell_dict or ((r + i, c + j) in visited):
-                        valid = False
-                        break
-                if not valid:
-                    break
-            if valid:
-                n += 1
-            else:
-                break
-        group_size = n - 1  # maximum square block size found
+        # case 2:
+        # could not find a shelf, need to make a new one
+        shelves.append(
+            (group, g_height, g_width),
+        )
 
-        # Collect the group cells in row-major order.
-        group_cells = []
-        for i in range(group_size):
-            row_cells = []
-            for j in range(group_size):
-                cell_info = cell_dict[(r + i, c + j)]
-                row_cells.append(cell_info)
-                visited.add((r + i, c + j))
-            group_cells.append(row_cells)
-        groups.append(((r, c), group_size, group_cells))
-    # Sort groups by their original top‐left coordinate.
-    groups.sort(key=lambda g: g[0])
+    # compute the overall dimensions of the new image and grid
+    new_height = 0  # maximum height of any shelf
+    new_width = 0  # sum of all shelf widths
+    for _, s_height, s_width in shelves:
+        new_height = max(new_height, s_height)
+        new_width += s_width
 
-    ###########################################################################
-    # Step 2. Decide on the overall layout.
-    #
-    # We want to pack the cells (still thinking in “cell units”) into a roughly
-    # square new grid while ensuring that no group is split.
-    #
-    # One strategy is to compute a target width (in cells) from the total number
-    # of cells, then pack groups into rows: if the next group would overflow the
-    # target width, we start a new row.
-    ###########################################################################
-    total_cell_count = len(cells)  # sum of all group sizes^2
-    target_width = max(1, math.ceil(math.sqrt(total_cell_count)))
+    # create new image and new grid based on the new dimensions
+    new_image: np.ndarray = np.zeros(
+        (max(new_height, 1) * gridsize, max(new_width, 1) * gridsize, 3),
+        dtype=np.uint8,
+    )
+    new_grid: np.ndarray = np.zeros((new_height, new_width, 2), dtype=int)
 
-    # Pack groups into rows. Each row will be a list of groups.
-    group_rows = []  # Each element: (list_of_groups, row_width_in_cells, row_height_in_cells)
-    current_row = []
-    current_row_width = 0
-    current_row_height = 0  # In cell units (each group is square)
-    for group in groups:
-        _, group_size, _ = group
-        # If there is at least one group already in the row and adding this group
-        # would exceed our target width, then finish the current row.
-        if current_row and (current_row_width + group_size > target_width):
-            group_rows.append((current_row, current_row_width, current_row_height))
-            current_row = []
-            current_row_width = 0
-            current_row_height = 0
-        current_row.append(group)
-        current_row_width += group_size
-        current_row_height = max(current_row_height, group_size)
-    if current_row:
-        group_rows.append((current_row, current_row_width, current_row_height))
+    # for each shelf, iterate over the cells and add them into grid and image
+    # need to keep a rolling start width, to denote the offset of each shelf
+    frontier = 0
+    for s_boxes, s_height, s_width in shelves:
+        # iterate over each (height, width) block in
+        # the shelf. Place each cell in that spot and copy
+        for i in range(s_height):
+            for j in range(s_width):
+                # compute box id based on s_width
+                b_idx = i * s_width + j
 
-    # Compute overall new grid dimensions in “cell units”
-    new_grid_rows = sum(row_height for (_, _, row_height) in group_rows)
-    new_grid_cols = max(row_width for (_, row_width, _) in group_rows)
+                # compute the original coords from loc
+                o_r, o_c = s_boxes[b_idx]
+                x1, y1, x2, y2 = lookup[o_r][o_c]
 
-    ###########################################################################
-    # Step 3. Allocate the new image (in pixels) and new grids array.
-    ###########################################################################
-    new_image = np.zeros((new_grid_rows * gridsize, new_grid_cols * gridsize, 3), dtype=np.uint8)
-    new_grids = np.zeros((new_grid_rows, new_grid_cols, 2), dtype=int)
+                # based on the original image offset update new_Grid
+                n_c = j + frontier
+                new_grid[i][n_c] = (x1, y1)
 
-    ###########################################################################
-    # Step 4. Copy the cell patches into the new image.
-    #
-    # For each group (which itself is a square block of cells), copy each cell’s
-    # image data into the corresponding new “cell” location. The relative layout
-    # within a group is preserved.
-    ###########################################################################
-    current_cell_row = 0  # running count of cell-rows in the repacked grid
-    for (groups_in_row, _, row_height) in group_rows:
-        current_cell_col = 0  # reset column for each new row of groups
-        # For each group in the current row:
-        for group in groups_in_row:
-            _, group_size, group_cells = group
-            # Place the group’s cells starting at (current_cell_row, current_cell_col)
-            for i in range(group_size):
-                for j in range(group_size):
-                    bbox, offset = group_cells[i][j]
-                    # Compute destination pixel coordinates
-                    dest_row = current_cell_row + i
-                    dest_col = current_cell_col + j
-                    y1_dest = dest_row * gridsize
-                    y2_dest = y1_dest + gridsize
-                    x1_dest = dest_col * gridsize
-                    x2_dest = x1_dest + gridsize
+                # update the region of new_image with the region of the original image
+                n_y = i * gridsize
+                n_x = n_c * gridsize
+                new_image[n_y : n_y + gridsize, n_x : n_x + gridsize] = image[
+                    y1:y2,
+                    x1:x2,
+                ]
 
-                    # Unpack the source bbox.
-                    x1_src, y1_src, x2_src, y2_src = bbox
-                    new_image[y1_dest:y2_dest, x1_dest:x2_dest] = image[y1_src:y2_src, x1_src:x2_src]
-                    new_grids[dest_row, dest_col] = offset
-            # Advance by the group’s width (in cell units)
-            current_cell_col += group_size
-        # After placing all groups in this row, move down by the row height.
-        current_cell_row += row_height
+        # once shelf is added, update the frontier (x coord tracker)
+        frontier += s_width
 
-    return new_image, new_grids
+    # finally return the completed new_image and transform info
+    return new_image, new_grid
 
 
 class AbstractGridFramePacker(AbstractFramePacker):
@@ -839,7 +671,7 @@ class AbstractGridFramePacker(AbstractFramePacker):
                 filtered_cells.append((bbox, (row, col)))
 
         # use the simple grid repacking
-        method = method if method else self._method
+        method = method or self._method
         if method == "simple":
             new_image, new_grids = _simple_grid_repack(
                 image,
@@ -847,7 +679,7 @@ class AbstractGridFramePacker(AbstractFramePacker):
                 self._gridsize,
             )
         else:
-            new_image, new_grids = _intelligent_grid_repack(
+            new_image, new_grids = _smart_grid_repack(
                 image,
                 filtered_cells,
                 self._gridsize,
