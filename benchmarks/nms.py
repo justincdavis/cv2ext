@@ -12,7 +12,7 @@ from common import run_benchmark
 
 def main():
     cv2ext.set_log_level("DEBUG")
-    parser = argparse.ArgumentParser(description="Process iou benchmarks.")
+    parser = argparse.ArgumentParser(description="Process nms benchmarks.")
     parser.add_argument(
         "--iterations", type=int, default=1000, help="The number of iterations to run.",
     )

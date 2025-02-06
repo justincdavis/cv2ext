@@ -8,6 +8,8 @@ from pathlib import Path
 from cv2ext import IterableVideo
 from cv2ext.detection import AnnealingFramePacker, RandomFramePacker
 
+from ..helpers import wrapper, wrapper_jit
+
 
 def _test_annealing_packer(packer: AnnealingFramePacker, video: IterableVideo):
     frame_sizes = []
@@ -23,7 +25,7 @@ def _test_annealing_packer(packer: AnnealingFramePacker, video: IterableVideo):
     assert min(frame_sizes) < max(frame_sizes)
 
 
-def test_annealing_packer_simple():
+def _test_annealing_packer_simple():
     video = IterableVideo(Path("data/testvid.mp4"))
     packer = AnnealingFramePacker(
         (video.width, video.height), method="simple",
@@ -31,10 +33,10 @@ def test_annealing_packer_simple():
     _test_annealing_packer(packer, video)
 
 
-def test_annealing_packer_smart():
+def _test_annealing_packer_shelf():
     video = IterableVideo(Path("data/testvid.mp4"))
     packer = AnnealingFramePacker(
-        (video.width, video.height), method="smart",
+        (video.width, video.height), method="shelf",
     )
     _test_annealing_packer(packer, video)
 
@@ -52,7 +54,7 @@ def _test_random_packer(packer: RandomFramePacker, video: IterableVideo):
     assert max(frame_sizes) > 0
 
 
-def test_random_packer_simple():
+def _test_random_packer_simple():
     video = IterableVideo(Path("data/testvid.mp4"))
     packer = RandomFramePacker(
         (video.width, video.height), method="simple",
@@ -60,9 +62,49 @@ def test_random_packer_simple():
     _test_random_packer(packer, video)
 
 
-def test_random_packer_smart():
+def _test_random_packer_shelf():
     video = IterableVideo(Path("data/testvid.mp4"))
     packer = RandomFramePacker(
-        (video.width, video.height), method="smart",
+        (video.width, video.height), method="shelf",
     )
     _test_random_packer(packer, video)
+
+
+@wrapper
+def test_annealing_packer_simple():
+    _test_annealing_packer_simple()
+
+
+@wrapper_jit
+def test_annealing_packer_simple_jit():
+    _test_annealing_packer_simple()
+
+
+@wrapper
+def test_annealing_packer_shelf():
+    _test_annealing_packer_shelf()
+
+
+@wrapper_jit
+def test_annealing_packer_shelf_jit():
+    _test_annealing_packer_shelf()
+
+
+@wrapper
+def test_random_packer_simple():
+    _test_random_packer_simple()
+
+
+@wrapper_jit
+def test_random_packer_simple_jit():
+    _test_random_packer_simple()
+
+
+@wrapper
+def test_random_packer_shelf():
+    _test_random_packer_shelf()
+
+
+@wrapper_jit
+def test_random_packer_shelf_jit():
+    _test_random_packer_shelf()

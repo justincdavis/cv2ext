@@ -6,7 +6,7 @@ from __future__ import annotations
 from cv2ext._jit import register_jit
 
 
-@register_jit()
+@register_jit(fastmath=True, inline="always")
 def _iou_kernel(
     bbox1: tuple[int, int, int, int],
     bbox2: tuple[int, int, int, int],
