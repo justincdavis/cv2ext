@@ -20,12 +20,16 @@ class _FLAGS:
     WARNED_NUMBA_NOT_FOUND : bool
         Whether or not the user has been warned that Numba was
         not found when calling enable_jit.
+    SETUP_LOG_HANDLER : bool
+        Whether or not the handler has already been resolved
+        on the module level logger.
 
     """
 
     JIT: bool = False
     FOUND_NUMBA: bool = False
     WARNED_NUMBA_NOT_FOUND: bool = False
+    SETUP_LOG_HANDLER: bool = False
 
 
 FLAGS = _FLAGS()

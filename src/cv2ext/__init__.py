@@ -59,6 +59,9 @@ import logging
 import os
 import sys
 
+# import the flags object
+from ._flags import FLAGS
+
 
 # Created from answer by Dennis at:
 # https://stackoverflow.com/questions/7621897/python-logging-module-globally
@@ -82,11 +85,17 @@ def _setup_logger(level: str | None = None) -> None:
     # create logger
     logger = logging.getLogger(__package__)
     logger.setLevel(log_level)
-    formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
-    stdout_handler = logging.StreamHandler(sys.stdout)
-    stdout_handler.setLevel(log_level)
-    stdout_handler.setFormatter(formatter)
-    logger.addHandler(stdout_handler)
+
+    if not FLAGS.SETUP_LOG_HANDLER:
+        formatter = logging.Formatter(
+            "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        )
+        stdout_handler = logging.StreamHandler(sys.stdout)
+        stdout_handler.setLevel(log_level)
+        stdout_handler.setFormatter(formatter)
+        logger.addHandler(stdout_handler)
+
+        FLAGS.SETUP_LOG_HANDLER = True
 
 
 def set_log_level(level: str) -> None:
@@ -176,7 +185,6 @@ _WINDOW_MANAGER = _DEL(_log)
 
 from . import bboxes, detection, image, io, metrics, research, template, tracking, video
 from .io import Display, Fourcc, IterableVideo, VideoWriter
-from ._flags import FLAGS
 from ._jit import JIT, enable_jit, disable_jit, register_jit
 
 __all__ = [

@@ -35,6 +35,7 @@ except ImportError:
         parallel: bool,  # noqa: ARG001
         nogil: bool,  # noqa: ARG001
         cache: bool,  # noqa: ARG001
+        inline: str = "never",  # noqa: ARG001
     ) -> Callable[_P, _R]:
         _log.debug(f"Using mock JIT on {func.__name__}")
         return func
@@ -50,6 +51,7 @@ def jit(
     parallel: bool = False,
     nogil: bool = False,
     cache: bool = False,
+    inline: str = "never",
 ) -> Callable[_P, _R]:
     """
     Optionally JIT compile a function based on the flags for cv2ext.
@@ -70,6 +72,10 @@ def jit(
     cache : bool, optional
         If True, cache jit compiled functions to disk.
         Default is False.
+    inline : str, optional
+        Whether or not to inline functions at the Numba IR level.
+        Default is 'never'.
+        Options are: ['never', 'always']
 
     Returns
     -------
@@ -87,6 +93,7 @@ def jit(
             parallel=parallel,
             nogil=nogil,
             cache=cache,
+            inline=inline,
         )
     _log.debug(f"Resolved: {funcname} -> {type(func)}")
     return func
@@ -98,6 +105,7 @@ def register_jit(
     parallel: bool = False,
     nogil: bool = False,
     cache: bool = False,
+    inline: str = "never",
 ) -> Callable[[Callable[_P, _R]], Callable[_P, _R]]:
     """
     Register a function to be re-imported whenever JIT status changes.
@@ -119,6 +127,10 @@ def register_jit(
     cache : bool, optional
         If True, cache jit compiled functions to disk.
         Default is False.
+    inline : str, optional
+        Whether or not to inline functions at the Numba IR level.
+        Default is 'never'.
+        Options are: ['never', 'always']
 
     Returns
     -------
@@ -132,8 +144,12 @@ def register_jit(
     ...     return x * x
 
     """
+    _log.debug(
+        f"register_jit: fastmath={fastmath}, parallel={parallel}, nogil={nogil}, cache={cache}, inline={inline}",
+    )
 
     def decorator(func: Callable[_P, _R]) -> Callable[_P, _R]:
+        _log.debug(f"Registering func: {func.__name__} for potential JIT")
         _JIT_FUNCS.append(func)
         return jit(
             func,
@@ -141,6 +157,7 @@ def register_jit(
             parallel=parallel,
             nogil=nogil,
             cache=cache,
+            inline=inline,
         )
 
     return decorator

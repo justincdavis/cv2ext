@@ -252,7 +252,7 @@ def _simple_grid_repack(
 
 
 @register_jit()
-def _smart_grid_repack(
+def _shelf_grid_repack(
     image: np.ndarray,
     cells: list[tuple[tuple[int, int, int, int], tuple[int, int]]],
     gridsize: int,
@@ -469,7 +469,7 @@ class AbstractGridFramePacker(AbstractFramePacker):
         image_shape: tuple[int, int],
         gridsize: int = 128,
         detection_buffer: int = 30,
-        method: str = "simple",
+        method: str = "shelf",
     ) -> None:
         """
         Create a new GridFramePacker.
@@ -489,9 +489,9 @@ class AbstractGridFramePacker(AbstractFramePacker):
         method : str, optional
             The method to use for repacking grid cells into new images.
             By default, 'simple'
-            Options are: ['simple', 'smart']
+            Options are: ['simple', 'shelf']
             Simple will place tiles of the grid FCFS basis in the new image,
-            while smart will attempt to place connected regions together.
+            while shelf will attempt to place connected regions together.
 
         """
         super().__init__()
@@ -619,7 +619,7 @@ class AbstractGridFramePacker(AbstractFramePacker):
         method : str, optional
             The method to pack the bounding boxes with.
             By default, None
-            Options are: ['simple', 'smart']
+            Options are: ['simple', 'shelf']
 
         Returns
         -------
@@ -688,7 +688,7 @@ class AbstractGridFramePacker(AbstractFramePacker):
                 self._gridsize,
             )
         else:
-            new_image, new_grids = _smart_grid_repack(
+            new_image, new_grids = _shelf_grid_repack(
                 image,
                 filtered_cells,
                 self._gridsize,
@@ -791,7 +791,7 @@ class AnnealingFramePacker(AbstractGridFramePacker):
         alpha: float = 0.01,
         min_prob: float = 0.1,
         detection_buffer: int = 30,
-        method: str = "simple",
+        method: str = "shelf",
     ) -> None:
         """
         Create a new AnnealingFramePacker.
@@ -817,9 +817,9 @@ class AnnealingFramePacker(AbstractGridFramePacker):
         method : str, optional
             The method to use for repacking grid cells into new images.
             By default, 'simple'
-            Options are: ['simple', 'smart']
+            Options are: ['simple', 'shelf']
             Simple will place tiles of the grid FCFS basis in the new image,
-            while smart will attempt to place connected regions together.
+            while shelf will attempt to place connected regions together.
 
         """
         super().__init__(image_shape, gridsize, detection_buffer, method)
@@ -854,7 +854,7 @@ class RandomFramePacker(AbstractGridFramePacker):
         gridsize: int = 128,
         threshold: float = 0.1,
         detection_buffer: int = 30,
-        method: str = "simple",
+        method: str = "shelf",
     ) -> None:
         """
         Create a new RandomFramePacker.
@@ -879,9 +879,9 @@ class RandomFramePacker(AbstractGridFramePacker):
         method : str, optional
             The method to use for repacking grid cells into new images.
             By default, 'simple'
-            Options are: ['simple', 'smart']
+            Options are: ['simple', 'shelf']
             Simple will place tiles of the grid FCFS basis in the new image,
-            while smart will attempt to place connected regions together.
+            while shelf will attempt to place connected regions together.
 
         """
         super().__init__(image_shape, gridsize, detection_buffer, method)
