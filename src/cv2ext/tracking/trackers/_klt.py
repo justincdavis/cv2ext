@@ -249,6 +249,11 @@ class KLTMultiTracker(AbstractMultiTracker):
         if len(image.shape) == 3 and image.shape[2] == 3:
             image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
+        # add some type hints
+        new_kp: np.ndarray
+        status: np.ndarray
+
+        # main loop
         results: list[tuple[bool, tuple[int, int, int, int]]] = []
         for i, (prev_kp, bbox) in enumerate(
             zip(self._prev_keypoints, self._prev_bboxes),

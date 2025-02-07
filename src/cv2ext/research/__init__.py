@@ -15,6 +15,8 @@ Submodules
 ----------
 :mod:`biglittle`
     An implementation of the BigLittle paper.
+:mod:`flexpatch`
+    An implementation of the FlexPatch paper.
 :mod:`marlin`
     An implementation of the MARLIN paper.
 
@@ -28,7 +30,6 @@ from . import biglittle
 
 __all__ = [
     "biglittle",
-    "marlin",
 ]
 
 # additional modules have specific imports
@@ -39,3 +40,9 @@ with contextlib.suppress(ImportError):
     from . import marlin
 
     __all__ += ["marlin"]
+
+# flexpatch module
+with contextlib.suppress(ImportError):
+    from . import flexpatch
+
+    __all__ += ["flexpatch"]

@@ -4,6 +4,8 @@
 """
 Submodule for the Marlin methodology.
 
+Paper: https://www.cs.ucr.edu/~jiasi/pub/marlin_sensys19.pdf
+
 Classes
 -------
 :class:`ChangeDetector`

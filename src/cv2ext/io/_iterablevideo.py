@@ -19,7 +19,7 @@ _log = logging.getLogger(__name__)
 class IterableVideo:
     def __init__(
         self: Self,
-        filename: Path | str,
+        filename: Path | str | int,
         channels: int = 3,
         buffersize: int = 8,
         *,
@@ -30,8 +30,8 @@ class IterableVideo:
 
         Parameters
         ----------
-        filename : Path | str
-            Path to the video file.
+        filename : Path | str | int
+            Path to the video file or device number.
         channels : int
             The number of channels in the video.
             This defaults to 3, and is used to pre-allocate a frame,
@@ -52,12 +52,19 @@ class IterableVideo:
             If the file does not exist.
 
         """
+        # resolve path to a string
         if isinstance(filename, Path):
             filename = str(filename.resolve())
-        if not Path(filename).exists():
+
+        # only check path if it is a path
+        if isinstance(filename, str) and not Path(filename).exists():
             err_msg = f"File {filename} does not exist."
             raise FileNotFoundError(err_msg)
+
+        # it is called filename, but may be interger
         self._cap = cv2.VideoCapture(filename)
+
+        # assign rest of attributes
         self._frame_num = 0
         self._consumed = 0
         self._got = False
