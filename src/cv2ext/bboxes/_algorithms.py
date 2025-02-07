@@ -73,9 +73,9 @@ def _match_kernel(
     *,
     class_agnostic: bool = False,
 ) -> list[tuple[int, int]]:
-    if len(bboxes1) == 0 or len(bboxes2) == 0:
-        err_msg = "Each list of bboxes must have at least length of 1."
-        raise ValueError(err_msg)
+    # if len(bboxes1) == 0 or len(bboxes2) == 0:
+    #     err_msg = "Each list of bboxes must have at least length of 1."
+    #     raise ValueError(err_msg)
 
     matches: list[tuple[int, int]] = []
     used_idx: set[int] = set()
