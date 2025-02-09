@@ -102,7 +102,7 @@ def _characterize(
             scores.append(score)
 
         # match bounding boxes to ground truth labels
-        matches = match(bboxes, gt)
+        matches = match(bboxes, gt, iou_threshold=0.05)
 
         # compute iou for each match idx
         ious = [iou(bboxes[i], gt[j]) for i, j in matches]
