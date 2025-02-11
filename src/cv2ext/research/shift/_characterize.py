@@ -5,8 +5,8 @@ from __future__ import annotations
 
 import csv
 import json
-import time
 import logging
+import time
 from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING

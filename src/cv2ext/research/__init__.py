@@ -47,4 +47,3 @@ with contextlib.suppress(ImportError):
     from . import shift
 
     __all__ += ["shift"]
-
