@@ -103,16 +103,25 @@ class Shift:
                 dirpath = Path(root) / directory
                 with Path.open(dirpath / f"{directory}.json") as f:
                     data = json.load(f)
-                    if (
-                        most_accurate_model is None
-                        or float(data["accuracy"]["mean"]) > highest_accuracy
-                    ):
-                        most_accurate_model = directory
-                        highest_accuracy = float(data["accuracy"]["mean"])
+                    try:
+                        if (
+                            most_accurate_model is None
+                            or float(data["accuracy"]["mean"]) > highest_accuracy
+                        ):
+                            most_accurate_model = directory
+                            highest_accuracy = float(data["accuracy"]["mean"])
+                    except KeyError:
+                        if (
+                            most_accurate_model is None
+                            or float(data["iou"]["mean"]) > highest_accuracy
+                        ):
+                            most_accurate_model = directory
+                            highest_accuracy = float(data["iou"]["mean"])
         if most_accurate_model is None:
             err_msg = "No models were found in the stats_dir."
             raise ValueError(err_msg)
         self._last_model: str = most_accurate_model
+        self._main_model = most_accurate_model
 
     @property
     def scheduler(self: Self) -> ShiftScheduler:
@@ -177,3 +186,8 @@ class Shift:
 
         """
         return self.run(image)
+
+    def reset(self: Self) -> None:
+        """Reset the state of the scheduler."""
+        self._last_model = self._main_model
+        self._scheduler.reset()

@@ -598,3 +598,9 @@ class ShiftScheduler:
 
         """
         return self._possible_models
+
+    def reset(self: Self) -> None:
+        """Reset the scheduler state."""
+        self._last_image = None
+        self._last_bboxes = None
+        self._last_model = None

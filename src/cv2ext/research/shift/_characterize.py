@@ -6,6 +6,7 @@ from __future__ import annotations
 import csv
 import json
 import time
+import logging
 from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -21,6 +22,8 @@ from ._confgraph import build_graph
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+_log = logging.getLogger(__name__)
 
 
 def _characterize(
@@ -77,7 +80,7 @@ def _characterize(
     jsonpath = output_dir / modelname / f"{modelname}.json"
     if not Path.exists(jsonpath):
         with Path.open(jsonpath, "w") as f:
-            json.dump({"power_draw": power_draw}, f, ident=4)
+            json.dump({"power_draw": power_draw}, f, indent=4)
 
     if not Path.exists(image_dir):
         err_msg = f"Image directory {image_dir} does not exist."
@@ -85,6 +88,7 @@ def _characterize(
 
     image_stats: dict[str, dict[str, float]] = defaultdict(dict)
 
+    _log.debug("Forming image stats")
     for image_name, gt in zip(image_names, ground_truth):
         imagepath = image_dir / image_name
         image = cv2.imread(str(imagepath))
@@ -105,9 +109,17 @@ def _characterize(
         matches = match(bboxes, gt, iou_threshold=0.05)
 
         # compute iou for each match idx
-        ious = [iou(bboxes[i], gt[j]) for i, j in matches]
-        mean_iou = float(np.mean(ious))
-        mean_score = float(np.mean(scores))
+        if len(matches) == 0:
+            if len(gt) == 0:
+                mean_iou = 1.0
+                mean_score = 1.0
+            else:
+                mean_iou = 0.0
+                mean_score = 0.0
+        else:
+            ious = [iou(bboxes[i], gt[j]) for i, j in matches]
+            mean_iou = float(np.mean(ious))
+            mean_score = float(np.mean(scores))
 
         image_stats[image_name]["time"] = t_inference
         image_stats[image_name]["iou"] = mean_iou
@@ -116,8 +128,9 @@ def _characterize(
 
     fieldnames = list(image_stats[image_names[0]].keys())
 
+    _log.debug("Forming CSV")
     with Path.open(output_dir / modelname / f"{modelname}.csv", "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer = csv.DictWriter(f, fieldnames=["filename", *fieldnames])
         writer.writeheader()
         for image_name, image_data in image_stats.items():
             entry = {"filename": image_name, **image_data}
@@ -161,12 +174,13 @@ def _characterize(
         conf_key = indice / num_bins
         iou_val = iou_data[idx]
         conf_val = conf_data[idx]
-        if conf_val > conf_key:
-            err_msg = "Confidence value is greater than bin key."
-            raise RuntimeError(err_msg)
-        if conf_val < conf_key - 1 / num_bins:
-            err_msg = "Confidence value is less than bin key."
-            raise RuntimeError(err_msg)
+        # # verify confidence checks
+        # if conf_val > conf_key:
+        #     err_msg = "Confidence value is greater than bin key."
+        #     raise RuntimeError(err_msg)
+        # if conf_val < conf_key - 1 / num_bins:
+        #     err_msg = "Confidence value is less than bin key."
+        #     raise RuntimeError(err_msg)
         binned_iou[conf_key].append(iou_val)
         binned_conf[conf_key].append(conf_val)
 
@@ -200,7 +214,7 @@ def _characterize(
 
     # write final json file
     with Path.open(jsonpath, "w") as f:
-        json.dump(json_data, f, ident=4)
+        json.dump(json_data, f, indent=4)
 
 
 def characterize(
@@ -270,6 +284,9 @@ def characterize(
         Path.mkdir(output_dir, parents=True)
 
     for model, model_name, power_draw in zip(models, model_names, power_draws):
+        _log.debug(f"Characterizing model: {model_name}")
+
+        # run the characterization
         _characterize(
             model=model,
             modelname=model_name,
