@@ -59,10 +59,14 @@ jit = [
 ]
 research = [
     "cv2ext[marlin]",
+    "cv2ext[shift]",
 ]
 marlin = [
     "joblib",
     "scikit-learn",
+]
+shift = [
+    "networkx",
 ]
 ci = [
     "ruff>=0.9.3,<0.10.0",
