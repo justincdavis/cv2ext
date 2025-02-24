@@ -92,14 +92,20 @@ class AbstractFramePacker(ABC):
         """
 
     @abstractmethod
-    def reset(self: Self, image_shape: tuple[int, int] | None = None) -> None:
+    def reset(
+        self: Self,
+        image_shape: tuple[int, int] | None = None,
+        gridsize: int | None = None,
+    ) -> None:
         """
         Reset the packer.
 
         Parameters
         ----------
-        image_shape : tuple[int, int] | None
-            The shape of the image in form (height, width).
+        image_shape : tuple[int, int], optional
+            The shape of the image in form (width, height).
+        gridsize : int, optional
+            The new gridsize value to use.
 
         """
 
@@ -159,10 +165,10 @@ def _unpack_grid_single_bbox(
     o_x, o_y = transform[n_row][n_col]
 
     # Calculate the absolute coordinates in the original image
-    abs_x1 = x1 - (n_col * gridsize) + o_x
-    abs_y1 = y1 - (n_row * gridsize) + o_y
-    abs_x2 = x2 - (n_col * gridsize) + o_x
-    abs_y2 = y2 - (n_row * gridsize) + o_y
+    abs_x1 = int(x1 - (n_col * gridsize) + o_x)
+    abs_y1 = int(y1 - (n_row * gridsize) + o_y)
+    abs_x2 = int(x2 - (n_col * gridsize) + o_x)
+    abs_y2 = int(y2 - (n_row * gridsize) + o_y)
 
     return abs_x1, abs_y1, abs_x2, abs_y2
 
@@ -488,7 +494,7 @@ class AbstractGridFramePacker(AbstractFramePacker):
             Default is 30.
         method : str, optional
             The method to use for repacking grid cells into new images.
-            By default, 'simple'
+            By default, 'shelf'
             Options are: ['simple', 'shelf']
             Simple will place tiles of the grid FCFS basis in the new image,
             while shelf will attempt to place connected regions together.
@@ -513,18 +519,26 @@ class AbstractGridFramePacker(AbstractFramePacker):
         # tracking variables
         self._counter: int = 0
 
-    def reset(self: Self, image_shape: tuple[int, int] | None = None) -> None:
+    def reset(
+        self: Self,
+        image_shape: tuple[int, int] | None = None,
+        gridsize: int | None = None,
+    ) -> None:
         """
         Reset the packer.
 
         Parameters
         ----------
-        image_shape : tuple[int, int] | None
-            The shape of the image in form (height, width).
+        image_shape : tuple[int, int], optional
+            The shape of the image in form (width, height).
+        gridsize : int, optional
+            The new gridsize value to use.
 
         """
         if image_shape:
-            self._height, self._width = image_shape
+            self._width, self._height = image_shape
+        if gridsize:
+            self._gridsize = gridsize
         self._initialize_cells()
         self._counter = 0
 
@@ -816,7 +830,7 @@ class AnnealingFramePacker(AbstractGridFramePacker):
             Default is 30.
         method : str, optional
             The method to use for repacking grid cells into new images.
-            By default, 'simple'
+            By default, 'shelf'
             Options are: ['simple', 'shelf']
             Simple will place tiles of the grid FCFS basis in the new image,
             while shelf will attempt to place connected regions together.
@@ -878,7 +892,7 @@ class RandomFramePacker(AbstractGridFramePacker):
             Default is 30.
         method : str, optional
             The method to use for repacking grid cells into new images.
-            By default, 'simple'
+            By default, 'shelf'
             Options are: ['simple', 'shelf']
             Simple will place tiles of the grid FCFS basis in the new image,
             while shelf will attempt to place connected regions together.
