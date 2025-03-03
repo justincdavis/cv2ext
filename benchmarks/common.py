@@ -39,7 +39,7 @@ def run_benchmark(func: partial, title: str, iters: int) -> None:
         x=["No-JIT", "JIT"],
         y=[no_jit, with_jit],
     )
-    baseplot.set_title("IOU")
+    baseplot.set_title(title.upper())
     baseplot.set_ylabel("Time (ms)")
     basefig = baseplot.get_figure()
     basefig.tight_layout()

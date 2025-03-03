@@ -59,14 +59,18 @@ jit = [
 ]
 research = [
     "cv2ext[marlin]",
+    "cv2ext[shift]",
 ]
 marlin = [
     "joblib",
     "scikit-learn",
 ]
+shift = [
+    "networkx",
+]
 ci = [
     "ruff>=0.9.3,<0.10.0",
-    "mypy>=1.14.1,<1.15.0",
+    "mypy>=1.14.1,<1.16.0",
     "types-tqdm>=4.66.0",
 ]
 test = [

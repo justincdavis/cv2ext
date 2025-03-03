@@ -17,6 +17,8 @@ Submodules
     An implementation of the BigLittle paper.
 :mod:`marlin`
     An implementation of the MARLIN paper.
+:mod:`shift`
+    An implementation of the SHIFT paper.
 
 """
 
@@ -39,3 +41,9 @@ with contextlib.suppress(ImportError):
     from . import marlin
 
     __all__ += ["marlin"]
+
+# shift module
+with contextlib.suppress(ImportError):
+    from . import shift
+
+    __all__ += ["shift"]

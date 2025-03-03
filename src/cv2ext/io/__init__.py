@@ -1,6 +1,7 @@
 # Copyright (c) 2024 Justin Davis (davisjustin302@gmail.com)
 #
 # MIT License
+# ruff: noqa: A005
 """
 Subpackage containing abstractions for making IO easier through cv2.
 

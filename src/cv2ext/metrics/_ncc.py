@@ -16,8 +16,8 @@ def _ncc_kernel(
     image1: np.ndarray,
     image2: np.ndarray,
 ) -> float:
-    image1 = image1.astype(np.float32)
-    image2 = image2.astype(np.float32)
+    image1 = image1.astype(np.float16)
+    image2 = image2.astype(np.float16)
 
     img1std = np.std(image1)
     img2std = np.std(image2)
