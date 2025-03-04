@@ -35,6 +35,8 @@ def _characterize(
     image_names: list[str],
     ground_truth: list[list[tuple[int, int, int, int]]],
     num_bins: int = 10,
+    *,
+    overwrite: bool | None = None,
 ) -> None:
     """
     Characterize the given model.
@@ -44,7 +46,7 @@ def _characterize(
 
     Parameters
     ----------
-    model : AbstractModel
+    model : Callable[[np.ndarray], list[tuple[tuple[int, int, int, int], float, int]]]
         The model to characterize.
         Output assumed to be in the x1, y1, x2, y2 format.
     modelname : str
@@ -63,6 +65,9 @@ def _characterize(
         Bounding boxes are assumed to be in the x1, y1, x2, y2 format.
     num_bins : int, optional
         The number of bins to use for binning the data, by default 10
+    overwrite : bool, optional
+        Whether or not to overwrite an existing characterization if
+        data files already exist. By default, True, will overwrite
 
     Raises
     ------
@@ -74,8 +79,15 @@ def _characterize(
         If confidence value is less than bin key.
 
     """
+    if overwrite is None:
+        overwrite = True
+
     if not Path.exists(output_dir / modelname):
         Path.mkdir(output_dir / modelname, parents=True)
+
+    csvpath = output_dir / modelname / f"{modelname}.csv"
+    if csvpath.exists() and not overwrite:
+        _log.debug(f"Skipping characterization for: {modelname}")
 
     jsonpath = output_dir / modelname / f"{modelname}.json"
     if not Path.exists(jsonpath):
@@ -235,6 +247,7 @@ def characterize(
     graph_type: type[nx.Graph | nx.DiGraph] = nx.Graph,
     *,
     purge_connectivity: bool | None = None,
+    overwrite: bool | None = None,
 ) -> None:
     """
     Characterize the given models.
@@ -278,7 +291,10 @@ def characterize(
         If True, the cutoff will be iteratively increased until the graph
         has the minimum number of connected components.
         By default None, which will not purge the graph.
-
+    overwrite : bool, optional
+        Whether or not to overwrite an existing characterization if
+        data files already exist. By default, True, will overwrite
+        
     """
     if not Path.exists(output_dir):
         Path.mkdir(output_dir, parents=True)
@@ -296,8 +312,10 @@ def characterize(
             image_names=image_files,
             ground_truth=ground_truth,
             num_bins=num_bins,
+            overwrite=overwrite,
         )
 
+    _log.debug("Building conf graph...")
     build_graph(
         output_dir=output_dir,
         num_bins=num_bins,

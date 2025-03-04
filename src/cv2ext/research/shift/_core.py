@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import os
+import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable
 
@@ -13,6 +14,8 @@ from ._scheduler import ShiftScheduler
 if TYPE_CHECKING:
     import numpy as np
     from typing_extensions import Self
+
+_log = logging.getLogger(__name__)
 
 
 class Shift:
@@ -122,6 +125,8 @@ class Shift:
             raise ValueError(err_msg)
         self._last_model: str = most_accurate_model
         self._main_model = most_accurate_model
+
+        _log.debug(f"SHIFT: Most accurate model, {most_accurate_model}")
 
     @property
     def scheduler(self: Self) -> ShiftScheduler:

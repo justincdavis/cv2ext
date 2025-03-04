@@ -305,6 +305,13 @@ class ShiftScheduler:
         image: np.ndarray,
         bboxes: list[tuple[int, int, int, int]],
     ) -> float:
+        # default case if no dets
+        if len(bboxes) == 0:
+            self._last_image = image
+            self._last_bboxes = bboxes
+            return 1.0
+        
+        # otherwise we have dets
         if self._last_image is None or self._last_bboxes is None:
             self._last_image = image
             img_size = (image.shape[1], image.shape[0])
@@ -487,7 +494,12 @@ class ShiftScheduler:
         """
         # solve the ncc
         ncc = self._ncc(image, bboxes)
-        confidence = float(np.mean(scores))
+        # compute confidence using rules from characterization
+        if len(bboxes) > 0:
+            confidence = float(np.mean(scores))
+        else:
+            confidence = 1.0
+
         if (
             ncc * confidence >= self._accuracy_threshold
             and self._last_model is not None

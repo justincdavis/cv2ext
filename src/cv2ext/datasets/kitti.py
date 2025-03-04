@@ -45,7 +45,7 @@ def get_kitti_files(
     kitti_dir : Path | str | None
         The directory to search for the train/test directories
         The directory structure should be:
-        mot_dir
+        kitti_dir
         -----> images
         ----------> testing
         ---------------> image_02
