@@ -133,8 +133,15 @@ def _characterize(
             mean_iou = float(np.mean(ious))
             mean_score = float(np.mean(scores))
 
+        # compute the recall
+        if len(gt) == 0:
+            recall = float(len(matches) == len(gt))
+        else:
+            recall = len(matches) / len(gt)
+
         image_stats[image_name]["time"] = t_inference
         image_stats[image_name]["iou"] = mean_iou
+        image_stats[image_name]["recall"] = recall
         image_stats[image_name]["conf"] = mean_score
         image_stats[image_name]["energy"] = t_inference * power_draw
 
@@ -167,7 +174,9 @@ def _characterize(
     # correlations
     conf_data = np.array([data["conf"] for data in image_stats.values()])
     iou_data = np.array([data["iou"] for data in image_stats.values()])
+    recall_data = np.array([data["recall"] for data in image_stats.values()])
     json_data["conf_corr"] = str(np.mean(np.corrcoef(conf_data, iou_data)))
+    json_data["conf_corr_recall"] = str(np.mean(np.corrcoef(conf_data, recall_data)))
 
     # binning
     json_bin_data: dict[str, int | float | dict] = {}
@@ -181,11 +190,13 @@ def _characterize(
 
     binned_iou = defaultdict(list)
     binned_conf = defaultdict(list)
+    binned_recall = defaultdict(list)
 
     for idx, indice in enumerate(indices):
         conf_key = indice / num_bins
         iou_val = iou_data[idx]
         conf_val = conf_data[idx]
+        recall_val = recall_data[idx]
         # # verify confidence checks
         # if conf_val > conf_key:
         #     err_msg = "Confidence value is greater than bin key."
@@ -195,31 +206,54 @@ def _characterize(
         #     raise RuntimeError(err_msg)
         binned_iou[conf_key].append(iou_val)
         binned_conf[conf_key].append(conf_val)
+        binned_recall[conf_key].append(recall_val)
 
     possible_bins = [b / num_bins for b in range(num_bins + 1)]
     for conf_bin in possible_bins:
         iou_bin_data = binned_iou[conf_bin]
         conf_bin_data = binned_conf[conf_bin]
+        recall_bin_data = binned_recall[conf_bin]
         if len(iou_bin_data) == 0:
             iou_bin_data = [0.0, 0.0]
             conf_bin_data = [0.0, 0.0]
+            recall_bin_data = [0.0, 0.0]
         alpha = np.mean(
             [i / c for i, c in zip(iou_bin_data, conf_bin_data) if c != 0],
         )
+        alpha_recall = np.mean(
+            [r / c for r, c in zip(recall_bin_data, conf_bin_data) if c != 0],
+        )
         if str(alpha) == "nan":
             alpha = 1.0
+        if str(alpha_recall) == "nan":
+            alpha_recall = 1.0
+
         z = np.array([1.0, 0.0])
         if not (np.sum(conf_bin_data) == 0 or np.sum(iou_bin_data) == 0):
             z = np.polyfit(conf_bin_data, iou_bin_data, 1)
         conf_bin_corr = float(np.mean(np.corrcoef(conf_bin_data, iou_bin_data)))
+        z_recall = np.array([1.0, 0.0])
+        if not (np.sum(conf_bin_data) == 0 or np.sum(recall_bin_data) == 0):
+            z_recall = np.polyfit(conf_bin_data, recall_bin_data, 1)
+        conf_bin_corr_recall = float(
+            np.mean(np.corrcoef(conf_bin_data, recall_bin_data)),
+        )
+
         if str(conf_bin_corr) == "nan":
             conf_bin_corr = 1.0
+        if str(conf_bin_corr_recall) == "nan":
+            conf_bin_corr_recall = 1.0
+
         sub_bin_data = {}
         sub_bin_data["alpha"] = str(alpha)
         sub_bin_data["conf_corr"] = str(conf_bin_corr)
         sub_bin_data["iou_mean"] = str(np.mean(iou_bin_data))
         sub_bin_data["conf_mean"] = str(np.mean(conf_bin_data))
         sub_bin_data["fit"] = str(z.tolist())
+        sub_bin_data["alpha_recall"] = str(alpha_recall)
+        sub_bin_data["conf_corr_recall"] = str(conf_bin_corr_recall)
+        sub_bin_data["recall_mean"] = str(np.mean(recall_bin_data))
+        sub_bin_data["fit_recall"] = str(z_recall.tolist())
         # add to the json
         json_bin_data[str(conf_bin)] = sub_bin_data
     json_data["bins"] = json_bin_data
@@ -294,7 +328,7 @@ def characterize(
     overwrite : bool, optional
         Whether or not to overwrite an existing characterization if
         data files already exist. By default, True, will overwrite
-        
+
     """
     if not Path.exists(output_dir):
         Path.mkdir(output_dir, parents=True)

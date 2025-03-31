@@ -4,8 +4,8 @@
 from __future__ import annotations
 
 import json
-import os
 import logging
+import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable
 
@@ -41,6 +41,7 @@ class Shift:
         accuracy_threshold: float = 0.5,
         momentum: int = 10,
         knobs: dict[str, float] | None = None,
+        metric: str = "iou",
     ) -> None:
         """
         Initialize the SHIFT methodology.
@@ -75,13 +76,22 @@ class Shift:
             The default is None.
             The knobs dict (if provided) should contain, accuracy, latency,
             and energy as keys. All values should be floats.
+        metric : str, optional
+            The metric to utilize for accuracy calculations.
+            The options are: ['iou', 'recall']
 
         Raises
         ------
         ValueError
-            If the sim_data parameter is not provided when simulated is True.
+            If the metric is not valid
 
         """
+        metric_options = ["iou", "recall"]
+        if metric not in metric_options:
+            err_msg = f"Metric, {metric} not in {metric_options}"
+            raise ValueError(err_msg)
+        self._metric = metric
+
         # create the scheduler
         self._scheduler = ShiftScheduler(
             data_dir=data_dir,
@@ -107,19 +117,14 @@ class Shift:
                 with Path.open(dirpath / f"{directory}.json") as f:
                     data = json.load(f)
                     try:
-                        if (
-                            most_accurate_model is None
-                            or float(data["accuracy"]["mean"]) > highest_accuracy
-                        ):
-                            most_accurate_model = directory
-                            highest_accuracy = float(data["accuracy"]["mean"])
-                    except KeyError:
-                        if (
-                            most_accurate_model is None
-                            or float(data["iou"]["mean"]) > highest_accuracy
-                        ):
-                            most_accurate_model = directory
-                            highest_accuracy = float(data["iou"]["mean"])
+                        metric_mean = float(data[self._metric]["mean"])
+                    except KeyError as e:
+                        err_msg = f"Could not find entry for {self._metric} in data for {dirpath.stem}. "
+                        err_msg += "Consider performing characterization again."
+                        raise KeyError(err_msg) from e
+                    if most_accurate_model is None or metric_mean > highest_accuracy:
+                        most_accurate_model = directory
+                        highest_accuracy = metric_mean
         if most_accurate_model is None:
             err_msg = "No models were found in the stats_dir."
             raise ValueError(err_msg)

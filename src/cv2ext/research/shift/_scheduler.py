@@ -36,6 +36,7 @@ class ShiftScheduler:
         accuracy_threshold: float = 0.5,
         momentum: int = 10,
         knobs: dict[str, float] | None = None,
+        metric: str = "iou",
     ) -> None:
         """
         Use to intialize the shift algorithm.
@@ -68,13 +69,25 @@ class ShiftScheduler:
             The default is None.
             The knobs dict (if provided) should contain, accuracy, latency,
             and energy as keys. All values should be floats.
+        metric : str, optional
+            The metric to utilize for accuracy calculations.
+            The options are: ['iou', 'recall']
 
         Raises
         ------
         ValueError
             If the knob keys provided are not valid
+        ValueError
+            If the metric is not valid
 
         """
+        metric_options = ["iou", "recall"]
+        if metric not in metric_options:
+            err_msg = f"Metric, {metric} not in {metric_options}"
+            raise ValueError(err_msg)
+
+        self._metric = f"{metric}_mean"
+        self._metric_fit = "fit" if metric == "iou" else "fit_recall"
         self._stats_dir = str(data_dir)
         self._cost_threshold: float = cost_threshold
         self._accuracy_threshold: float = accuracy_threshold
@@ -310,7 +323,7 @@ class ShiftScheduler:
             self._last_image = image
             self._last_bboxes = bboxes
             return 1.0
-        
+
         # otherwise we have dets
         if self._last_image is None or self._last_bboxes is None:
             self._last_image = image
@@ -391,10 +404,12 @@ class ShiftScheduler:
         confidence = node_name[idx + 1 :]
         if raw_confidence is None:
             accuracy = float(
-                self._model_stats[modelname]["bins"][confidence]["iou_mean"],
+                self._model_stats[modelname]["bins"][confidence][self._metric],
             )
         else:
-            fit_data: str = self._model_stats[modelname]["bins"][confidence]["fit"]
+            fit_data: str = self._model_stats[modelname]["bins"][confidence][
+                self._metric_fit
+            ]
             split_fit_data = list(fit_data.split(","))
             slope = float(split_fit_data[0].replace("[", ""))
             intercept = float(split_fit_data[1].replace("]", ""))
@@ -498,7 +513,7 @@ class ShiftScheduler:
         if len(bboxes) > 0:
             confidence = float(np.mean(scores))
         else:
-            confidence = 1.0
+            confidence = 0.0
 
         if (
             ncc * confidence >= self._accuracy_threshold
@@ -514,7 +529,7 @@ class ShiftScheduler:
 
         # fill out var_attrs with the candidates info
         for c in candidates:
-            # print(f"Model: {c[0]}, Accuracy: {c[1]}, Cost: {c[2]}, Adjusted Accuracy: {ajd_acc}")
+            # print(f"Model: {c[0]}, Accuracy: {c[1]}, Cost: {c[2]}")
             var_attrs["accuracy"][c[0]] = c[1]
             # var_attrs["accuracy"][c[0]] = c[1]
             self._moments[c[0]].append(var_attrs["accuracy"][c[0]])
