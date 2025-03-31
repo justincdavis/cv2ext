@@ -85,7 +85,7 @@ def rectangle(
     p2: tuple[int, int] | None = None,
     color: Color | tuple[int, int, int] = Color.RED,
     thickness: int = 2,
-    linetype: int = cv2.LINE_8,
+    linetype: int = cv2.LINE_AA,
     opacity: float | None = None,
     *,
     copy: bool | None = None,
@@ -118,7 +118,7 @@ def rectangle(
         Default is 2.
     linetype : int, optional
         The type of line to draw.
-        Default is cv2.LINE_8.
+        Default is cv2.LINE_AA.
         The options are cv2.FILLED, cv2.LINE_4, cv2.LINE_8, cv2.LINE_AA.
     opacity : float, optional
         The opacity to use for drawing. By default None or 100% opacity.
@@ -201,7 +201,7 @@ def circle(
     radius: int,
     color: Color | tuple[int, int, int] = Color.RED,
     thickness: int = 2,
-    linetype: int = cv2.LINE_8,
+    linetype: int = cv2.LINE_AA,
     opacity: float | None = None,
     *,
     copy: bool | None = None,
@@ -230,7 +230,7 @@ def circle(
         Default is 2.
     linetype : int, optional
         The type of line to draw.
-        Default is cv2.LINE_8.
+        Default is cv2.LINE_AA.
         The options are cv2.FILLED, cv2.LINE_4, cv2.LINE_8, cv2.LINE_AA.
     opacity : float, optional
         The opacity to use for drawing. By default None or 100% opacity.
@@ -284,7 +284,7 @@ def text(
     font_scale: float = 1.0,
     color: Color | tuple[int, int, int] = Color.RED,
     thickness: int = 2,
-    linetype: int = cv2.LINE_8,
+    linetype: int = cv2.LINE_AA,
     opacity: float | None = None,
     *,
     copy: bool | None = None,
@@ -327,7 +327,7 @@ def text(
         Default is 2.
     linetype : int, optional
         The type of line to draw.
-        Default is cv2.LINE_8.
+        Default is cv2.LINE_AA.
         The options are cv2.FILLED, cv2.LINE_4, cv2.LINE_8, cv2.LINE_AA.
     opacity : float, optional
         The opacity to use for drawing. By default None or 100% opacity.
