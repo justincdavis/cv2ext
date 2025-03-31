@@ -19,12 +19,15 @@ Functions
 ---------
 :func:`detect_blobs`
     Detect blobs in an image.
+:func:`draw_detections`
+    Draw detections on an image.
 
 """
 
 from __future__ import annotations
 
 from ._blob import BlobDetector, detect_blobs
+from ._draw import draw_detections
 from ._packer import (
     AbstractFramePacker,
     AbstractGridFramePacker,
@@ -39,4 +42,5 @@ __all__ = [
     "BlobDetector",
     "RandomFramePacker",
     "detect_blobs",
+    "draw_detections",
 ]
