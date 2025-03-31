@@ -64,9 +64,9 @@ def draw_detections(
         drawing = rectangle(
             drawing,
             bbox,
-            color,
-            thickness,
-            opacity,
+            color=color,
+            thickness=thickness,
+            opacity=opacity,
         )
 
         class_label = class_map[classid] if class_map else str(classid)
@@ -74,8 +74,10 @@ def draw_detections(
         drawing = text(
             drawing,
             label,
-            bbox[0:2],
-            color,
+            (bbox[0], bbox[1]),
+            color=color,
+            thickness=thickness,
+            opacity=opacity,
         )
 
     return drawing
