@@ -510,10 +510,7 @@ class ShiftScheduler:
         # solve the ncc
         ncc = self._ncc(image, bboxes)
         # compute confidence using rules from characterization
-        if len(bboxes) > 0:
-            confidence = float(np.mean(scores))
-        else:
-            confidence = 0.0
+        confidence = float(np.mean(scores)) if len(bboxes) > 0 else 0.0
 
         if (
             ncc * confidence >= self._accuracy_threshold

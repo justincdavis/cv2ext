@@ -166,7 +166,7 @@ def read_kitti_label(
             )
             raise ValueError(err_msg)
 
-        fid, _, cid, _, _, _, x, y, w, h = values[:10]
+        fid_str, _, cid, _, _, _, x_str, y_str, w_str, h_str = values[:10]
 
         # if class is marked dont care then skip
         if cid == "DontCare":
@@ -176,8 +176,8 @@ def read_kitti_label(
         oid = ID_MAP[cid]
 
         # convert to correct object/frame ids
-        fid = int(fid)
-        x, y, w, h = map(float, (x, y, w, h))
+        fid = int(fid_str)
+        x, y, w, h = map(float, (x_str, y_str, w_str, h_str))
         data[fid - 1].append(((int(x), int(y), int(x + w), int(y + h)), oid))
 
     return data

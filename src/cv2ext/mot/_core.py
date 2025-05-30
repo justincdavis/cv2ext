@@ -11,7 +11,7 @@ including association, track management, and detection processing.
 from __future__ import annotations
 
 import numpy as np
-from scipy.optimize import linear_sum_assignment
+from scipy.optimize import linear_sum_assignment  # type: ignore[import-untyped]
 
 from cv2ext._jit import register_jit
 from cv2ext.bboxes import iou
@@ -41,7 +41,7 @@ def compute_iou_matrix(
     if not tracks or not detections:
         return np.zeros((len(tracks), len(detections)), dtype=np.float32)
 
-    iou_matrix = np.zeros((len(tracks), len(detections)), dtype=np.float32)
+    iou_matrix: np.ndarray = np.zeros((len(tracks), len(detections)), dtype=np.float32)
 
     for i, track_bbox in enumerate(tracks):
         for j, (det_bbox, _, _) in enumerate(detections):
@@ -82,6 +82,8 @@ def linear_assignment(
     if cost_matrix.max() <= 1.0:
         cost_matrix = 1.0 - cost_matrix
 
+    row_indices: np.ndarray
+    col_indices: np.ndarray
     row_indices, col_indices = linear_sum_assignment(cost_matrix)
 
     valid_assignments = cost_matrix[row_indices, col_indices] <= max_cost
@@ -90,7 +92,7 @@ def linear_assignment(
 
     used_tracks = set(matched_tracks)
 
-    unmatched_tracks = np.array(
+    unmatched_tracks: np.ndarray = np.array(
         [i for i in range(cost_matrix.shape[0]) if i not in used_tracks],
         dtype=np.int32,
     )

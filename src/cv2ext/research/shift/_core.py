@@ -84,6 +84,8 @@ class Shift:
         ------
         ValueError
             If the metric is not valid
+        KeyError
+            If the metric is the characterization data
 
         """
         metric_options = ["iou", "recall"]

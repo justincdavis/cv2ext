@@ -101,14 +101,17 @@ def get_mot_files(
     train_subdir = mot_dir / "train"
     test_subdir = mot_dir / "test"
 
+    # typing variables
+    det_label: Path | None
+    det_label_path: Path
+
     # handle training files
     train_labels: list[tuple[Path, Path, Path, Path, Path | None]] = []
     subdirs = sorted(train_subdir.iterdir())
     for subdirectory in subdirs:
         # try to resolve det.txt
-        det_label = subdirectory / "det" / "det.txt"
-        if not det_label.exists():
-            det_label = None
+        det_label_path = subdirectory / "det" / "det.txt"
+        det_label = det_label_path if det_label_path.exists() else None
 
         # resolve gt.txt
         gt_label = subdirectory / "gt" / "gt.txt"
@@ -133,9 +136,8 @@ def get_mot_files(
     subdirs = sorted(test_subdir.iterdir())
     for subdirectory in subdirs:
         # try to resolve det.txt
-        det_label = subdirectory / "det" / "det.txt"
-        if not det_label.exists():
-            det_label = None
+        det_label_path = subdirectory / "det" / "det.txt"
+        det_label = det_label_path if det_label_path.exists() else None
 
         # resolve seginfo.txt
         seqinfo = subdirectory / "seqinfo.ini"
@@ -195,16 +197,16 @@ def read_gt_det_mot_label(
             raise ValueError(err_msg)
 
         # 7 elements per label
-        fid, oid, x, y, w, h, conf = values[:7]
+        fid_str, oid_str, x_str, y_str, w_str, h_str, conf_str = values[:7]
 
         # if marked with 0 conf then they are not used for accuracy assessment
-        if int(conf) == 0:
+        if int(conf_str) == 0:
             continue
 
         # convert to correct object/frame ids
-        fid = int(fid)
-        oid = int(oid)
-        x, y, w, h = map(float, (x, y, w, h))
+        fid = int(fid_str)
+        oid = int(oid_str)
+        x, y, w, h = map(float, (x_str, y_str, w_str, h_str))
         data[fid - 1].append(((int(x), int(y), int(x + w), int(y + h)), oid))
 
     return data

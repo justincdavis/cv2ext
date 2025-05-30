@@ -53,7 +53,6 @@ def _bbox_to_state(bbox: tuple[int, int, int, int]) -> np.ndarray:
     cy = (y1 + y2) / 2.0  # center y
     w = float(x2 - x1)  # width
     h = float(y2 - y1)  # height
-    # Initialize velocities to zero
     return np.array([cx, cy, w, h, 0.0, 0.0, 0.0, 0.0], dtype=np.float32)
 
 
@@ -69,9 +68,7 @@ def _state_to_bbox(state: np.ndarray) -> tuple[int, int, int, int]:
 
 @register_jit(nogil=True, inline="always")
 def _create_transition_matrix() -> np.ndarray:
-    # State: [cx, cy, w, h, vx, vy, vw, vh]
-    # Next state: [cx + vx, cy + vy, w + vw, h + vh, vx, vy, vw, vh]
-    f = np.eye(8, dtype=np.float32)
+    f: np.ndarray = np.eye(8, dtype=np.float32)
     f[0, 4] = 1.0  # cx += vx
     f[1, 5] = 1.0  # cy += vy
     f[2, 6] = 1.0  # w += vw
@@ -81,8 +78,7 @@ def _create_transition_matrix() -> np.ndarray:
 
 @register_jit(nogil=True, inline="always")
 def _create_observation_matrix() -> np.ndarray:
-    # We observe [cx, cy, w, h] from state [cx, cy, w, h, vx, vy, vw, vh]
-    h = np.zeros((4, 8), dtype=np.float32)
+    h: np.ndarray = np.zeros((4, 8), dtype=np.float32)
     h[0, 0] = 1.0  # observe cx
     h[1, 1] = 1.0  # observe cy
     h[2, 2] = 1.0  # observe w
@@ -97,7 +93,7 @@ def _create_process_noise(
     size_noise: float = 1.0,
     size_vel_noise: float = 0.1,
 ) -> np.ndarray:
-    q = np.eye(8, dtype=np.float32)
+    q: np.ndarray = np.eye(8, dtype=np.float32)
     q[0, 0] = pos_noise  # cx noise
     q[1, 1] = pos_noise  # cy noise
     q[2, 2] = size_noise  # w noise
@@ -117,7 +113,6 @@ def _create_measurement_noise(noise: float = 10.0) -> np.ndarray:
 @register_jit(nogil=True, inline="always")
 def _create_initial_covariance(uncertainty: float = 1000.0) -> np.ndarray:
     p = np.eye(8, dtype=np.float32) * uncertainty
-    # Higher uncertainty for velocities
     p[4:, 4:] *= 10.0
     return p
 
@@ -182,16 +177,10 @@ def kalman_predict(
 
     """
     state = _bbox_to_state(input_data) if isinstance(input_data, tuple) else input_data
-
     f = _create_transition_matrix()
     q = _create_process_noise(pos_noise, vel_noise, size_noise, size_vel_noise)
-
-    # Predict state: x_pred = F * x
     state_pred = f @ state
-
-    # Predict covariance: P_pred = F * P * F^T + Q
     covariance_pred = f @ covariance @ f.T + q
-
     return state_pred, covariance_pred
 
 
@@ -231,20 +220,20 @@ def kalman_update(
     h = _create_observation_matrix()
     r = _create_measurement_noise(measurement_noise)
 
-    # Innovation: y = z - H * x_pred
+    # y = z - H * x_pred
     innovation = measurement_vec - h @ state_pred
 
-    # Innovation covariance: S = H * P_pred * H^T + R
+    # S = H * P_pred * H^T + R
     innovation_cov = h @ covariance_pred @ h.T + r
 
-    # Kalman gain: K = P_pred * H^T * S^-1
+    # K = P_pred * H^T * S^-1
     kalman_gain = covariance_pred @ h.T @ np.linalg.inv(innovation_cov)
 
-    # Update state: x = x_pred + K * y
+    # x = x_pred + K * y
     state_updated = state_pred + kalman_gain @ innovation
 
-    # Update covariance: P = (I - K * H) * P_pred
-    identity = np.eye(8, dtype=np.float32)
+    # P = (I - K * H) * P_pred
+    identity: np.ndarray = np.eye(8, dtype=np.float32)
     covariance_updated = (identity - kalman_gain @ h) @ covariance_pred
 
     return state_updated, covariance_updated
