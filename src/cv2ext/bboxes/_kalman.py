@@ -342,28 +342,29 @@ def kalman_update_bbox(
 class KalmanBBoxFilter:
     """
     Minimal Kalman filter class for bounding box tracking.
-    
+
     This class wraps the function-based Kalman filter implementation
     with a clean object-oriented interface.
-    
+
     Parameters
     ----------
     bbox : tuple[int, int, int, int]
         Initial bounding box (x1, y1, x2, y2)
-    
+
     Example
     -------
     >>> filter = KalmanBBoxFilter((100, 50, 200, 150))
     >>> predicted_bbox = filter.predict()
     >>> updated_bbox = filter.update((105, 52, 205, 152))
+
     """
-    
-    __slots__ = ('_state', '_covariance')
-    
+
+    __slots__ = ("_covariance", "_state")
+
     def __init__(self, bbox: tuple[int, int, int, int]) -> None:
         """Initialize the Kalman filter with a bounding box."""
         self._state, self._covariance = kalman_init(bbox)
-    
+
     def predict(
         self,
         pos_noise: float = 1.0,
@@ -373,18 +374,24 @@ class KalmanBBoxFilter:
     ) -> tuple[int, int, int, int]:
         """
         Predict the next bounding box position.
-        
+
         Returns
         -------
         tuple[int, int, int, int]
             Predicted bounding box (x1, y1, x2, y2)
+
         """
         bbox_pred, self._state, self._covariance = kalman_predict_bbox(
-            self.bbox, self._state, self._covariance,
-            pos_noise, vel_noise, size_noise, size_vel_noise
+            self.bbox,
+            self._state,
+            self._covariance,
+            pos_noise,
+            vel_noise,
+            size_noise,
+            size_vel_noise,
         )
         return bbox_pred
-    
+
     def update(
         self,
         measurement_bbox: tuple[int, int, int, int],
@@ -392,34 +399,35 @@ class KalmanBBoxFilter:
     ) -> tuple[int, int, int, int]:
         """
         Update the filter with a measured bounding box.
-        
+
         Parameters
         ----------
         measurement_bbox : tuple[int, int, int, int]
             Measured bounding box (x1, y1, x2, y2)
         measurement_noise : float, optional
             Measurement noise, by default 10.0
-            
+
         Returns
         -------
         tuple[int, int, int, int]
             Updated bounding box (x1, y1, x2, y2)
+
         """
         bbox_updated, self._state, self._covariance = kalman_update_bbox(
-            measurement_bbox, self._state, self._covariance, measurement_noise
+            measurement_bbox, self._state, self._covariance, measurement_noise,
         )
         return bbox_updated
-    
+
     @property
     def bbox(self) -> tuple[int, int, int, int]:
         """Get the current bounding box estimate."""
         return kalman_get_bbox(self._state)
-    
+
     @property
     def state(self) -> np.ndarray:
         """Get the current state vector [cx, cy, w, h, vx, vy, vw, vh]."""
         return self._state.copy()
-    
+
     @property
     def covariance(self) -> np.ndarray:
         """Get the current covariance matrix."""
