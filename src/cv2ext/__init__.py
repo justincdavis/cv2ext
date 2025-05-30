@@ -19,6 +19,8 @@ Submodules
     Submodule containing tools for working with video and image io.
 :mod:`metrics`
     Submodule containing tools for working with image metrics.
+:mod:`mot`
+    Submodule containing tools for working with multi-object tracking.
 :mod:`research`
     Submodule containing implementations of research papers and methods.
 :mod:`template`
@@ -183,7 +185,18 @@ class _DEL:
 _WINDOW_MANAGER = _DEL(_log)
 
 
-from . import bboxes, detection, image, io, metrics, research, template, tracking, video
+from . import (
+    bboxes,
+    detection,
+    image,
+    io,
+    metrics,
+    mot,
+    research,
+    template,
+    tracking,
+    video,
+)
 from .io import Display, Fourcc, IterableVideo, VideoWriter
 from ._jit import JIT, enable_jit, disable_jit, register_jit
 
@@ -203,6 +216,7 @@ __all__ = [
     "image",
     "io",
     "metrics",
+    "mot",
     "register_jit",
     "research",
     "set_log_level",
@@ -220,6 +234,6 @@ _log.info("cv2ext.cli initialized.")
 
 __all__ += ["cli"]
 
-# # automatically enable the JIT if numba is present
-# if FLAGS.FOUND_NUMBA:
-#     enable_jit()
+# automatically enable the JIT if numba is present
+if FLAGS.FOUND_NUMBA:
+    enable_jit()
