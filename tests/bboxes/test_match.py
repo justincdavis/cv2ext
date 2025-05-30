@@ -13,9 +13,10 @@ def test_zero_len_match():
     try:
         cv2ext.bboxes.match(bboxes1, bboxes2)
     except ValueError:
-        return True
+        pass
 
-    return False
+    assert False, "Failed to raise ValueError"
+
 
 def test_basic_1_match():
     bboxes1 = [(0, 0, 10, 10)]

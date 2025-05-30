@@ -12,6 +12,36 @@ import cv2
 _log = logging.getLogger(__name__)
 
 
+def check_camera(camera_index: int) -> tuple[int, bool]:
+    """
+    Check if a camera index is valid.
+
+    Parameters
+    ----------
+    camera_index : int
+        The camera index to check
+
+    Returns
+    -------
+    tuple[int, bool]
+        The camera index and whether it is valid
+
+    """
+    try:
+        # try to open a camera
+        cap = cv2.VideoCapture(camera_index)
+        if not cap.isOpened():
+            return camera_index, False
+        ret, _ = cap.read()
+    except (cv2.error, OSError, RuntimeError) as e:
+        _log.debug(f"Camera {camera_index} is invalid: {e}")
+        return camera_index, False
+    else:
+        cap.release()
+        _log.debug(f"Camera {camera_index} is valid: {ret}")
+        return camera_index, ret
+
+
 def find_all_cameras(
     max_cameras: int = 10,
 ) -> Sequence[int]:
@@ -39,22 +69,6 @@ def find_all_cameras(
 
     """
     valid_cameras = []
-
-    def check_camera(camera_index: int) -> tuple[int, bool]:
-        """Check if a camera index is valid."""
-        try:
-            # try to open a camera
-            cap = cv2.VideoCapture(camera_index)
-            if not cap.isOpened():
-                return camera_index, False
-            ret, _ = cap.read()
-        except (cv2.error, OSError, RuntimeError) as e:
-            _log.debug(f"Camera {camera_index} is invalid: {e}")
-            return camera_index, False
-        else:
-            cap.release()
-            _log.debug(f"Camera {camera_index} is valid: {ret}")
-            return camera_index, ret
 
     # disable opencv log messages
     original_log_level = cv2.getLogLevel()

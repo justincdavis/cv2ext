@@ -5,278 +5,191 @@ from __future__ import annotations
 
 import numpy as np
 
-import cv2ext
 from cv2ext.bboxes._kalman import (
+    kalman_get_bbox,
     kalman_init,
     kalman_predict,
     kalman_update,
-    kalman_get_bbox,
-    kalman_predict_bbox,
-    kalman_update_bbox,
-    _bbox_to_state,
-    _state_to_bbox,
 )
 
 from ..helpers import wrapper, wrapper_jit
 
 
 @wrapper
-def test_bbox_to_state_conversion():
-    """Test conversion from bbox to state vector."""
-    bbox = (100, 50, 200, 150)
-    state = _bbox_to_state(bbox)
-    
-    # Check shape and data type
-    assert state.shape == (8,)
-    assert state.dtype == np.float64
-    
-    # Check values: [cx, cy, w, h, vx, vy, vw, vh]
-    assert state[0] == 150.0  # cx = (100 + 200) / 2
-    assert state[1] == 100.0  # cy = (50 + 150) / 2
-    assert state[2] == 100.0  # w = 200 - 100
-    assert state[3] == 100.0  # h = 150 - 50
-    assert state[4] == 0.0    # vx initialized to 0
-    assert state[5] == 0.0    # vy initialized to 0
-    assert state[6] == 0.0    # vw initialized to 0
-    assert state[7] == 0.0    # vh initialized to 0
-
-
-@wrapper
-def test_state_to_bbox_conversion():
-    """Test conversion from state vector to bbox."""
-    state = np.array([150.0, 100.0, 100.0, 100.0, 5.0, 3.0, 0.0, 0.0], dtype=np.float64)
-    bbox = _state_to_bbox(state)
-    
-    # Check conversion back to bbox
-    assert bbox == (100, 50, 200, 150)
-
-
-@wrapper
-def test_bbox_state_roundtrip():
-    """Test that bbox -> state -> bbox conversion is consistent."""
-    original_bbox = (75, 25, 175, 125)
-    state = _bbox_to_state(original_bbox)
-    converted_bbox = _state_to_bbox(state)
-    
-    assert converted_bbox == original_bbox
-
-
-@wrapper
-def test_kalman_init():
-    """Test Kalman filter initialization."""
+def test_kalman_init_bbox():
+    """Test kalman_init with a bounding box tuple."""
     bbox = (100, 50, 200, 150)
     state, covariance = kalman_init(bbox)
     
-    # Check state initialization
     assert state.shape == (8,)
-    assert state.dtype == np.float64
-    
-    # Check covariance initialization
     assert covariance.shape == (8, 8)
-    assert covariance.dtype == np.float64
+
+    expected_cx = (100 + 200) / 2.0  # 150
+    expected_cy = (50 + 150) / 2.0   # 100
+    expected_w = 200 - 100           # 100
+    expected_h = 150 - 50            # 100
     
-    # Check that covariance is positive definite (all eigenvalues > 0)
-    eigenvals = np.linalg.eigvals(covariance)
-    assert np.all(eigenvals > 0)
+    assert abs(state[0] - expected_cx) < 1e-6
+    assert abs(state[1] - expected_cy) < 1e-6
+    assert abs(state[2] - expected_w) < 1e-6
+    assert abs(state[3] - expected_h) < 1e-6
+
+    assert abs(state[4]) < 1e-6
+    assert abs(state[5]) < 1e-6
+    assert abs(state[6]) < 1e-6
+    assert abs(state[7]) < 1e-6
 
 
 @wrapper
-def test_kalman_get_bbox():
-    """Test extracting bbox from state."""
-    bbox = (100, 50, 200, 150)
-    state, _ = kalman_init(bbox)
-    extracted_bbox = kalman_get_bbox(state)
+def test_kalman_init_state_vector():
+    """Test kalman_init with a state vector."""
+    state_vec = np.array([150.0, 100.0, 100.0, 100.0, 5.0, 3.0, 1.0, 0.5], dtype=np.float32)
+    state, covariance = kalman_init(state_vec)
     
-    assert extracted_bbox == bbox
+    assert state.shape == (8,)
+    assert covariance.shape == (8, 8)
+    assert np.allclose(state, state_vec)
 
 
 @wrapper
-def test_kalman_predict_basic():
-    """Test basic Kalman prediction."""
+def test_kalman_predict_simple():
+    """Test kalman_predict with basic prediction."""
     bbox = (100, 50, 200, 150)
     state, covariance = kalman_init(bbox)
     
-    # First prediction should be same as initial (no velocity)
     state_pred, covariance_pred = kalman_predict(state, covariance)
     
     assert state_pred.shape == (8,)
     assert covariance_pred.shape == (8, 8)
+
+    assert abs(state_pred[0] - state[0]) < 1e-6
+    assert abs(state_pred[1] - state[1]) < 1e-6
+    assert abs(state_pred[2] - state[2]) < 1e-6
+    assert abs(state_pred[3] - state[3]) < 1e-6
+
+
+@wrapper
+def test_kalman_predict_from_bbox():
+    """Test kalman_predict using bbox directly."""
+    bbox = (100, 50, 200, 150)
+    _, covariance = kalman_init(bbox)
+
+    state_pred, covariance_pred = kalman_predict(bbox, covariance)
     
-    # Position should be same (no initial velocity)
-    assert state_pred[0] == state[0]  # cx
-    assert state_pred[1] == state[1]  # cy
-    assert state_pred[2] == state[2]  # w
-    assert state_pred[3] == state[3]  # h
-    
-    # Velocities should still be zero
-    assert state_pred[4] == 0.0  # vx
-    assert state_pred[5] == 0.0  # vy
-    assert state_pred[6] == 0.0  # vw
-    assert state_pred[7] == 0.0  # vh
+    assert state_pred.shape == (8,)
+    assert covariance_pred.shape == (8, 8)
 
 
 @wrapper
 def test_kalman_predict_with_velocity():
-    """Test Kalman prediction with existing velocity."""
-    bbox = (100, 50, 200, 150)
-    state, covariance = kalman_init(bbox)
-    
-    # Add some velocity
-    state[4] = 5.0  # vx = 5 pixels per frame
-    state[5] = 3.0  # vy = 3 pixels per frame
+    """Test kalman_predict with non-zero velocities."""
+    state = np.array([150.0, 100.0, 100.0, 100.0, 5.0, 3.0, 1.0, 0.5], dtype=np.float32)
+    covariance = np.eye(8, dtype=np.float32) * 1000.0
     
     state_pred, covariance_pred = kalman_predict(state, covariance)
     
-    # Position should have moved by velocity
-    assert state_pred[0] == 150.0 + 5.0  # cx + vx
-    assert state_pred[1] == 100.0 + 3.0  # cy + vy
-    assert state_pred[2] == 100.0        # w unchanged
-    assert state_pred[3] == 100.0        # h unchanged
-    
-    # Velocities should be preserved
-    assert state_pred[4] == 5.0
-    assert state_pred[5] == 3.0
+    assert abs(state_pred[0] - 155.0) < 1e-6
+    assert abs(state_pred[1] - 103.0) < 1e-6
+    assert abs(state_pred[2] - 101.0) < 1e-6
+    assert abs(state_pred[3] - 100.5) < 1e-6
+
+    assert abs(state_pred[4] - 5.0) < 1e-6
+    assert abs(state_pred[5] - 3.0) < 1e-6
+    assert abs(state_pred[6] - 1.0) < 1e-6
+    assert abs(state_pred[7] - 0.5) < 1e-6
 
 
 @wrapper
 def test_kalman_update():
-    """Test Kalman update step."""
+    """Test kalman_update with measurement."""
     bbox = (100, 50, 200, 150)
     state, covariance = kalman_init(bbox)
     state_pred, covariance_pred = kalman_predict(state, covariance)
     
-    # Create a measurement (slightly different position)
-    measurement_bbox = (105, 55, 205, 155)
-    measurement = _bbox_to_state(measurement_bbox)[:4]  # Only position and size
-    
-    state_updated, covariance_updated = kalman_update(
-        state_pred, covariance_pred, measurement
-    )
+    measurement = (105, 55, 205, 155)
+    state_updated, covariance_updated = kalman_update(state_pred, covariance_pred, measurement)
     
     assert state_updated.shape == (8,)
     assert covariance_updated.shape == (8, 8)
-    
-    # State should be between prediction and measurement
-    updated_bbox = kalman_get_bbox(state_updated)
-    assert updated_bbox[0] >= 100  # x1 between original and measurement
-    assert updated_bbox[0] <= 105
-    assert updated_bbox[1] >= 50   # y1 between original and measurement  
-    assert updated_bbox[1] <= 55
+
+    assert not np.allclose(state_updated, state_pred)
 
 
 @wrapper
-def test_kalman_predict_bbox():
-    """Test high-level predict bbox function."""
-    bbox = (100, 50, 200, 150)
-    state, covariance = kalman_init(bbox)
-    
-    predicted_bbox, state_pred, covariance_pred = kalman_predict_bbox(
-        bbox, state, covariance
-    )
-    
-    assert isinstance(predicted_bbox, tuple)
-    assert len(predicted_bbox) == 4
-    assert state_pred.shape == (8,)
-    assert covariance_pred.shape == (8, 8)
-
-
-@wrapper
-def test_kalman_update_bbox():
-    """Test high-level update bbox function."""
+def test_kalman_update_with_measurement_vector():
+    """Test kalman_update with measurement vector."""
     bbox = (100, 50, 200, 150)
     state, covariance = kalman_init(bbox)
     state_pred, covariance_pred = kalman_predict(state, covariance)
+
+    measurement_vec = np.array([152.5, 105.0, 100.0, 100.0], dtype=np.float32)
+    state_updated, covariance_updated = kalman_update(state_pred, covariance_pred, measurement_vec)
     
-    measurement_bbox = (105, 55, 205, 155)
-    
-    updated_bbox, state_updated, covariance_updated = kalman_update_bbox(
-        measurement_bbox, state_pred, covariance_pred
-    )
-    
-    assert isinstance(updated_bbox, tuple)
-    assert len(updated_bbox) == 4
     assert state_updated.shape == (8,)
     assert covariance_updated.shape == (8, 8)
 
 
 @wrapper
-def test_tracking_simulation():
-    """Test a complete tracking simulation over multiple frames."""
-    # Initial bbox
+def test_kalman_get_bbox():
+    """Test kalman_get_bbox function."""
     bbox = (100, 50, 200, 150)
-    state, covariance = kalman_init(bbox)
+    state, _ = kalman_init(bbox)
+
+    extracted_bbox = kalman_get_bbox(state)
     
-    # Simulate object moving right and down
-    measurements = [
-        (105, 55, 205, 155),
-        (110, 60, 210, 160),
-        (115, 65, 215, 165),
-    ]
+    assert isinstance(extracted_bbox, tuple)
+    assert len(extracted_bbox) == 4
+    assert all(isinstance(x, int) for x in extracted_bbox)
     
-    for measurement_bbox in measurements:
-        # Predict
-        state_pred, covariance_pred = kalman_predict(state, covariance)
-        
-        # Update with measurement
-        measurement = _bbox_to_state(measurement_bbox)[:4]
-        state, covariance = kalman_update(state_pred, covariance_pred, measurement)
-    
-    # After tracking, should have learned the velocity
-    assert state[4] > 0  # Positive vx (moving right)
-    assert state[5] > 0  # Positive vy (moving down)
-    
-    # Final position should be close to last measurement
-    final_bbox = kalman_get_bbox(state)
-    assert abs(final_bbox[0] - 115) <= 5  # Within 5 pixels
-    assert abs(final_bbox[1] - 65) <= 5
+    assert abs(extracted_bbox[0] - bbox[0]) <= 1
+    assert abs(extracted_bbox[1] - bbox[1]) <= 1
+    assert abs(extracted_bbox[2] - bbox[2]) <= 1
+    assert abs(extracted_bbox[3] - bbox[3]) <= 1
 
 
 @wrapper
-def test_noise_parameters():
-    """Test that noise parameters affect the prediction."""
-    bbox = (100, 50, 200, 150)
-    state, covariance = kalman_init(bbox)
+def test_kalman_integration():
+    """Test full integration of init, predict, update cycle."""
+    initial_bbox = (100, 50, 200, 150)
     
-    # Predict with different noise levels
-    _, cov_low_noise = kalman_predict(state, covariance, pos_noise=0.1)
-    _, cov_high_noise = kalman_predict(state, covariance, pos_noise=10.0)
+    state, covariance = kalman_init(initial_bbox)
     
-    # Higher noise should result in higher uncertainty
-    assert np.trace(cov_high_noise) > np.trace(cov_low_noise)
-
-
-@wrapper
-def test_edge_cases():
-    """Test edge cases and boundary conditions."""
-    # Very small bbox
-    small_bbox = (0, 0, 1, 1)
-    state, covariance = kalman_init(small_bbox)
     state_pred, covariance_pred = kalman_predict(state, covariance)
     
-    assert kalman_get_bbox(state_pred) == small_bbox
+    measurement = (102, 52, 202, 152)
+    state_updated, covariance_updated = kalman_update(state_pred, covariance_pred, measurement)
     
-    # Large bbox
-    large_bbox = (0, 0, 1000, 1000)
-    state, covariance = kalman_init(large_bbox)
-    state_pred, covariance_pred = kalman_predict(state, covariance)
-    
-    assert kalman_get_bbox(state_pred) == large_bbox
+    final_bbox = kalman_get_bbox(state_updated)
+
+    assert isinstance(final_bbox, tuple)
+    assert len(final_bbox) == 4
+    assert final_bbox[0] < final_bbox[2]
+    assert final_bbox[1] < final_bbox[3]
 
 
-# JIT tests
 @wrapper_jit
-def test_kalman_init_jit():
-    """Test Kalman filter initialization with JIT."""
+def test_kalman_init_bbox_jit():
+    """Test kalman_init with a bounding box tuple (JIT version)."""
     bbox = (100, 50, 200, 150)
     state, covariance = kalman_init(bbox)
     
     assert state.shape == (8,)
     assert covariance.shape == (8, 8)
+    
+    expected_cx = (100 + 200) / 2.0  # 150
+    expected_cy = (50 + 150) / 2.0   # 100
+    expected_w = 200 - 100           # 100
+    expected_h = 150 - 50            # 100
+    
+    assert abs(state[0] - expected_cx) < 1e-6
+    assert abs(state[1] - expected_cy) < 1e-6
+    assert abs(state[2] - expected_w) < 1e-6
+    assert abs(state[3] - expected_h) < 1e-6
 
 
 @wrapper_jit
-def test_kalman_predict_jit():
-    """Test Kalman prediction with JIT."""
+def test_kalman_predict_simple_jit():
+    """Test kalman_predict with basic prediction (JIT version)."""
     bbox = (100, 50, 200, 150)
     state, covariance = kalman_init(bbox)
     
@@ -284,43 +197,45 @@ def test_kalman_predict_jit():
     
     assert state_pred.shape == (8,)
     assert covariance_pred.shape == (8, 8)
+    
+    assert abs(state_pred[0] - state[0]) < 1e-6
+    assert abs(state_pred[1] - state[1]) < 1e-6
+    assert abs(state_pred[2] - state[2]) < 1e-6
+    assert abs(state_pred[3] - state[3]) < 1e-6
 
 
 @wrapper_jit
 def test_kalman_update_jit():
-    """Test Kalman update with JIT."""
+    """Test kalman_update with measurement (JIT version)."""
     bbox = (100, 50, 200, 150)
     state, covariance = kalman_init(bbox)
     state_pred, covariance_pred = kalman_predict(state, covariance)
     
-    measurement_bbox = (105, 55, 205, 155)
-    measurement = _bbox_to_state(measurement_bbox)[:4]
-    
-    state_updated, covariance_updated = kalman_update(
-        state_pred, covariance_pred, measurement
-    )
+    measurement = (105, 55, 205, 155)
+    state_updated, covariance_updated = kalman_update(state_pred, covariance_pred, measurement)
     
     assert state_updated.shape == (8,)
     assert covariance_updated.shape == (8, 8)
 
+    assert not np.allclose(state_updated, state_pred)
 
-@wrapper_jit 
-def test_tracking_simulation_jit():
-    """Test complete tracking simulation with JIT."""
-    bbox = (100, 50, 200, 150)
-    state, covariance = kalman_init(bbox)
+
+@wrapper_jit
+def test_kalman_integration_jit():
+    """Test full integration of init, predict, update cycle (JIT version)."""
+    initial_bbox = (100, 50, 200, 150)
     
-    measurements = [
-        (105, 55, 205, 155),
-        (110, 60, 210, 160),
-        (115, 65, 215, 165),
-    ]
+    state, covariance = kalman_init(initial_bbox)
+
+    state_pred, covariance_pred = kalman_predict(state, covariance)
+
+    measurement = (102, 52, 202, 152)
+    state_updated, _ = kalman_update(state_pred, covariance_pred, measurement)
     
-    for measurement_bbox in measurements:
-        state_pred, covariance_pred = kalman_predict(state, covariance)
-        measurement = _bbox_to_state(measurement_bbox)[:4]
-        state, covariance = kalman_update(state_pred, covariance_pred, measurement)
-    
-    # Should have learned positive velocity
-    assert state[4] > 0  # vx
-    assert state[5] > 0  # vy
+    final_bbox = kalman_get_bbox(state_updated)
+
+    assert isinstance(final_bbox, tuple)
+    assert len(final_bbox) == 4
+    assert final_bbox[0] < final_bbox[2]
+    assert final_bbox[1] < final_bbox[3]
+

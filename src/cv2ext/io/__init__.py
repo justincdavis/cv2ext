@@ -17,6 +17,8 @@ Classes
 
 Functions
 ---------
+:func:`check_camera`
+    Check if a camera index is valid.
 :func:`find_all_cameras`
     Find all available webcams using cv2ext.IterableVideo.
 
@@ -27,7 +29,14 @@ from __future__ import annotations
 from ._display import Display
 from ._fourcc import Fourcc
 from ._iterablevideo import IterableVideo
-from ._webcam import find_all_cameras
+from ._webcam import check_camera, find_all_cameras
 from ._writer import VideoWriter
 
-__all__ = ["Display", "Fourcc", "IterableVideo", "VideoWriter", "find_all_cameras"]
+__all__ = [
+    "Display",
+    "Fourcc",
+    "IterableVideo",
+    "VideoWriter",
+    "check_camera",
+    "find_all_cameras",
+]

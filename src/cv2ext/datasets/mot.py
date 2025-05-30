@@ -172,6 +172,11 @@ def read_gt_det_mot_label(
         The list of ground truth labels.
         Each label is a list of bounding boxes.
 
+    Raises
+    ------
+    ValueError
+        If the number of entries in the label file is not at least 7.
+
     """
     data: list[list[tuple[tuple[int, int, int, int], int]]] = [
         [] for _ in range(seqlen)
@@ -245,16 +250,40 @@ class MOTSequence:
 
     @property
     def name(self: Self) -> str:
-        """Get the name of the MOT video."""
+        """
+        Get the name of the MOT video.
+
+        Returns
+        -------
+        str
+            The name of the MOT video
+
+        """
         return self._video_path.stem
 
     @property
     def framesize(self: Self) -> tuple[int, int]:
-        """Get the (width, height) of each frame."""
+        """
+        Get the (width, height) of each frame.
+
+        Returns
+        -------
+        tuple[int, int]
+            The (width, height) of each frame
+
+        """
         return (self._video.width, self._video.height)
 
     def __iter__(self: Self) -> MOTSequence:
-        """Return the iterator object."""
+        """
+        Return the iterator object.
+
+        Returns
+        -------
+        MOTSequence
+            The iterator object
+
+        """
         return self
 
     def __next__(
@@ -264,7 +293,15 @@ class MOTSequence:
         list[tuple[tuple[int, int, int, int], int]] | None,
         list[tuple[tuple[int, int, int, int], int]] | None,
     ]:
-        """Return the next frame, det_label, and gt_label."""
+        """
+        Return the next frame, det_label, and gt_label.
+
+        Returns
+        -------
+        tuple[np.ndarray, list[tuple[tuple[int, int, int, int], int]] | None, list[tuple[tuple[int, int, int, int], int]] | None]
+            The next frame, det_label, and gt_label
+
+        """
         # will handle the StopIteration call for this object
         _, frame = next(self._video)
 
@@ -276,7 +313,15 @@ class MOTSequence:
         return frame, det_label, gt_label
 
     def __len__(self) -> int:
-        """Return the number of labels."""
+        """
+        Return the number of labels.
+
+        Returns
+        -------
+        int
+            The number of labels
+
+        """
         return len(self._video)
 
 
@@ -302,8 +347,8 @@ class MOTReader:
         """
         Iterate over the test sequences.
 
-        Returns
-        -------
+        Yields
+        ------
         Generator[MOTSequence, None, None]
             The generator of test sequences
 
@@ -316,8 +361,8 @@ class MOTReader:
         """
         Iterate over the train sequences.
 
-        Returns
-        -------
+        Yields
+        ------
         Generator[MOTSequence, None, None]
             The generator of train sequences
 
@@ -393,7 +438,15 @@ class MOTWriter:
         self._file.close()
 
     def __enter__(self: Self) -> Self:
-        """Enter the context manager."""
+        """
+        Enter the context manager.
+
+        Returns
+        -------
+        MOTWriter
+            The context manager
+
+        """
         return self
 
     def __exit__(

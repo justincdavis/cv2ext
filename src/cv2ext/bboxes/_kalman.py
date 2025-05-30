@@ -16,7 +16,10 @@ where:
 
 Core Functions
 --------------
-kalman_predict(state, covariance, **kwargs) -> (state_pred, covariance_pred)
+kalman_init(input_data, **kwargs) -> (state, covariance)
+    Initialize Kalman filter from a bounding box or state vector.
+
+kalman_predict(input_data, covariance, **kwargs) -> (state_pred, covariance_pred)
     Predicts the next state using the constant velocity motion model.
 
 kalman_update(state_pred, covariance_pred, measurement, **kwargs) -> (state, covariance)
@@ -27,11 +30,11 @@ Usage Example
 >>> # Initialize from bounding box
 >>> bbox = (100, 50, 200, 150)  # (x1, y1, x2, y2)
 >>> state, covariance = kalman_init(bbox)
->>> # Predict next state
+>>> # Predict next state (can use bbox or state)
 >>> state_pred, covariance_pred = kalman_predict(state, covariance)
->>> # Update with measurement
->>> measurement = _bbox_to_state(new_bbox)[:4]  # [cx, cy, w, h]
->>> state, covariance = kalman_update(state_pred, covariance_pred, measurement)
+>>> # Update with measurement (can use bbox or measurement vector)
+>>> new_bbox = (105, 52, 205, 152)
+>>> state, covariance = kalman_update(state_pred, covariance_pred, new_bbox)
 >>> # Get bounding box from state
 >>> updated_bbox = kalman_get_bbox(state)
 """
@@ -120,8 +123,34 @@ def _create_initial_covariance(uncertainty: float = 1000.0) -> np.ndarray:
 
 
 @register_jit(nogil=True)
+def kalman_init(
+    input_data: tuple[int, int, int, int] | np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Initialize Kalman filter state from a bounding box or state vector.
+
+    Parameters
+    ----------
+    input_data : tuple[int, int, int, int] | np.ndarray
+        Initial bounding box (x1, y1, x2, y2) or state vector
+
+    Returns
+    -------
+    tuple[np.ndarray, np.ndarray]
+        Initial state and covariance
+
+    """
+    if isinstance(input_data, tuple):
+        state = _bbox_to_state(input_data)
+    else:
+        state = input_data.copy()
+    covariance = _create_initial_covariance()
+    return state, covariance
+
+
+@register_jit(nogil=True)
 def kalman_predict(
-    state: np.ndarray,
+    input_data: tuple[int, int, int, int] | np.ndarray,
     covariance: np.ndarray,
     pos_noise: float = 1.0,
     vel_noise: float = 0.1,
@@ -133,8 +162,8 @@ def kalman_predict(
 
     Parameters
     ----------
-    state : np.ndarray
-        Current state vector [cx, cy, w, h, vx, vy, vw, vh]
+    input_data : tuple[int, int, int, int] | np.ndarray
+        Current bounding box (x1, y1, x2, y2) or state vector [cx, cy, w, h, vx, vy, vw, vh]
     covariance : np.ndarray
         Current covariance matrix (8x8)
     pos_noise : float, optional
@@ -152,6 +181,8 @@ def kalman_predict(
         Predicted state and covariance
 
     """
+    state = _bbox_to_state(input_data) if isinstance(input_data, tuple) else input_data
+
     f = _create_transition_matrix()
     q = _create_process_noise(pos_noise, vel_noise, size_noise, size_vel_noise)
 
@@ -168,7 +199,7 @@ def kalman_predict(
 def kalman_update(
     state_pred: np.ndarray,
     covariance_pred: np.ndarray,
-    measurement: np.ndarray,
+    measurement: tuple[int, int, int, int] | np.ndarray,
     measurement_noise: float = 10.0,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
@@ -180,8 +211,8 @@ def kalman_update(
         Predicted state vector [cx, cy, w, h, vx, vy, vw, vh]
     covariance_pred : np.ndarray
         Predicted covariance matrix (8x8)
-    measurement : np.ndarray
-        Measurement vector [cx, cy, w, h]
+    measurement : tuple[int, int, int, int] | np.ndarray
+        Measurement bounding box (x1, y1, x2, y2) or measurement vector [cx, cy, w, h]
     measurement_noise : float, optional
         Measurement noise, by default 10.0
 
@@ -191,11 +222,17 @@ def kalman_update(
         Updated state and covariance
 
     """
+    measurement_vec = (
+        _bbox_to_state(measurement)[:4]
+        if isinstance(measurement, tuple)
+        else measurement
+    )
+
     h = _create_observation_matrix()
     r = _create_measurement_noise(measurement_noise)
 
     # Innovation: y = z - H * x_pred
-    innovation = measurement - h @ state_pred
+    innovation = measurement_vec - h @ state_pred
 
     # Innovation covariance: S = H * P_pred * H^T + R
     innovation_cov = h @ covariance_pred @ h.T + r
@@ -211,27 +248,6 @@ def kalman_update(
     covariance_updated = (identity - kalman_gain @ h) @ covariance_pred
 
     return state_updated, covariance_updated
-
-
-@register_jit(nogil=True)
-def kalman_init(bbox: tuple[int, int, int, int]) -> tuple[np.ndarray, np.ndarray]:
-    """
-    Initialize Kalman filter state from a bounding box.
-
-    Parameters
-    ----------
-    bbox : tuple[int, int, int, int]
-        Initial bounding box (x1, y1, x2, y2)
-
-    Returns
-    -------
-    tuple[np.ndarray, np.ndarray]
-        Initial state and covariance
-
-    """
-    state = _bbox_to_state(bbox)
-    covariance = _create_initial_covariance()
-    return state, covariance
 
 
 @register_jit(nogil=True)
@@ -253,93 +269,7 @@ def kalman_get_bbox(state: np.ndarray) -> tuple[int, int, int, int]:
     return _state_to_bbox(state)
 
 
-@register_jit(nogil=True)
-def kalman_predict_bbox(
-    bbox: tuple[int, int, int, int],
-    state: np.ndarray,
-    covariance: np.ndarray,
-    pos_noise: float = 1.0,
-    vel_noise: float = 0.1,
-    size_noise: float = 1.0,
-    size_vel_noise: float = 0.1,
-) -> tuple[tuple[int, int, int, int], np.ndarray, np.ndarray]:
-    """
-    Predict next bounding box position using Kalman filter.
-
-    Parameters
-    ----------
-    bbox : tuple[int, int, int, int]
-        Current bounding box (x1, y1, x2, y2) - not used directly
-    state : np.ndarray
-        Current state vector
-    covariance : np.ndarray
-        Current covariance matrix
-    pos_noise : float, optional
-        Process noise for position, by default 1.0
-    vel_noise : float, optional
-        Process noise for velocity, by default 0.1
-    size_noise : float, optional
-        Process noise for size, by default 1.0
-    size_vel_noise : float, optional
-        Process noise for size velocity, by default 0.1
-
-    Returns
-    -------
-    tuple[tuple[int, int, int, int], np.ndarray, np.ndarray]
-        Predicted bounding box, state, and covariance
-
-    """
-    state_pred, covariance_pred = kalman_predict(
-        state,
-        covariance,
-        pos_noise,
-        vel_noise,
-        size_noise,
-        size_vel_noise,
-    )
-    bbox_pred = kalman_get_bbox(state_pred)
-    return bbox_pred, state_pred, covariance_pred
-
-
-@register_jit(nogil=True)
-def kalman_update_bbox(
-    measurement_bbox: tuple[int, int, int, int],
-    state_pred: np.ndarray,
-    covariance_pred: np.ndarray,
-    measurement_noise: float = 10.0,
-) -> tuple[tuple[int, int, int, int], np.ndarray, np.ndarray]:
-    """
-    Update Kalman filter with a measured bounding box.
-
-    Parameters
-    ----------
-    measurement_bbox : tuple[int, int, int, int]
-        Measured bounding box (x1, y1, x2, y2)
-    state_pred : np.ndarray
-        Predicted state vector
-    covariance_pred : np.ndarray
-        Predicted covariance matrix
-    measurement_noise : float, optional
-        Measurement noise, by default 10.0
-
-    Returns
-    -------
-    tuple[tuple[int, int, int, int], np.ndarray, np.ndarray]
-        Updated bounding box, state, and covariance
-
-    """
-    measurement = _bbox_to_state(measurement_bbox)[:4]  # Only position and size
-    state_updated, covariance_updated = kalman_update(
-        state_pred,
-        covariance_pred,
-        measurement,
-        measurement_noise,
-    )
-    bbox_updated = kalman_get_bbox(state_updated)
-    return bbox_updated, state_updated, covariance_updated
-
-
-class KalmanBBoxFilter:
+class KalmanFilter:
     """
     Minimal Kalman filter class for bounding box tracking.
 
@@ -353,7 +283,7 @@ class KalmanBBoxFilter:
 
     Example
     -------
-    >>> filter = KalmanBBoxFilter((100, 50, 200, 150))
+    >>> filter = KalmanFilter((100, 50, 200, 150))
     >>> predicted_bbox = filter.predict()
     >>> updated_bbox = filter.update((105, 52, 205, 152))
 
@@ -381,8 +311,7 @@ class KalmanBBoxFilter:
             Predicted bounding box (x1, y1, x2, y2)
 
         """
-        bbox_pred, self._state, self._covariance = kalman_predict_bbox(
-            self.bbox,
+        self._state, self._covariance = kalman_predict(
             self._state,
             self._covariance,
             pos_noise,
@@ -390,7 +319,7 @@ class KalmanBBoxFilter:
             size_noise,
             size_vel_noise,
         )
-        return bbox_pred
+        return kalman_get_bbox(self._state)
 
     def update(
         self,
@@ -413,22 +342,49 @@ class KalmanBBoxFilter:
             Updated bounding box (x1, y1, x2, y2)
 
         """
-        bbox_updated, self._state, self._covariance = kalman_update_bbox(
-            measurement_bbox, self._state, self._covariance, measurement_noise,
+        self._state, self._covariance = kalman_update(
+            self._state,
+            self._covariance,
+            measurement_bbox,
+            measurement_noise,
         )
-        return bbox_updated
+        return kalman_get_bbox(self._state)
 
     @property
     def bbox(self) -> tuple[int, int, int, int]:
-        """Get the current bounding box estimate."""
+        """
+        Get the current bounding box estimate.
+
+        Returns
+        -------
+        tuple[int, int, int, int]
+            Current bounding box (x1, y1, x2, y2)
+
+        """
         return kalman_get_bbox(self._state)
 
     @property
     def state(self) -> np.ndarray:
-        """Get the current state vector [cx, cy, w, h, vx, vy, vw, vh]."""
+        """
+        Get the current state vector [cx, cy, w, h, vx, vy, vw, vh].
+
+        Returns
+        -------
+        np.ndarray
+            Current state vector [cx, cy, w, h, vx, vy, vw, vh]
+
+        """
         return self._state.copy()
 
     @property
     def covariance(self) -> np.ndarray:
-        """Get the current covariance matrix."""
+        """
+        Get the current covariance matrix.
+
+        Returns
+        -------
+        np.ndarray
+            Current covariance matrix (8x8)
+
+        """
         return self._covariance.copy()
