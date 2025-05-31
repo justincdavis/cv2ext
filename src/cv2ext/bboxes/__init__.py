@@ -4,11 +4,6 @@
 """
 Subpackage containing tools for working with simple bounding boxes.
 
-Classes
--------
-:class:`KalmanFilter`
-    Minimal Kalman filter class for bounding box tracking.
-
 Functions
 ---------
 :func:`bounding`
@@ -87,14 +82,6 @@ Functions
     Convert bounding boxes from YOLO format `(cx, cy, w, h)` to `(x, y, w, h)`.
 :func:`yolo_to_nxywh`
     Convert bounding boxes from YOLO format `(cx, cy, w, h)` to normalized `(x, y, w, h)`.
-:func:`kalman_predict`
-    Predict the next state of a bounding box using a Kalman filter.
-:func:`kalman_update`
-    Update the state of a bounding box using a Kalman filter.
-:func:`kalman_init`
-    Initialize a Kalman filter for a bounding box.
-:func:`kalman_get_bbox`
-    Extract bounding box from Kalman filter state.
 """
 
 from __future__ import annotations
@@ -127,13 +114,6 @@ from ._convert import (
 from ._distance import euclidean, manhattan
 from ._draw import draw_bboxes
 from ._iou import iou, ious
-from ._kalman import (
-    KalmanFilter,
-    kalman_get_bbox,
-    kalman_init,
-    kalman_predict,
-    kalman_update,
-)
 from ._mean_ap import mean_ap
 from ._nms import nms
 from ._resize import resize, resize_many
@@ -141,7 +121,6 @@ from ._score import score_bbox, score_bboxes
 from ._valid import valid, within
 
 __all__ = [
-    "KalmanFilter",
     "bounding",
     "calculate_metrics",
     "constrain",
@@ -150,10 +129,6 @@ __all__ = [
     "filter_bboxes_by_region",
     "iou",
     "ious",
-    "kalman_get_bbox",
-    "kalman_init",
-    "kalman_predict",
-    "kalman_update",
     "manhattan",
     "match",
     "mean_ap",
