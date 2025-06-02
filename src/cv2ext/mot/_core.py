@@ -51,8 +51,8 @@ def compute_iou_matrix(
 
 
 def linear_assignment(
-    cost_matrix: np.ndarray,
-    max_cost: float = 1.0,
+    iou_matrix: np.ndarray,
+    invalid_cost: float = 1.0,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Solve linear assignment problem using Hungarian algorithm.
@@ -61,9 +61,9 @@ def linear_assignment(
 
     Parameters
     ----------
-    cost_matrix : np.ndarray
+    iou_matrix : np.ndarray
         Cost matrix of shape (num_tracks, num_detections)
-    max_cost : float, optional
+    invalid_cost : float, optional
         Maximum cost threshold for valid assignments, by default 1.0
 
     Returns
@@ -72,23 +72,28 @@ def linear_assignment(
         matches, unmatched_detections, unmatched_tracks
 
     """
-    if cost_matrix.size == 0:
+    if iou_matrix.size == 0:
         return (
             np.array([], dtype=np.int32),
             np.array([], dtype=np.int32),
-            np.arange(cost_matrix.shape[0], dtype=np.int32),
+            np.arange(iou_matrix.shape[0], dtype=np.int32),
         )
 
-    if cost_matrix.max() <= 1.0:
-        cost_matrix = 1.0 - cost_matrix
+    # invert values to linear_assignment minimizes based on iou (a max metric)
+    cost_matrix = 1.0 - iou_matrix
+    cost_matrix[cost_matrix > invalid_cost] = invalid_cost + 1.0
 
+    # solve
     row_indices: np.ndarray
     col_indices: np.ndarray
     row_indices, col_indices = linear_sum_assignment(cost_matrix)
 
+    # stack
     matches = np.column_stack((row_indices, col_indices))
 
-    return matches, row_indices, col_indices
+    # clear out bad entries which do not meet iou
+    keep = cost_matrix[row_indices, col_indices] <= invalid_cost
+    return matches[keep], row_indices[keep], col_indices[keep]
 
 
 def associate_tracks_to_detections(
@@ -123,11 +128,8 @@ def associate_tracks_to_detections(
 
     iou_matrix = compute_iou_matrix(tracks, detections)
 
-    # cost_matrix = 1.0 - iou_matrix
-    # cost_matrix[iou_matrix < iou_threshold] = 1.0
-
     matches, track_ids, det_ids = linear_assignment(
-        iou_matrix, max_cost=1.0 - iou_threshold
+        iou_matrix, invalid_cost=1.0 - iou_threshold
     )
 
     # identify the unmatches indices in detections and tracks
