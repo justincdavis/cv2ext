@@ -119,7 +119,7 @@ def associate_tracks_to_detections(
         Matches, unmatched detections, unmatched tracks
 
     """
-    if len(tracks) == 0:
+    if len(tracks) == 0 or len(detections) == 0:
         return (
             np.empty((0, 2), dtype=np.int32),
             np.arange(len(detections), dtype=np.int32),
