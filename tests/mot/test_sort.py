@@ -38,8 +38,12 @@ TEST_DETS = [
 def test_sort_run() -> None:
     """Test SORT runs."""
     tracker = SORT(iou_threshold=0.3, max_age=5, min_hits=3)
-    
+
     for frame_num, detections in enumerate(TEST_DETS):
         dets = tracker.update(detections)
         if frame_num == 3:
             assert len(dets) > 0
+
+
+if __name__ == "__main__":
+    test_sort_run()

@@ -86,11 +86,9 @@ def linear_assignment(
     col_indices: np.ndarray
     row_indices, col_indices = linear_sum_assignment(cost_matrix)
 
-    valid_assignments = cost_matrix[row_indices, col_indices] <= max_cost
-    unmatched_tracks = row_indices[~valid_assignments]
-    unmatched_detections = col_indices[~valid_assignments]
+    matches = np.column_stack((row_indices, col_indices))
 
-    return valid_assignments, unmatched_detections, unmatched_tracks
+    return matches, row_indices, col_indices
 
 
 def associate_tracks_to_detections(
@@ -118,7 +116,7 @@ def associate_tracks_to_detections(
     """
     if len(tracks) == 0:
         return (
-            np.empty((0, 1), dtype=np.int32),
+            np.empty((0, 2), dtype=np.int32),
             np.arange(len(detections), dtype=np.int32),
             np.empty((0, 1), dtype=np.int32),
         )
@@ -128,6 +126,16 @@ def associate_tracks_to_detections(
     # cost_matrix = 1.0 - iou_matrix
     # cost_matrix[iou_matrix < iou_threshold] = 1.0
 
-    x, y = linear_assignment(cost_matrix, max_cost=1.0 - iou_threshold)
+    matches, track_ids, det_ids = linear_assignment(
+        iou_matrix, max_cost=1.0 - iou_threshold
+    )
 
-    return np.concatenate((x, y), axis=1)
+    # identify the unmatches indices in detections and tracks
+    unmatched_dets = np.setdiff1d(
+        np.arange(len(detections)), det_ids, assume_unique=True
+    )
+    unmatched_tracks = np.setdiff1d(
+        np.arange(len(tracks)), track_ids, assume_unique=True
+    )
+
+    return matches, unmatched_dets, unmatched_tracks

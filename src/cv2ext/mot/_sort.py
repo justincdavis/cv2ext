@@ -69,15 +69,15 @@ class SORT(Tracker):
             track.predict()
 
         # generate the matches
-        matches = associate_tracks_to_detections(
+        matches, unmatched_dets, _ = associate_tracks_to_detections(
             detections,
             [track.detection for track in self._tracks],
             self._iou_threshold,
         )
 
         # update any of the matched tracks with assigned detctions
-        for match_idx, m in enumerate(matches):
-            self._tracks[m[1]].update(detections[m[0]])
+        for det_id, track_id in matches:
+            self._tracks[track_id].update(detections[det_id])
 
         # create new tracks for any unmatched detections
         for det_idx in unmatched_dets:
