@@ -25,6 +25,8 @@ def bbox_to_z(bbox: tuple[int, int, int, int]) -> np.ndarray:
 def x_to_bbox(x: np.ndarray) -> tuple[int, int, int, int]:
     w = np.sqrt(x[2] * x[3])
     h = x[2] / w
+    if np.isnan(w) or np.isnan(h):
+        return (-1, -1, -1, -1)
     hw = w / 2.0
     hh = h / 2.0
     return (int(x[0] - hw), int(x[1] - hh), int(x[0] + hw), int(x[1] + hh))
@@ -154,6 +156,12 @@ class Track:
             The predicted detection in format ((x1, y1, x2, y2), confidence, class_id)
 
         """
+        # clamp to zero if negative
+        x = self._kf.x(no_copy=True)
+        if (x[6] + x[2]) <= 0:
+            x[6] *= 0.0
+
+        # run forward pass prediction
         x_pred, _ = self._kf.predict(no_copy=True)
 
         # update track state

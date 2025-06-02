@@ -126,7 +126,7 @@ def associate_tracks_to_detections(
             np.empty((0, 1), dtype=np.int32),
         )
 
-    iou_matrix = compute_iou_matrix(tracks, detections)
+    iou_matrix = compute_iou_matrix(detections, tracks)
 
     matches, track_ids, det_ids = linear_assignment(
         iou_matrix, invalid_cost=1.0 - iou_threshold

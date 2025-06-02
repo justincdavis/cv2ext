@@ -67,16 +67,32 @@ class SORT(Tracker):
         # predict for all the tracks
         for track in self._tracks:
             track.predict()
+        
+        # # assess the valid tracks
+        # track_valid: list[bool] = []
+        # valid_to_all: list[int] = []
+        # for i, track in enumerate(self._tracks):
+        #     if track.detection[0] != (-1, -1, -1, -1):
+        #         track_valid.append(True)
+        #         valid_to_all.append(i)
+        #     else:
+        #         track_valid.append(False)
+
+        # drop tracks that are invalid
+        self._tracks = [t for t in self._tracks if t.detection[0] != (-1,-1,-1,-1)]
 
         # generate the matches
         matches, unmatched_dets, _ = associate_tracks_to_detections(
             detections,
+            # [track.detection for i, track in enumerate(self._tracks) if track_valid[i]],
             [track.detection for track in self._tracks],
             self._iou_threshold,
         )
 
         # update any of the matched tracks with assigned detctions
-        for det_id, track_id in matches:
+        for track_sub_idx, det_id in matches:
+            # track_id = valid_to_all[track_sub_idx]
+            track_id = track_sub_idx
             self._tracks[track_id].update(detections[det_id])
 
         # create new tracks for any unmatched detections
