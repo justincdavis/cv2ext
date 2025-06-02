@@ -12,10 +12,6 @@ class SORT(Tracker):
     """
     SORT (Simple Online and Realtime Tracking) tracker.
 
-    This class implements the SORT algorithm for multi-object tracking
-    using Kalman filters for motion prediction and Hungarian algorithm
-    for data association.
-
     Parameters
     ----------
     iou_threshold : float, optional
@@ -25,24 +21,7 @@ class SORT(Tracker):
     min_hits : int, optional
         Minimum number of hits before track is considered valid, by default 3
 
-    Example
-    -------
-    >>> tracker = SORT()
-    >>> detections = [((100, 50, 200, 150), 0.9, 1), ((300, 100, 400, 200), 0.8, 1)]
-    >>> tracks = tracker.update(detections)
-    >>> for track in tracks:
-    ...     print(f"Track {track.track_id}: {track.bbox}")
-
     """
-
-    __slots__ = (
-        "_frame_count",
-        "_iou_threshold",
-        "_max_age",
-        "_min_hits",
-        "_next_track_id",
-        "_tracks",
-    )
 
     def __init__(
         self,
@@ -55,44 +34,14 @@ class SORT(Tracker):
         self._max_age = max_age
         self._min_hits = min_hits
         self._tracks: list[Track] = []
-        self._next_track_id = 1
+        self._next_track_id = 0
         self._frame_count = 0
-
-    @property
-    def tracks(self, *, copy: bool | None = None) -> list[Track]:
-        """
-        Get all tracks.
-
-        Parameters
-        ----------
-        copy : bool, optional
-            Whether to return a copy of the tracks, by default None
-
-        Returns
-        -------
-        list[Track]
-            All tracks
-
-        """
-        return self._tracks.copy() if copy else self._tracks
 
     def reset(self) -> None:
         """Reset the tracker."""
         self._tracks = []
         self._next_track_id = 1
         self._frame_count = 0
-
-    def predict(self) -> list[tuple[tuple[int, int, int, int], float, int]]:
-        """
-        Predict the next state of all tracks.
-
-        Returns
-        -------
-        list[tuple[tuple[int, int, int, int], float, int]]
-            List of predicted detections
-
-        """
-        return [track.predict() for track in self._tracks]
 
     def update(
         self,
@@ -115,35 +64,45 @@ class SORT(Tracker):
         """
         self._frame_count += 1
 
-        self.predict()
+        # predict for all the tracks
+        for track in self._tracks:
+            track.predict()
 
-        track_bboxes = [track.bbox for track in self._tracks]
-
-        matched_tracks, matched_detections, _ = associate_tracks_to_detections(
-            track_bboxes,
+        # generate the matches
+        matches = associate_tracks_to_detections(
             detections,
+            [track.detection for track in self._tracks],
             self._iou_threshold,
         )
 
-        for track_idx, det_idx in zip(matched_tracks, matched_detections):
-            self._tracks[track_idx].update(detections[det_idx])
+        # update any of the matched tracks with assigned detctions
+        for match_idx, m in enumerate(matches):
+            self._tracks[m[1]].update(detections[m[0]])
 
-        unmatched_detection_indices = set(range(len(detections))) - set(
-            matched_detections,
-        )
-        for det_idx in unmatched_detection_indices:
-            bbox, confidence, class_id = detections[det_idx]
-            new_track = Track(
-                bbox=bbox,
-                track_id=self._next_track_id,
-                class_id=class_id,
-                confidence=confidence,
-                max_age=self._max_age,
-                min_hits=self._min_hits,
-            )
-            self._tracks.append(new_track)
+        # create new tracks for any unmatched detections
+        for det_idx in unmatched_dets:
+            track = Track(detections[det_idx], self._next_track_id)
+            self._tracks.append(track)
             self._next_track_id += 1
 
-        self._tracks = [track for track in self._tracks if not track.is_deleted]
+        # generate the final detections from the tracks
+        detections = []
+        to_remove = []
+        for i, track in enumerate(self._tracks):
+            _, _, tsu, hst = track.state
 
-        return [track.detection for track in self._tracks if track.is_confirmed]
+            # add the tracks detection if in valid state
+            if (tsu < 1) and (
+                hst >= self._min_hits or self._frame_count <= self._min_hits
+            ):
+                detections.append(track.detection)
+
+            # if the track has been updated then remove
+            if tsu > self._max_age:
+                to_remove.append(i)
+
+        # remove stale tracks
+        for i in reversed(to_remove):
+            self._tracks.pop(i)
+
+        return detections

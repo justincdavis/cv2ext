@@ -1,214 +1,196 @@
 # Copyright (c) 2024 Justin Davis (davisjustin302@gmail.com)
 #
 # MIT License
-"""
-Track representation for multi-object tracking algorithms.
-
-This module provides Track classes that maintain state information
-for individual objects being tracked across frames.
-"""
-
 from __future__ import annotations
 
-from cv2ext.bboxes import KalmanFilter
+import numpy as np
+
+from cv2ext._jit import register_jit
+
+from ._kalman import KalmanFilter
+
+
+@register_jit(nogil=True, inline="always")
+def bbox_to_z(bbox: tuple[int, int, int, int]) -> np.ndarray:
+    w = bbox[2] - bbox[0]
+    h = bbox[3] - bbox[1]
+    cx = bbox[0] + w / 2
+    cy = bbox[1] + h / 2
+    s = w * h
+    r = w / float(h)
+    return np.array([cx, cy, s, r]).reshape(4, 1)
+
+
+@register_jit(nogil=True, inline="always")
+def x_to_bbox(x: np.ndarray) -> tuple[int, int, int, int]:
+    w = np.sqrt(x[2] * x[3])
+    h = x[2] / w
+    hw = w / 2.0
+    hh = h / 2.0
+    return (int(x[0] - hw), int(x[1] - hh), int(x[0] + hw), int(x[1] + hh))
 
 
 class Track:
-    """
-    A single object track for SORT-based tracking algorithms.
-
-    This class encapsulates the state of a single tracked object including
-    its Kalman filter, track ID, and management information.
-
-    Parameters
-    ----------
-    bbox : tuple[int, int, int, int]
-        Initial bounding box in format (x1, y1, x2, y2)
-    track_id : int
-        Unique track identifier
-    class_id : int, optional
-        Object class identifier, by default -1
-    confidence : float, optional
-        Initial detection confidence, by default 1.0
-    max_age : int, optional
-        Maximum number of frames to keep track without detections, by default 30
-    min_hits : int, optional
-        Minimum number of hits before track is considered valid, by default 3
-
-    """
+    """A single object track for SORT-like tracking algorithms."""
 
     __slots__ = (
         "_age",
+        "_bbox",
         "_class_id",
         "_confidence",
-        "_history",
+        "_detection",
         "_hit_streak",
+        "_hits",
         "_kf",
-        "_max_age",
-        "_min_hits",
         "_time_since_update",
         "_track_id",
     )
 
     def __init__(
         self,
-        bbox: tuple[int, int, int, int],
-        track_id: int,
-        class_id: int = -1,
-        confidence: float = 1.0,
-        max_age: int = 30,
-        min_hits: int = 3,
-    ) -> None:
-        """Initialize a new track."""
-        self._track_id = track_id
-        self._class_id = class_id
-        self._confidence = confidence
-        self._max_age = max_age
-        self._min_hits = min_hits
-        self._kf = KalmanFilter(bbox)
-        self._time_since_update = 0
-        self._hit_streak = 0
-        self._age = 0
-
-        self._history: list[tuple[int, int, int, int]] = []
-
-    @property
-    def track_id(self) -> int:
-        """Get the track ID."""
-        return self._track_id
-
-    @property
-    def class_id(self) -> int:
-        """Get the class ID."""
-        return self._class_id
-
-    @property
-    def confidence(self) -> float:
-        """Get the confidence."""
-        return self._confidence
-
-    @property
-    def max_age(self) -> int:
-        """Get the maximum age."""
-        return self._max_age
-
-    @property
-    def min_hits(self) -> int:
-        """Get the minimum hits."""
-        return self._min_hits
-
-    @property
-    def history(self) -> list[tuple[int, int, int, int]]:
-        """Get the track history."""
-        return self._history
-
-    def predict(self) -> tuple[tuple[int, int, int, int], float, int]:
-        """
-        Predict the next bounding box position.
-
-        Returns
-        -------
-        tuple[tuple[int, int, int, int], float, int]
-            Predicted detection as (bbox, confidence, class_id)
-
-        """
-        predicted_bbox = self._kf.predict()
-        self._age += 1
-
-        if self._time_since_update > 0:
-            self._hit_streak = 0
-
-        self._time_since_update += 1
-        self._history.append(predicted_bbox)
-
-        return (predicted_bbox, self._confidence, self._class_id)
-
-    def update(
-        self,
         detection: tuple[tuple[int, int, int, int], float, int],
-        *,
-        update_class: bool | None = None,
-    ) -> tuple[tuple[int, int, int, int], float, int]:
+        track_id: int,
+    ) -> None:
         """
-        Update the track with a new detection.
+        Initialize a new track.
 
         Parameters
         ----------
         detection : tuple[tuple[int, int, int, int], float, int]
-            New detection as full detection tuple
-        update_class : bool, optional
-            Whether to update class_id from detection, by default None
-
-        Returns
-        -------
-        tuple[tuple[int, int, int, int], float, int]
-            Updated detection as (bbox, confidence, class_id)
+            Initial detection in format ((x1, y1, x2, y2), confidence, class_id)
+        track_id : int
+            Unique track identifier
 
         """
-        bbox, self._confidence, class_id = detection
+        # unpack the detection
+        bbox, confidence, class_id = detection
 
-        if update_class:
-            self._class_id = class_id
+        # setup the kalman filter
+        self._kf = KalmanFilter(dim_x=7, dim_z=4)
+        self._kf.f(
+            np.array(
+                [
+                    [1, 0, 0, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 0, 0, 1],
+                    [0, 0, 0, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 1],
+                ],
+            ),
+        )
+        self._kf.h(
+            np.array(
+                [
+                    [1, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0],
+                ],
+            ),
+        )
+        r = self._kf.r(no_copy=True)
+        r[2:, 2:] *= 10.0
+        p = self._kf.p(no_copy=True)
+        p[4:, 4:] *= 1000.0
+        p *= 10.0
+        q = self._kf.q(no_copy=True)
+        q[-1, -1] *= 0.01
+        q[4:, 4:] *= 0.01
 
+        # update kf from the bbox
+        x = self._kf.x(no_copy=True)
+        x[:4] = bbox_to_z(bbox)
+
+        # update det state
+        self._detection = (bbox, confidence, class_id)
+        self._bbox = bbox
+        self._class_id = class_id
+        self._confidence = confidence
+
+        # remaining track state
+        self._age = 0
+        self._hits = 0
         self._time_since_update = 0
-        self._hit_streak += 1
-
-        updated_bbox = self._kf.update(bbox)
-        self._history.append(updated_bbox)
-
-        return (updated_bbox, self._confidence, self._class_id)
-
-    @property
-    def bbox(self) -> tuple[int, int, int, int]:
-        """
-        Get the current bounding box estimate.
-
-        Returns
-        -------
-        tuple[int, int, int, int]
-            Current bounding box (x1, y1, x2, y2)
-
-        """
-        return self._kf.bbox
+        self._hit_streak = 0
+        self._track_id = track_id
 
     @property
     def detection(self) -> tuple[tuple[int, int, int, int], float, int]:
         """
-        Get the current detection as a complete tuple.
+        Get the current detection state.
 
         Returns
         -------
         tuple[tuple[int, int, int, int], float, int]
-            Current detection as (bbox, confidence, class_id)
+            The current detection in format ((x1, y1, x2, y2), confidence, class_id)
 
         """
-        return (self.bbox, self._confidence, self._class_id)
+        return self._detection
 
     @property
-    def is_confirmed(self) -> bool:
+    def state(self) -> tuple[int, int, int, int]:
         """
-        Check if track is confirmed (has enough hits).
+        Get the tracking state of the track.
 
         Returns
         -------
-        bool
-            True if track has enough hits to be considered confirmed
+        tuple[int, int, int, int]
+            The age, hits, time since update, and hit streak
 
         """
-        return self._hit_streak >= self._min_hits
+        return self._age, self._hits, self._time_since_update, self._hit_streak
 
-    @property
-    def is_deleted(self) -> bool:
+    def predict(self) -> tuple[tuple[int, int, int, int], float, int]:
         """
-        Check if track should be deleted.
+        Predict the next state of the track.
+
+        Advances the state vector.
 
         Returns
         -------
-        bool
-            True if track has been too long without updates
+        tuple[tuple[int, int, int, int], float, int]
+            The predicted detection in format ((x1, y1, x2, y2), confidence, class_id)
 
         """
-        return self._time_since_update > self._max_age
+        x_pred, _ = self._kf.predict(no_copy=True)
 
-    def __repr__(self) -> str:
-        return f"Track(id={self.track_id}, class_id={self.class_id}, bbox={self.bbox})"
+        # update track state
+        if self._time_since_update > 0:
+            self._hit_streak = 0
+        self._age += 1
+        self._time_since_update += 1
+
+        # return bbox
+        self._detection = (x_to_bbox(x_pred), self._confidence, self._class_id)
+        return self._detection
+
+    def update(self, detection: tuple[tuple[int, int, int, int], float, int]) -> None:
+        """
+        Update the track with a new bounding box.
+
+        Parameters
+        ----------
+        detection : tuple[tuple[int, int, int, int], float, int]
+            The new detection in format ((x1, y1, x2, y2), confidence, class_id)
+
+        """
+        # unpack the detection
+        bbox, confidence, class_id = detection
+
+        # update the kf
+        x_pred, _ = self._kf.update(bbox_to_z(bbox), no_copy=True)
+        self._bbox = x_to_bbox(x_pred)
+
+        # update det state
+        self._class_id = class_id
+        self._confidence = (self._confidence + confidence) / 2.0
+
+        # update track state
+        self._time_since_update = 0
+        self._hits += 1
+        self._hit_streak += 1
+
+        # update detection state
+        self._detection = (self._bbox, self._confidence, self._class_id)

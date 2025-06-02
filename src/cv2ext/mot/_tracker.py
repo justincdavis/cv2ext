@@ -21,9 +21,5 @@ class Tracker(ABC):
         """Update the tracker with new detections."""
 
     @abstractmethod
-    def predict(self) -> list[tuple[tuple[int, int, int, int], float, int]]:
-        """Predict the next state of the tracks."""
-
-    @abstractmethod
     def reset(self) -> None:
         """Reset the tracker."""
