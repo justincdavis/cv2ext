@@ -8,6 +8,7 @@ import math
 import operator
 import random
 from abc import ABC, abstractmethod
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -15,6 +16,8 @@ import numpy as np
 from cv2ext._jit import register_jit
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from typing_extensions import Self
 
 
@@ -315,35 +318,6 @@ def _simple_grid_repack_single(
     return new_image, new_grids
 
 
-def _simple_grid_repack(
-    image: np.ndarray,
-    cells: list[tuple[tuple[int, int, int, int], tuple[int, int]]],
-    gridsize: int,
-    regions: int = 1,
-) -> tuple[list[np.ndarray], list[np.ndarray]]:
-    """Repack cells into images using simple grid layout, distributed across regions."""
-    # Distribute cells across regions
-    cell_groups = _distribute_cells_to_regions(cells, regions)
-
-    # Process each region
-    images: list[np.ndarray] = []
-    transforms: list[np.ndarray] = []
-
-    for group in cell_groups:
-        if len(group) == 0:
-            # Empty region - create minimal empty image and transform
-            empty_image = np.zeros((gridsize, gridsize, 3), dtype=np.uint8)
-            empty_transform = np.zeros((1, 1, 2), dtype=int)
-            images.append(empty_image)
-            transforms.append(empty_transform)
-        else:
-            img, trans = _simple_grid_repack_single(image, group, gridsize)
-            images.append(img)
-            transforms.append(trans)
-
-    return images, transforms
-
-
 def _shelf_grid_repack_single(
     image: np.ndarray,
     cells: list[tuple[tuple[int, int, int, int], tuple[int, int]]],
@@ -566,33 +540,45 @@ def _build_groups_optimized(
     return groups
 
 
-def _shelf_grid_repack(
+def _parallel_repack_regions(
     image: np.ndarray,
-    cells: list[tuple[tuple[int, int, int, int], tuple[int, int]]],
+    cell_groups: list[list[tuple[tuple[int, int, int, int], tuple[int, int]]]],
     gridsize: int,
-    regions: int = 1,
+    repack_fn: Callable[
+        [np.ndarray, list[tuple[tuple[int, int, int, int], tuple[int, int]]], int],
+        tuple[np.ndarray, np.ndarray],
+    ],
+    executor: ThreadPoolExecutor,
 ) -> tuple[list[np.ndarray], list[np.ndarray]]:
-    """Repack cells into images using shelf-based bin packing, distributed across regions."""
-    # Distribute cells across regions
-    cell_groups = _distribute_cells_to_regions(cells, regions)
+    """Execute region repacking in parallel using provided thread pool."""
+    num_regions = len(cell_groups)
 
-    # Process each region
-    images: list[np.ndarray] = []
-    transforms: list[np.ndarray] = []
+    # Pre-allocate result lists to maintain ordering
+    images: list[np.ndarray | None] = [None] * num_regions
+    transforms: list[np.ndarray | None] = [None] * num_regions
 
-    for group in cell_groups:
+    def process_region(
+        idx: int,
+        group: list[tuple[tuple[int, int, int, int], tuple[int, int]]],
+    ) -> tuple[int, np.ndarray, np.ndarray]:
         if len(group) == 0:
-            # Empty region - create minimal empty image and transform
-            empty_image = np.zeros((gridsize, gridsize, 3), dtype=np.uint8)
-            empty_transform = np.zeros((1, 1, 2), dtype=int)
-            images.append(empty_image)
-            transforms.append(empty_transform)
-        else:
-            img, trans = _shelf_grid_repack_single(image, group, gridsize)
-            images.append(img)
-            transforms.append(trans)
+            return (
+                idx,
+                np.zeros((gridsize, gridsize, 3), dtype=np.uint8),
+                np.zeros((1, 1, 2), dtype=int),
+            )
+        img, trans = repack_fn(image, group, gridsize)
+        return idx, img, trans
 
-    return images, transforms
+    futures = [
+        executor.submit(process_region, i, g) for i, g in enumerate(cell_groups)
+    ]
+    for future in as_completed(futures):
+        idx, img, trans = future.result()
+        images[idx] = img
+        transforms[idx] = trans
+
+    return images, transforms  # type: ignore[return-value]
 
 
 class AbstractGridFramePacker(AbstractFramePacker):
@@ -646,6 +632,9 @@ class AbstractGridFramePacker(AbstractFramePacker):
 
         # tracking variables
         self._counter: int = 0
+
+        # executor for parallel region processing
+        self._executor: ThreadPoolExecutor | None = None
 
     def reset(
         self: Self,
@@ -707,6 +696,18 @@ class AbstractGridFramePacker(AbstractFramePacker):
                 self._cells[index, :4] = bbox
                 self._cells[index, 4:] = (i, j)
                 index += 1
+
+    def _get_executor(self: Self, max_workers: int) -> ThreadPoolExecutor:
+        """Get or create thread pool executor for parallel region processing."""
+        if self._executor is None:
+            self._executor = ThreadPoolExecutor(max_workers=max_workers)
+        return self._executor
+
+    def close(self: Self) -> None:
+        """Release resources. Call when done using the packer."""
+        if self._executor is not None:
+            self._executor.shutdown(wait=False)
+            self._executor = None
 
     @abstractmethod
     def _should_explore(
@@ -884,20 +885,25 @@ class AbstractGridFramePacker(AbstractFramePacker):
             self._counter += 1
             return packed_image, transform
 
-        # Multi-region path
+        # Multi-region path - parallel processing
+        cell_groups = _distribute_cells_to_regions(filtered_cells, regions)
+        executor = self._get_executor(max_workers=regions)
+
         if method == "simple":
-            images, transforms = _simple_grid_repack(
+            images, transforms = _parallel_repack_regions(
                 image,
-                filtered_cells,
+                cell_groups,
                 self._gridsize,
-                regions,
+                _simple_grid_repack_single,
+                executor,
             )
         else:
-            images, transforms = _shelf_grid_repack(
+            images, transforms = _parallel_repack_regions(
                 image,
-                filtered_cells,
+                cell_groups,
                 self._gridsize,
-                regions,
+                _shelf_grid_repack_single,
+                executor,
             )
 
         # update the image
