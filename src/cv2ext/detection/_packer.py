@@ -344,7 +344,6 @@ def _simple_grid_repack(
     return images, transforms
 
 
-@register_jit()
 def _shelf_grid_repack_single(
     image: np.ndarray,
     cells: list[tuple[tuple[int, int, int, int], tuple[int, int]]],
@@ -358,79 +357,22 @@ def _shelf_grid_repack_single(
     # ======================
     # STEP 1: Grouping cells
     # ======================
-    # for each cell, identify it it belongs to a 2x2 square
-    # if 2x2 square all needs to be matched, keep it as a group
-    to_match: set[tuple[int, int]] = {loc for _, loc in cells}
-    matched: set[tuple[int, int]] = set()
-    groups: list[list[tuple[int, int]]] = []
-
-    # if we can match this cell, check combos of surrounding cells
-    offset_groups: list[list[tuple[int, int]]] = [
-        # 2x2 square sampling sets
-        [(0, -1), (-1, 0), (-1, -1)],  # down/left
-        [(0, 1), (-1, 0), (-1, 1)],  # down/right
-        [(0, 1), (1, 0), (1, 1)],  # up/right
-        [(0, -1), (1, 0), (1, -1)],  # up/left
-        # 1x2 sampling sets
-        [(0, -1)],
-        [(0, 1)],
-        # 2x1 sampling sets
-        [(-1, 0)],
-        [(1, 0)],
-    ]
-
-    # construct lookup for bboxes from loc
+    # Build cell grid and lookup table
     height, width = image.shape[:2]
     rows = math.ceil(height / gridsize)
     cols = math.ceil(width / gridsize)
+
+    # Create boolean grid of active cells and bbox lookup
+    cell_grid = np.zeros((rows, cols), dtype=np.bool_)
     lookup: list[list[tuple[int, int, int, int]]] = [
         [(0, 0, 0, 0) for _ in range(cols)] for _ in range(rows)
     ]
+    for bbox, (r, c) in cells:
+        cell_grid[r, c] = True
+        lookup[r][c] = bbox
 
-    # iterate over all cells in cells
-    for bbox1, loc1 in cells:
-        # fill out the lookup
-        lookup[loc1[0]][loc1[1]] = bbox1
-
-        if loc1 in matched:
-            continue
-
-        # for each set of offsets making a 2x2 square
-        for offsets in offset_groups:
-            found = 0
-            # compute the new locations
-            new_locs = [
-                (loc1[0] + offset[0], loc1[1] + offset[1]) for offset in offsets
-            ]
-
-            # check if they are valid
-            for new_loc in new_locs:
-                # if new location is not matched and needs to be matched
-                if new_loc not in matched and new_loc in to_match:
-                    found += 1
-
-            # if we found that all 3 adjacent cells are valid
-            # we have a valid match setup
-            # skip if did not match all 3
-            if found != len(offsets):
-                continue
-
-            # make new group from 3 matches
-            new_group = [loc1, *new_locs]
-            groups.append(new_group)
-            for new_loc in new_group:
-                matched.add(new_loc)
-                to_match.remove(new_loc)
-
-            # do not check anymore groups
-            break
-
-        # execute the else block if the for loop finished
-        # meaning no group found and no break occured
-        else:
-            groups.append([loc1])
-            matched.add(loc1)
-            to_match.remove(loc1)
+    # Optimized grouping using vectorized pattern detection
+    groups = _build_groups_optimized(cell_grid)
 
     # ===============================
     # STEP 2: Repacking using shelves
@@ -553,6 +495,75 @@ def _shelf_grid_repack_single(
 
     # finally return the completed new_image and transform info
     return new_image, new_grid
+
+
+def _build_groups_optimized(
+    cell_grid: np.ndarray,
+) -> list[list[tuple[int, int]]]:
+    """Build groups using vectorized pattern detection and direct group construction.
+
+    Parameters
+    ----------
+    cell_grid : np.ndarray
+        Boolean array of shape (rows, cols) indicating active cells.
+
+    Returns
+    -------
+    list[list[tuple[int, int]]]
+        List of groups, each group is a list of (row, col) coordinates.
+
+    """
+    rows, cols = cell_grid.shape
+    used = np.zeros((rows, cols), dtype=np.bool_)
+    groups: list[list[tuple[int, int]]] = []
+
+    # Vectorized detection of 2x2 patterns (all 4 cells must be active)
+    if rows > 1 and cols > 1:
+        valid_2x2 = (
+            cell_grid[:-1, :-1]
+            & cell_grid[:-1, 1:]
+            & cell_grid[1:, :-1]
+            & cell_grid[1:, 1:]
+        )
+        # Find valid 2x2 top-left corners
+        r_2x2, c_2x2 = np.where(valid_2x2)
+        for i in range(len(r_2x2)):
+            r, c = int(r_2x2[i]), int(c_2x2[i])
+            if not (used[r, c] or used[r, c + 1] or used[r + 1, c] or used[r + 1, c + 1]):
+                groups.append([(r, c), (r, c + 1), (r + 1, c), (r + 1, c + 1)])
+                used[r, c] = True
+                used[r, c + 1] = True
+                used[r + 1, c] = True
+                used[r + 1, c + 1] = True
+
+    # Vectorized detection of 1x2 horizontal pairs
+    if cols > 1:
+        valid_1x2 = cell_grid[:, :-1] & cell_grid[:, 1:]
+        r_1x2, c_1x2 = np.where(valid_1x2)
+        for i in range(len(r_1x2)):
+            r, c = int(r_1x2[i]), int(c_1x2[i])
+            if not used[r, c] and not used[r, c + 1]:
+                groups.append([(r, c), (r, c + 1)])
+                used[r, c] = True
+                used[r, c + 1] = True
+
+    # Vectorized detection of 2x1 vertical pairs
+    if rows > 1:
+        valid_2x1 = cell_grid[:-1, :] & cell_grid[1:, :]
+        r_2x1, c_2x1 = np.where(valid_2x1)
+        for i in range(len(r_2x1)):
+            r, c = int(r_2x1[i]), int(c_2x1[i])
+            if not used[r, c] and not used[r + 1, c]:
+                groups.append([(r, c), (r + 1, c)])
+                used[r, c] = True
+                used[r + 1, c] = True
+
+    # Remaining singles
+    r_single, c_single = np.where(cell_grid & ~used)
+    for i in range(len(r_single)):
+        groups.append([(int(r_single[i]), int(c_single[i]))])
+
+    return groups
 
 
 def _shelf_grid_repack(
