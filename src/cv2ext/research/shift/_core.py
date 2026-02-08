@@ -95,11 +95,14 @@ class Shift:
         ] = dict(model_data)
 
         # general tracking info
+        loaded_model_names = set(self._models.keys())
         most_accurate_model: str | None = None
         highest_accuracy: float = 0.0
         # load data from model characterization
         for root, dirs, _ in os.walk(str(data_dir)):
             for directory in dirs:
+                if directory not in loaded_model_names:
+                    continue
                 dirpath = Path(root) / directory
                 with Path.open(dirpath / f"{directory}.json") as f:
                     data = json.load(f)
@@ -163,7 +166,8 @@ class Shift:
 
         new_model = self._scheduler.run(self._last_model, image, bboxes, scores)
 
-        self._last_model = new_model
+        if new_model in self._models:
+            self._last_model = new_model
 
         return dets
 

@@ -97,7 +97,7 @@ class ShiftScheduler:
         self._model_stats = {}
         for root, dirs, files in os.walk(self._stats_dir):
             for file in files:
-                if "conf_graph" in file:
+                if "conf_graph" in file and not file.endswith(".pkl"):
                     self._conf_graph_path = Path(root) / file
                 # elif "iou_graph" in file:
                 #     self._iou_graph_path = Path(root) / file
@@ -106,10 +106,25 @@ class ShiftScheduler:
                 directorypath = Path(root) / directory
                 with Path.open(Path(directorypath) / f"{modelname}.json") as f:
                     self._model_stats[modelname] = json.load(f)
-        self._conf_graph: nx.Graph | nx.DiGraph = nx.read_weighted_edgelist(
-            self._conf_graph_path,
-            nodetype=str,
-        )
+                for bin_key, bin_val in (
+                    self._model_stats[modelname].get("bins", {}).items()
+                ):
+                    if bin_key == "num_bins":
+                        continue
+                    if "fit" in bin_val and isinstance(bin_val["fit"], str):
+                        parts = bin_val["fit"].strip("[] ").split(",")
+                        bin_val["fit"] = (float(parts[0]), float(parts[1]))
+        pkl_path = Path(self._stats_dir) / "conf_graph.pkl"
+        if pkl_path.exists():
+            with Path.open(pkl_path, "rb") as f:
+                self._conf_graph: nx.Graph | nx.DiGraph = pickle.load(f)
+        else:
+            self._conf_graph: nx.Graph | nx.DiGraph = nx.read_weighted_edgelist(
+                self._conf_graph_path,
+                nodetype=str,
+            )
+            with Path.open(pkl_path, "wb") as f:
+                pickle.dump(self._conf_graph, f, pickle.HIGHEST_PROTOCOL)
         # self._iou_graph = nx.read_weighted_edgelist(self._iou_graph_path, nodetype=str)
         self._possible_models = self._get_possible_models()
 
@@ -319,7 +334,7 @@ class ShiftScheduler:
                 (24, 24),
             )
             ncc_vals.append(bbox_ncc)
-        bbox_ncc = float(np.mean(ncc_vals))
+        bbox_ncc = float(np.mean(ncc_vals)) if len(ncc_vals) > 0 else 0.0
         image_ncc = ncc(image, self._last_image, (112, 112))
         self._last_image = image
         self._last_bboxes = bboxes
@@ -334,6 +349,8 @@ class ShiftScheduler:
                 confidence = i / 100
                 # get the node name
                 node_name = self._get_node_name(modelname, confidence)
+                if node_name in accuracy_estimates:
+                    continue
                 # get the neighbors of the node
                 estimates = self._get_accuracy_estimates(node_name)
                 # save to dict
@@ -354,6 +371,8 @@ class ShiftScheduler:
         return sorted(nodeset)
 
     def _conf_to_bin(self: Self, confidence: float) -> float:
+        if math.isnan(confidence):
+            confidence = 0.0
         return math.ceil(confidence * self._num_bins) / self._num_bins
 
     def _get_node_name(self: Self, modelname: str, raw_confidence: float) -> str:
@@ -387,10 +406,7 @@ class ShiftScheduler:
                 self._model_stats[modelname]["bins"][confidence]["iou_mean"],
             )
         else:
-            fit_data: str = self._model_stats[modelname]["bins"][confidence]["fit"]
-            split_fit_data = list(fit_data.split(","))
-            slope = float(split_fit_data[0].replace("[", ""))
-            intercept = float(split_fit_data[1].replace("]", ""))
+            slope, intercept = self._model_stats[modelname]["bins"][confidence]["fit"]
             accuracy = slope * raw_confidence + intercept
         return node_name, accuracy
 
@@ -487,7 +503,7 @@ class ShiftScheduler:
         """
         # solve the ncc
         ncc = self._ncc(image, bboxes)
-        confidence = float(np.mean(scores))
+        confidence = float(np.mean(scores)) if len(scores) > 0 else 0.0
         if (
             ncc * confidence >= self._accuracy_threshold
             and self._last_model is not None
