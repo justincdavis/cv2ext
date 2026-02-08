@@ -338,7 +338,10 @@ class ShiftScheduler:
         image_ncc = ncc(image, self._last_image, (112, 112))
         self._last_image = image
         self._last_bboxes = bboxes
-        return max(bbox_ncc * image_ncc, 0.0)
+        result = bbox_ncc * image_ncc
+        if math.isnan(result):
+            return 0.0
+        return max(result, 0.0)
 
     def _pregenerate(
         self: Self,
@@ -504,6 +507,8 @@ class ShiftScheduler:
         # solve the ncc
         ncc = self._ncc(image, bboxes)
         confidence = float(np.mean(scores)) if len(scores) > 0 else 0.0
+        if math.isnan(confidence):
+            confidence = 0.0
         if (
             ncc * confidence >= self._accuracy_threshold
             and self._last_model is not None
