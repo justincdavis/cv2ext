@@ -23,6 +23,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: PYthon :: 3.14",
     "Programming Language :: Python :: Implementation :: CPython",
     "License :: OSI Approved :: MIT License",
     "Operating System :: Microsoft :: Windows",
@@ -36,7 +37,7 @@ classifiers = [
     "Intended Audience :: End Users/Desktop",
     "Typing :: Typed",
 ]
-requires-python=">=3.8, <=3.14"
+requires-python=">=3.8, <3.15"
 dependencies = [
     "opencv-python>=4.8.0",
     "numpy>=1.21.0,<3.0.0",
