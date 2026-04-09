@@ -210,7 +210,7 @@ __all__ = [
     "tracking",
     "video",
 ]
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 _log.info(f"Initialized cv2ext with version {__version__}")
 
